@@ -133,4 +133,70 @@ public static class JsonHelper
             return null;
         }
     }
+
+    /// <summary>
+    /// JSON要素からdecimal値を取得する
+    /// </summary>
+    public static decimal? ParseDecimalFromJson(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        if (prop.ValueKind == JsonValueKind.Null)
+            return null;
+
+        if (prop.ValueKind == JsonValueKind.Number)
+            return prop.GetDecimal();
+
+        if (prop.ValueKind == JsonValueKind.String)
+            return ReceiptValidationHelper.ParseAmountString(prop.GetString());
+
+        return null;
+    }
+
+    /// <summary>
+    /// JSON要素から税率（int値）を取得する
+    /// </summary>
+    public static int? ParseTaxRateFromJson(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        if (prop.ValueKind == JsonValueKind.Null)
+            return null;
+
+        // 数値の場合（小数または整数）
+        if (prop.ValueKind == JsonValueKind.Number)
+        {
+            // GetDecimal()で取得してからintに変換
+            var decimalValue = prop.GetDecimal();
+            return (int)Math.Round(decimalValue);  // 四捨五入
+        }
+
+        // 文字列の場合
+        if (prop.ValueKind == JsonValueKind.String)
+        {
+            var strValue = prop.GetString();
+            if (decimal.TryParse(strValue, out var decimalValue))
+            {
+                return (int)Math.Round(decimalValue);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// JSON要素から文字列を取得する
+    /// </summary>
+    public static string? GetStringOrNull(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        if (prop.ValueKind == JsonValueKind.Null)
+            return null;
+
+        return prop.GetString();
+    }
 }

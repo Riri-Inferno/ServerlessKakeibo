@@ -59,7 +59,7 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
 
             // 3. プロンプトの構築
             var systemPrompt = BuildSystemPrompt(request.Options?.ExpectedReceiptType);
-            var userPrompt = SanitizeCustomPrompt(request.CustomPrompt);
+            var userPrompt = TextHelper.SanitizeCustomPrompt(request.CustomPrompt);
 
             // 4. VertexAI呼び出し用の画像リスト作成
             var images = new List<ImageAttachment>
@@ -216,12 +216,12 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 Normalized = new NormalizedTransaction
                 {
                     TransactionDate = ParseDateFromJson(root, "transaction_date"),
-                    AmountTotal = ParseDecimalFromJson(root, "total_amount"),
+                    AmountTotal = JsonHelper.ParseDecimalFromJson(root, "total_amount"),
                     Currency = root.TryGetProperty("currency", out var currProp)
                         ? currProp.GetString() ?? "JPY"
                         : "JPY",
-                    Payer = GetStringOrNull(root, "payer"),
-                    Payee = GetStringOrNull(root, "payee"),
+                    Payer = JsonHelper.GetStringOrNull(root, "payer"),
+                    Payee = JsonHelper.GetStringOrNull(root, "payee"),
                     PaymentMethod = ParsePaymentMethod(root, "payment_method"),
                     Taxes = ParseTaxes(root),
                     Items = ParseItems(root),
@@ -319,40 +319,6 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     }
 
     /// <summary>
-    /// 数値をパース
-    /// </summary>
-    private decimal? ParseDecimalFromJson(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var prop))
-            return null;
-
-        if (prop.ValueKind == JsonValueKind.Null)
-            return null;
-
-        if (prop.ValueKind == JsonValueKind.Number)
-            return prop.GetDecimal();
-
-        if (prop.ValueKind == JsonValueKind.String)
-            return ReceiptValidationHelper.ParseAmountString(prop.GetString());
-
-        return null;
-    }
-
-    /// <summary>
-    /// 文字列を取得（nullの場合はnull）
-    /// </summary>
-    private string? GetStringOrNull(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var prop))
-            return null;
-
-        if (prop.ValueKind == JsonValueKind.Null)
-            return null;
-
-        return prop.GetString();
-    }
-
-    /// <summary>
     /// 税情報リストをパース
     /// </summary>
     private List<TaxDetail> ParseTaxes(JsonElement root)
@@ -367,51 +333,19 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
             {
                 var tax = new TaxDetail
                 {
-                    TaxType = GetStringOrNull(taxElement, "tax_type") ?? "消費税",
-                    TaxRate = ParseTaxRateFromJson(taxElement, "tax_rate"),
-                    TaxAmount = ParseDecimalFromJson(taxElement, "tax_amount"),
+                    TaxType = JsonHelper.GetStringOrNull(taxElement, "tax_type") ?? "消費税",
+                    TaxRate = JsonHelper.ParseTaxRateFromJson(taxElement, "tax_rate"),
+                    TaxAmount = JsonHelper.ParseDecimalFromJson(taxElement, "tax_amount"),
                     IsFixedAmount = taxElement.TryGetProperty("is_fixed_amount", out var fixedProp)
                         ? fixedProp.GetBoolean()
                         : false,
-                    ApplicableCategory = GetStringOrNull(taxElement, "applicable_category")
+                    ApplicableCategory = JsonHelper.GetStringOrNull(taxElement, "applicable_category")
                 };
                 taxes.Add(tax);
             }
         }
 
         return taxes;
-    }
-
-    /// <summary>
-    /// 税率をパース
-    /// </summary>
-    private int? ParseTaxRateFromJson(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var prop))
-            return null;
-
-        if (prop.ValueKind == JsonValueKind.Null)
-            return null;
-
-        // 数値の場合（小数または整数）
-        if (prop.ValueKind == JsonValueKind.Number)
-        {
-            // GetDecimal()で取得してからintに変換
-            var decimalValue = prop.GetDecimal();
-            return (int)Math.Round(decimalValue);  // 四捨五入
-        }
-
-        // 文字列の場合
-        if (prop.ValueKind == JsonValueKind.String)
-        {
-            var strValue = prop.GetString();
-            if (decimal.TryParse(strValue, out var decimalValue))
-            {
-                return (int)Math.Round(decimalValue);
-            }
-        }
-
-        return null;
     }
 
     /// <summary>
@@ -425,11 +359,11 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
 
         return new ShopDetails
         {
-            PhoneNumber = GetStringOrNull(shopProp, "phone_number"),
-            Address = GetStringOrNull(shopProp, "address"),
-            PostalCode = GetStringOrNull(shopProp, "postal_code"),
-            InvoiceRegistrationNumber = GetStringOrNull(shopProp, "invoice_registration_number"),
-            RegisteredBusinessName = GetStringOrNull(shopProp, "registered_business_name")
+            PhoneNumber = JsonHelper.GetStringOrNull(shopProp, "phone_number"),
+            Address = JsonHelper.GetStringOrNull(shopProp, "address"),
+            PostalCode = JsonHelper.GetStringOrNull(shopProp, "postal_code"),
+            InvoiceRegistrationNumber = JsonHelper.GetStringOrNull(shopProp, "invoice_registration_number"),
+            RegisteredBusinessName = JsonHelper.GetStringOrNull(shopProp, "registered_business_name")
         };
     }
 
@@ -448,47 +382,16 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
         {
             var item = new NormalizedItem
             {
-                Name = GetStringOrNull(itemElement, "name"),
-                Quantity = ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
-                UnitPrice = ParseDecimalFromJson(itemElement, "unit_price"),
-                Amount = ParseDecimalFromJson(itemElement, "amount")
+                Name = JsonHelper.GetStringOrNull(itemElement, "name"),
+                Quantity = JsonHelper.ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
+                UnitPrice = JsonHelper.ParseDecimalFromJson(itemElement, "unit_price"),
+                Amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount")
             };
 
             items.Add(item);
         }
 
         return items;
-    }
-
-    /// <summary>
-    /// カスタムプロンプトをサニタイズして安全にする
-    /// </summary>
-    /// <param name="customPrompt"></param>
-    /// <returns></returns>
-    private string SanitizeCustomPrompt(string? customPrompt)
-    {
-        if (string.IsNullOrWhiteSpace(customPrompt))
-            return "この画像を解析してください。";
-
-        // 危険なキーワードを除去
-        var dangerousKeywords = new[]
-        {
-        "ignore", "forget", "system", "admin", "override",
-        "無視", "忘れ", "システム", "管理者", "上書き"
-    };
-
-        foreach (var keyword in dangerousKeywords)
-        {
-            customPrompt = customPrompt.Replace(keyword, "", StringComparison.OrdinalIgnoreCase);
-        }
-
-        // 長さ制限
-        if (customPrompt.Length > 1000)
-        {
-            customPrompt = customPrompt.Substring(0, 1000);
-        }
-
-        return customPrompt;
     }
 
     /// <summary>
