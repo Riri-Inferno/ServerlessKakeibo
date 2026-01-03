@@ -4,12 +4,12 @@ namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Factories;
 
 public class BuildSystemPromptFactory
 {
-    /// <summary>
-    /// システムプロンプトを構築
-    /// </summary>
-    public static string BuildSystemPrompt(ReceiptType? expectedType)
-    {
-        var basePrompt = @"あなたは領収書解析の専門家です。
+  /// <summary>
+  /// システムプロンプトを構築
+  /// </summary>
+  public static string BuildSystemPrompt(ReceiptType? expectedType)
+  {
+    var basePrompt = @"あなたは領収書解析の専門家です。
 提供された画像から、領収書・請求書・クレジットカード明細などの情報を正確に抽出してください。
 
 以下のJSON形式で応答してください。情報が見つからない場合はnullを設定してください：
@@ -69,25 +69,25 @@ public class BuildSystemPromptFactory
 7. 税金が複数ある場合は、taxes配列に全て含めてください
 8. インボイス番号が記載されている場合は必ず抽出してください";
 
-        if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
-        {
-            basePrompt += $"\n\n注意：この書類は「{GetReceiptTypeName(expectedType.Value)}」である可能性が高いです。";
-        }
-
-        return basePrompt;
-    }
-
-    /// <summary>
-    /// 領収書タイプの日本語名を取得
-    /// </summary>
-    private static string GetReceiptTypeName(ReceiptType type)
+    if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
     {
-        return type switch
-        {
-            ReceiptType.Receipt => "領収書",
-            ReceiptType.Invoice => "請求書",
-            ReceiptType.CreditCardSlip => "クレジットカード利用明細",
-            _ => "不明な書類"
-        };
+      basePrompt += $"\n\n注意：この書類は「{GetReceiptTypeName(expectedType.Value)}」である可能性が高いです。";
     }
+
+    return basePrompt;
+  }
+
+  /// <summary>
+  /// 領収書タイプの日本語名を取得
+  /// </summary>
+  private static string GetReceiptTypeName(ReceiptType type)
+  {
+    return type switch
+    {
+      ReceiptType.Receipt => "領収書",
+      ReceiptType.Invoice => "請求書",
+      ReceiptType.CreditCardSlip => "クレジットカード利用明細",
+      _ => "不明な書類"
+    };
+  }
 }
