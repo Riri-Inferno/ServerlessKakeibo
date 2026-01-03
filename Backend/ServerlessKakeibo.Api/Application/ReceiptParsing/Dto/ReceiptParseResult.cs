@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
@@ -11,6 +12,7 @@ public class ReceiptParseResult
     /// <summary>
     /// 領収書種別
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ReceiptType ReceiptType { get; set; }
 
     /// <summary>
@@ -62,6 +64,7 @@ public class NormalizedTransaction
     /// <summary>
     /// 支払方法
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public PaymentMethod? PaymentMethod { get; set; }
 
     /// <summary>
