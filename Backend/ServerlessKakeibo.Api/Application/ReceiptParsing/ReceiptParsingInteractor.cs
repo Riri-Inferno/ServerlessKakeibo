@@ -449,7 +449,7 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
             var item = new NormalizedItem
             {
                 Name = GetStringOrNull(itemElement, "name"),
-                Quantity = ParseDecimalFromJson(itemElement, "quantity"),
+                Quantity = ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
                 UnitPrice = ParseDecimalFromJson(itemElement, "unit_price"),
                 Amount = ParseDecimalFromJson(itemElement, "amount")
             };
