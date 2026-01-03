@@ -1,4 +1,4 @@
-namespace ServerlessKakeibo.Api.Domain.Receipt;
+namespace ServerlessKakeibo.Api.Domain.Receipt.Models;
 
 /// <summary>
 /// 店舗詳細情報

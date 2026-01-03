@@ -1,4 +1,4 @@
-namespace ServerlessKakeibo.Api.Domain.Receipt;
+namespace ServerlessKakeibo.Api.Domain.Receipt.Models;
 
 /// <summary>
 /// 税金詳細情報

@@ -3,7 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Contracts;
-using ServerlessKakeibo.Api.Domain.Receipt;
+using ServerlessKakeibo.Api.Domain.Receipt.Models;
 using ServerlessKakeibo.Api.Service.Interface;
 using ServerlessKakeibo.Api.Service.Models;
 using System.Text.Json;

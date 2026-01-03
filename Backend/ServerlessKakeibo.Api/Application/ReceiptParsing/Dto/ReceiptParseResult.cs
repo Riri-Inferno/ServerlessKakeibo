@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
-using ServerlessKakeibo.Api.Domain.Receipt;
+using ServerlessKakeibo.Api.Domain.Receipt.Models;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 
