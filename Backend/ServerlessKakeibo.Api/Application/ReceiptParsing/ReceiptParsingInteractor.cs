@@ -509,25 +509,40 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
         if (string.IsNullOrWhiteSpace(result.Normalized.Payee))
             result.MissingFields.Add("受取者");
 
-        // ステータス判定
-        if (result.MissingFields.Any())
+        // 明細項目の特別チェック（最優先）
+        bool hasNoItems = result.Normalized.Items == null || !result.Normalized.Items.Any();
+        if (hasNoItems)
         {
             result.ParseStatus = ParseStatus.Partial;
-            result.Warnings.Add($"以下の情報が取得できませんでした: {string.Join(", ", result.MissingFields)}");
+            result.Warnings.Add($"明細が取得できませんでした。信頼度: {result.Confidence:P0}");
         }
-        else if (result.Confidence < CONFIDENCE_THRESHOLD_LOW)
+
+        // ステータス判定（明細がある場合のみ）
+        if (!hasNoItems)
         {
-            result.ParseStatus = ParseStatus.LowConfidence;
-            result.Warnings.Add($"解析の信頼度が低いです（{result.Confidence:P0}）。内容を確認してください。");
+            if (result.MissingFields.Any())
+            {
+                result.ParseStatus = ParseStatus.Partial;
+                result.Warnings.Add($"以下の情報が取得できませんでした: {string.Join(", ", result.MissingFields)}");
+            }
+            else if (result.Confidence < CONFIDENCE_THRESHOLD_LOW)
+            {
+                result.ParseStatus = ParseStatus.LowConfidence;
+                result.Warnings.Add($"解析の信頼度が低いです（{result.Confidence:P0}）。内容を確認してください。");
+            }
+            else if (result.Confidence < CONFIDENCE_THRESHOLD_WARNING)
+            {
+                result.ParseStatus = ParseStatus.Complete;
+                result.Warnings.Add($"信頼度: {result.Confidence:P0}");
+            }
+            else
+            {
+                result.ParseStatus = ParseStatus.Complete;
+            }
         }
-        else if (result.Confidence < CONFIDENCE_THRESHOLD_WARNING)
+        else if (result.MissingFields.Any())
         {
-            result.ParseStatus = ParseStatus.Complete;
-            result.Warnings.Add($"信頼度: {result.Confidence:P0}");
-        }
-        else
-        {
-            result.ParseStatus = ParseStatus.Complete;
+            result.Warnings.Add($"さらに以下の情報も取得できませんでした: {string.Join(", ", result.MissingFields)}");
         }
 
         // インボイス番号の検証

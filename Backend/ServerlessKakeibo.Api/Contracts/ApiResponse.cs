@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Contracts.Enums;
 
 namespace ServerlessKakeibo.Api.Contracts;
@@ -11,6 +12,7 @@ public class ApiResponse<T>
     /// <summary>
     /// API ステータス
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ApiStatus Status { get; set; }
 
     /// <summary>
