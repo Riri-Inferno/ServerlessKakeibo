@@ -6,7 +6,7 @@ namespace ServerlessKakeibo.Api.Domain.Receipt.Services;
 /// <summary>
 /// 領収書解析結果の評価とエンリッチを行うドメインサービス
 /// </summary>
-public class ReceiptEvaluator
+public class ReceiptEvaluatorService
 {
     /// <summary>
     /// 解析結果を評価し、ステータス設定や警告メッセージの追加を行う
