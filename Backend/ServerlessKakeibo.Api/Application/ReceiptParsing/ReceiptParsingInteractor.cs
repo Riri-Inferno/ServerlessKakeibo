@@ -3,6 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Contracts;
+using ServerlessKakeibo.Api.Domain.Receipt;
 using ServerlessKakeibo.Api.Service.Interface;
 using ServerlessKakeibo.Api.Service.Models;
 using System.Text.Json;
@@ -58,17 +59,17 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
 
             // 3. プロンプトの構築
             var systemPrompt = BuildSystemPrompt(request.Options?.ExpectedReceiptType);
-            var userPrompt = request.CustomPrompt ?? "この画像を解析してください。";
+            var userPrompt = SanitizeCustomPrompt(request.CustomPrompt);
 
             // 4. VertexAI呼び出し用の画像リスト作成
             var images = new List<ImageAttachment>
+        {
+            new ImageAttachment
             {
-                new ImageAttachment
-                {
-                    Base64Data = base64Image,
-                    MimeType = mimeType
-                }
-            };
+                Base64Data = base64Image,
+                MimeType = mimeType
+            }
+        };
 
             // 5. VertexAI API呼び出し
             _logger.LogDebug("VertexAI APIを呼び出します");
@@ -89,8 +90,11 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
             // 7. JSONをパースして結果オブジェクトに変換
             var result = ParseLlmResponse(cleanedJson!, request.Options?.IncludeRaw ?? true);
 
-            _logger.LogInformation("領収書解析が正常に完了しました。種別: {ReceiptType}, 信頼度: {Confidence}",
-                result.ReceiptType, result.Confidence);
+            // 8. 結果の評価とエンリッチ
+            result = EvaluateAndEnrichResult(result);
+
+            _logger.LogInformation("領収書解析が完了。ステータス: {Status}, 種別: {Type}, 信頼度: {Confidence}",
+                result.ParseStatus, result.ReceiptType, result.Confidence);
 
             return result;
         }
@@ -114,16 +118,21 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
 {
   ""receipt_type"": ""Receipt|Invoice|CreditCardSlip|Unknown"",
   ""confidence"": 0.0-1.0の数値,
-  ""transaction_date"": ""yyyy-MM-dd形式の日付"",
+  ""transaction_date"": ""yyyy-MM-dd HH:mm:ss形式（時刻が記載されていない場合は00:00:00）"",
   ""total_amount"": 金額（数値）,
   ""currency"": ""通貨コード（JPY等）"",
   ""payer"": ""支払者名"",
   ""payee"": ""受取者名（店舗名等）"",
   ""payment_method"": ""Cash|CreditCard|DebitCard|ElectronicMoney|QRCodePayment|BankTransfer|Other|Unknown"",
-  ""tax_info"": {
-    ""tax_rate"": 税率（パーセント）,
-    ""tax_amount"": 税額
-  },
+  ""taxes"": [
+    {
+      ""tax_type"": ""消費税|入湯税|宿泊税|その他"",
+      ""tax_rate"": 税率（％、固定額の場合はnull）,
+      ""tax_amount"": 税額,
+      ""is_fixed_amount"": 固定額かどうか（true/false）,
+      ""applicable_category"": ""軽減税率対象|標準税率|その他""
+    }
+  ],
   ""items"": [
     {
       ""name"": ""商品名"",
@@ -131,7 +140,14 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
       ""unit_price"": 単価,
       ""amount"": 金額
     }
-  ]
+  ],
+  ""shop_details"": {
+    ""phone_number"": ""電話番号（ハイフンあり）"",
+    ""address"": ""住所"",
+    ""postal_code"": ""郵便番号（ハイフンあり）"",
+    ""invoice_registration_number"": ""インボイス番号（T + 13桁）"",
+    ""registered_business_name"": ""インボイス登録事業者名""
+  }
 }
 
 支払方法の判定基準：
@@ -145,12 +161,14 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
 - Unknown: 不明または判定不可
 
 重要な指示：
-1. 日付は必ずyyyy-MM-dd形式に変換してください
+1. 日付は必ずyyyy-MM-dd HH:mm:ss形式に変換してください（時刻情報がある場合は必ず含める）
 2. 金額は数値のみで、通貨記号や単位は含めないでください
 3. 判定の信頼度を0.0から1.0の範囲で設定してください
 4. 不明な項目はnullとしてください
 5. 必ず有効なJSONを返してください
-6. JSONのみを返し、説明文は含めないでください";
+6. JSONのみを返し、説明文は含めないでください
+7. 税金が複数ある場合は、taxes配列に全て含めてください
+8. インボイス番号が記載されている場合は必ず抽出してください";
 
         if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
         {
@@ -205,9 +223,15 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                     Payer = GetStringOrNull(root, "payer"),
                     Payee = GetStringOrNull(root, "payee"),
                     PaymentMethod = ParsePaymentMethod(root, "payment_method"),
-                    Tax = ParseTaxInfo(root),
-                    Items = ParseItems(root)
-                }
+                    Taxes = ParseTaxes(root),
+                    Items = ParseItems(root),
+                    ShopDetails = ParseShopDetails(root)
+                },
+
+                // 初期ステータス
+                ParseStatus = ParseStatus.Complete,
+                Warnings = new List<string>(),
+                MissingFields = new List<string>()
             };
 
             // 生データを含める場合
@@ -230,8 +254,12 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 Normalized = new NormalizedTransaction
                 {
                     Currency = "JPY",
-                    Items = new List<NormalizedItem>()
-                }
+                    Items = new List<NormalizedItem>(),
+                    Taxes = new List<TaxDetail>()
+                },
+                ParseStatus = ParseStatus.Failed,
+                Warnings = new List<string> { "解析に失敗しました" },
+                MissingFields = new List<string>()
             };
         }
     }
@@ -293,9 +321,12 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     /// <summary>
     /// 数値をパース
     /// </summary>
-    private decimal? ParseDecimalFromJson(JsonElement root, string propertyName)
+    private decimal? ParseDecimalFromJson(JsonElement element, string propertyName)
     {
-        if (!root.TryGetProperty(propertyName, out var prop))
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        if (prop.ValueKind == JsonValueKind.Null)
             return null;
 
         if (prop.ValueKind == JsonValueKind.Number)
@@ -322,20 +353,83 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     }
 
     /// <summary>
-    /// 税情報をパース
+    /// 税情報リストをパース
     /// </summary>
-    private TaxInfo? ParseTaxInfo(JsonElement root)
+    private List<TaxDetail> ParseTaxes(JsonElement root)
     {
-        if (!root.TryGetProperty("tax_info", out var taxProp) ||
-            taxProp.ValueKind == JsonValueKind.Null)
+        var taxes = new List<TaxDetail>();
+
+        // taxes配列から取得
+        if (root.TryGetProperty("taxes", out var taxesProp) &&
+            taxesProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var taxElement in taxesProp.EnumerateArray())
+            {
+                var tax = new TaxDetail
+                {
+                    TaxType = GetStringOrNull(taxElement, "tax_type") ?? "消費税",
+                    TaxRate = ParseTaxRateFromJson(taxElement, "tax_rate"),
+                    TaxAmount = ParseDecimalFromJson(taxElement, "tax_amount"),
+                    IsFixedAmount = taxElement.TryGetProperty("is_fixed_amount", out var fixedProp)
+                        ? fixedProp.GetBoolean()
+                        : false,
+                    ApplicableCategory = GetStringOrNull(taxElement, "applicable_category")
+                };
+                taxes.Add(tax);
+            }
+        }
+
+        return taxes;
+    }
+
+    /// <summary>
+    /// 税率をパース
+    /// </summary>
+    private int? ParseTaxRateFromJson(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var prop))
             return null;
 
-        return new TaxInfo
+        if (prop.ValueKind == JsonValueKind.Null)
+            return null;
+
+        // 数値の場合（小数または整数）
+        if (prop.ValueKind == JsonValueKind.Number)
         {
-            TaxRate = taxProp.TryGetProperty("tax_rate", out var rateProp)
-                ? (int?)rateProp.GetInt32()
-                : null,
-            TaxAmount = ParseDecimalFromJson(taxProp, "tax_amount")
+            // GetDecimal()で取得してからintに変換
+            var decimalValue = prop.GetDecimal();
+            return (int)Math.Round(decimalValue);  // 四捨五入
+        }
+
+        // 文字列の場合
+        if (prop.ValueKind == JsonValueKind.String)
+        {
+            var strValue = prop.GetString();
+            if (decimal.TryParse(strValue, out var decimalValue))
+            {
+                return (int)Math.Round(decimalValue);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 店舗詳細情報をパース
+    /// </summary>
+    private ShopDetails? ParseShopDetails(JsonElement root)
+    {
+        if (!root.TryGetProperty("shop_details", out var shopProp) ||
+            shopProp.ValueKind == JsonValueKind.Null)
+            return null;
+
+        return new ShopDetails
+        {
+            PhoneNumber = GetStringOrNull(shopProp, "phone_number"),
+            Address = GetStringOrNull(shopProp, "address"),
+            PostalCode = GetStringOrNull(shopProp, "postal_code"),
+            InvoiceRegistrationNumber = GetStringOrNull(shopProp, "invoice_registration_number"),
+            RegisteredBusinessName = GetStringOrNull(shopProp, "registered_business_name")
         };
     }
 
@@ -364,5 +458,104 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// カスタムプロンプトをサニタイズして安全にする
+    /// </summary>
+    /// <param name="customPrompt"></param>
+    /// <returns></returns>
+    private string SanitizeCustomPrompt(string? customPrompt)
+    {
+        if (string.IsNullOrWhiteSpace(customPrompt))
+            return "この画像を解析してください。";
+
+        // 危険なキーワードを除去
+        var dangerousKeywords = new[]
+        {
+        "ignore", "forget", "system", "admin", "override",
+        "無視", "忘れ", "システム", "管理者", "上書き"
+    };
+
+        foreach (var keyword in dangerousKeywords)
+        {
+            customPrompt = customPrompt.Replace(keyword, "", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // 長さ制限
+        if (customPrompt.Length > 1000)
+        {
+            customPrompt = customPrompt.Substring(0, 1000);
+        }
+
+        return customPrompt;
+    }
+
+    /// <summary>
+    /// 結果の評価とエンリッチ
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    private ReceiptParseResult EvaluateAndEnrichResult(ReceiptParseResult result)
+    {
+        const decimal CONFIDENCE_THRESHOLD_LOW = 0.7m;
+        const decimal CONFIDENCE_THRESHOLD_WARNING = 0.85m;
+
+        // 欠落フィールドのチェック
+        if (result.Normalized.TransactionDate == null)
+            result.MissingFields.Add("取引日");
+        if (result.Normalized.AmountTotal == null)
+            result.MissingFields.Add("合計金額");
+        if (string.IsNullOrWhiteSpace(result.Normalized.Payee))
+            result.MissingFields.Add("受取者");
+
+        // ステータス判定
+        if (result.MissingFields.Any())
+        {
+            result.ParseStatus = ParseStatus.Partial;
+            result.Warnings.Add($"以下の情報が取得できませんでした: {string.Join(", ", result.MissingFields)}");
+        }
+        else if (result.Confidence < CONFIDENCE_THRESHOLD_LOW)
+        {
+            result.ParseStatus = ParseStatus.LowConfidence;
+            result.Warnings.Add($"解析の信頼度が低いです（{result.Confidence:P0}）。内容を確認してください。");
+        }
+        else if (result.Confidence < CONFIDENCE_THRESHOLD_WARNING)
+        {
+            result.ParseStatus = ParseStatus.Complete;
+            result.Warnings.Add($"信頼度: {result.Confidence:P0}");
+        }
+        else
+        {
+            result.ParseStatus = ParseStatus.Complete;
+        }
+
+        // インボイス番号の検証
+        if (result.Normalized.ShopDetails?.InvoiceRegistrationNumber != null)
+        {
+            if (!ValidateInvoiceNumber(result.Normalized.ShopDetails.InvoiceRegistrationNumber))
+            {
+                result.Warnings.Add("インボイス番号の形式が正しくない可能性があります");
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// インボイス番号の形式を検証
+    /// </summary>
+    /// <param name="invoiceNumber"></param>
+    /// <returns></returns>
+    private bool ValidateInvoiceNumber(string invoiceNumber)
+    {
+        // ハイフンを除去してから検証
+        var cleanedNumber = invoiceNumber.Replace("-", "");
+
+        // T + 13桁の数字
+        return System.Text.RegularExpressions.Regex.IsMatch(
+            cleanedNumber,
+            @"^T\d{13}$"
+        );
     }
 }

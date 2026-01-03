@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
+using ServerlessKakeibo.Api.Domain.Receipt;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 
@@ -29,6 +30,22 @@ public class ReceiptParseResult
     /// 元帳票依存の生データ（デバッグ・再解析用）
     /// </summary>
     public JsonElement? Raw { get; set; }
+
+    /// <summary>
+    /// 解析の詳細ステータス
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ParseStatus ParseStatus { get; set; }
+
+    /// <summary>
+    /// 警告メッセージリスト
+    /// </summary>
+    public List<string> Warnings { get; set; } = new();
+
+    /// <summary>
+    /// 欠落フィールドリスト
+    /// </summary>
+    public List<string> MissingFields { get; set; } = new();
 }
 
 /// <summary>
@@ -68,14 +85,19 @@ public class NormalizedTransaction
     public PaymentMethod? PaymentMethod { get; set; }
 
     /// <summary>
-    /// 税情報
+    /// 税情報リスト（複数税率対応）
     /// </summary>
-    public TaxInfo? Tax { get; set; }
+    public List<TaxDetail> Taxes { get; set; } = new();
 
     /// <summary>
     /// 取引項目一覧
     /// </summary>
     public List<NormalizedItem> Items { get; set; } = new();
+
+    /// <summary>
+    /// 店舗詳細情報
+    /// </summary>
+    public ShopDetails? ShopDetails { get; set; }
 }
 
 /// <summary>

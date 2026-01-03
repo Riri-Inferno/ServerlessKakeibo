@@ -50,18 +50,27 @@ public static class ReceiptValidationHelper
         if (string.IsNullOrWhiteSpace(dateString))
             return null;
 
-        // よくある日付フォーマットを試行
         string[] formats =
         {
-            "yyyy-MM-dd",
-            "yyyy/MM/dd",
-            "yyyy年MM月dd日",
-            "yyyy年M月d日",
-            "MM/dd/yyyy",
-            "dd/MM/yyyy",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd HH:mm:ss"
-        };
+        // 時刻付きフォーマットを優先
+        "yyyy-MM-dd HH:mm:ss",
+        "yyyy/MM/dd HH:mm:ss",
+        "yyyy年MM月dd日 HH時mm分ss秒",
+        "yyyy年M月d日 H時m分s秒",
+        "yyyy年MM月dd日 H:mm:ss",
+        "yyyy-MM-dd HH:mm",
+        "yyyy/MM/dd HH:mm",
+        "HH:mm:ss yyyy-MM-dd",
+        "HH:mm:ss yyyy/MM/dd",
+        
+        // 日付のみフォーマット
+        "yyyy-MM-dd",
+        "yyyy/MM/dd",
+        "yyyy年MM月dd日",
+        "yyyy年M月d日",
+        "MM/dd/yyyy",
+        "dd/MM/yyyy"
+    };
 
         foreach (var format in formats)
         {
