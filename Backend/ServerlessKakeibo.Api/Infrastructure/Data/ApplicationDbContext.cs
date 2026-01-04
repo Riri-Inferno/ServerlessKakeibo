@@ -3,7 +3,6 @@ using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Data;
 
-
 /// <summary>
 /// 永続化用の EF Core DbContext
 /// </summary>

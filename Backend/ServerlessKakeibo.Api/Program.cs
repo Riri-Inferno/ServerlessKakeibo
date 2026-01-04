@@ -42,8 +42,7 @@ builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
 // DbContext 登録
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
     opts.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        o => o.MigrationsAssembly("ServerlessKakeibo.Api.Infrastructure")));
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // CORS 設定（開発環境のみ全許可）
 if (builder.Environment.IsDevelopment())
