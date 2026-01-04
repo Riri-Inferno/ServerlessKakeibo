@@ -1,9 +1,9 @@
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Options;
-using ServerlessKakeibo.Common.Settings;
+using ServerlessKakeibo.Api.Common.Settings;
 using ServerlessKakeibo.Api.Service.Interface;
 using System.Net;
-using ServerlessKakeibo.Common.Exceptions;
+using ServerlessKakeibo.Api.Common.Exceptions;
 
 namespace ServerlessKakeibo.Api.Service;
 

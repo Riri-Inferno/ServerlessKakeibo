@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace ServerlessKakeibo.Common.Exceptions;
+namespace ServerlessKakeibo.Api.Common.Exceptions;
 
 /// <summary>
 /// カスタム例外クラス
@@ -8,14 +8,14 @@ namespace ServerlessKakeibo.Common.Exceptions;
 public class CustomException : Exception
 {
     public ExceptionType ExceptionType { get; }
-    
-    public CustomException(ExceptionType exceptionType) 
+
+    public CustomException(ExceptionType exceptionType)
         : base(exceptionType.Message)
     {
         ExceptionType = exceptionType;
     }
-    
-    public CustomException(ExceptionType exceptionType, Exception innerException) 
+
+    public CustomException(ExceptionType exceptionType, Exception innerException)
         : base(exceptionType.Message, innerException)
     {
         ExceptionType = exceptionType;
@@ -29,7 +29,7 @@ public class ExceptionType
 {
     public HttpStatusCode StatusCode { get; }
     public string Message { get; }
-    
+
     public ExceptionType(HttpStatusCode statusCode, string message)
     {
         StatusCode = statusCode;

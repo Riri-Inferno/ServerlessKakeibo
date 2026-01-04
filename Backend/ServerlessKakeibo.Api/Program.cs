@@ -3,7 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
 using ServerlessKakeibo.Api.Service;
 using ServerlessKakeibo.Api.Service.Interface;
-using ServerlessKakeibo.Common.Settings;
+using ServerlessKakeibo.Api.Common.Settings;
 using System.Net.NetworkInformation;
 
 var builder = WebApplication.CreateBuilder(args);

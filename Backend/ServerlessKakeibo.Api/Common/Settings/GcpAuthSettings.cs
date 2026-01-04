@@ -1,4 +1,4 @@
-namespace ServerlessKakeibo.Common.Settings;
+namespace ServerlessKakeibo.Api.Common.Settings;
 
 /// <summary>
 /// GCP認証設定
@@ -13,9 +13,9 @@ public class GcpAuthSettings
     /// <summary>
     /// デフォルトのスコープ
     /// </summary>
-    public string[] DefaultScopes { get; set; } = new[] 
-    { 
-        "https://www.googleapis.com/auth/cloud-platform" 
+    public string[] DefaultScopes { get; set; } = new[]
+    {
+        "https://www.googleapis.com/auth/cloud-platform"
     };
 
     /// <summary>

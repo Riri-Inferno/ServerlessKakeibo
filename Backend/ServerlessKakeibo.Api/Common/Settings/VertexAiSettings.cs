@@ -1,4 +1,4 @@
-namespace ServerlessKakeibo.Common.Settings;
+namespace ServerlessKakeibo.Api.Common.Settings;
 
 /// <summary>
 /// Vertex AI設定

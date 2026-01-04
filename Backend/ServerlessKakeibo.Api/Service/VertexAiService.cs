@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using ServerlessKakeibo.Api.Service.Interface;
-using ServerlessKakeibo.Common.Settings;
-using ServerlessKakeibo.Common.Exceptions;
+using ServerlessKakeibo.Api.Common.Settings;
+using ServerlessKakeibo.Api.Common.Exceptions;
 using ServerlessKakeibo.Api.Service.Models;
 using System.Net.Http.Headers;
 using System.Net;
