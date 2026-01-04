@@ -29,6 +29,52 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        #region indexes
+
+        // UserEntity
+        modelBuilder.Entity<UserEntity>()
+            .HasIndex(u => u.Email)
+            .IsUnique()
+            .HasFilter("\"Email\" IS NOT NULL");
+
+        modelBuilder.Entity<UserEntity>()
+            .HasIndex(u => u.TenantId);
+
+        // TransactionEntity
+        modelBuilder.Entity<TransactionEntity>()
+            .HasIndex(t => t.UserId);
+
+        modelBuilder.Entity<TransactionEntity>()
+            .HasIndex(t => t.TransactionDate);
+
+        modelBuilder.Entity<TransactionEntity>()
+            .HasIndex(t => new { t.UserId, t.TransactionDate })
+            .HasDatabaseName("IX_Transactions_UserId_TransactionDate");
+
+        modelBuilder.Entity<TransactionEntity>()
+            .HasIndex(t => t.TenantId);
+
+        modelBuilder.Entity<TransactionEntity>()
+            .HasIndex(t => t.IsDeleted);
+
+        // TransactionItemEntity
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasIndex(i => i.TransactionId);
+
+        // TaxDetailEntity
+        modelBuilder.Entity<TaxDetailEntity>()
+            .HasIndex(td => td.TransactionId);
+
+        // ShopDetailEntity
+        modelBuilder.Entity<ShopDetailEntity>()
+            .HasIndex(sd => sd.TransactionId)
+            .IsUnique();
+
+        modelBuilder.Entity<ShopDetailEntity>()
+            .HasIndex(sd => sd.Name);
+        #endregion
+
+        #region relationships
         // Transaction - User のリレーション
         modelBuilder.Entity<TransactionEntity>()
             .HasOne(t => t.User)
@@ -57,6 +103,10 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey<ShopDetailEntity>(sd => sd.TransactionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        #endregion
+
+        #region settings
+
         // すべての BaseEntity 継承クラスに xmin による楽観ロックを設定
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -80,5 +130,7 @@ public class ApplicationDbContext : DbContext
                     .HasQueryFilter(lambda);
             }
         }
+
+        #endregion
     }
 }
