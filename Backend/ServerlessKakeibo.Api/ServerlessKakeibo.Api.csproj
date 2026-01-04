@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServerlessKakeibo.Models\ServerlessKakeibo.Models.csproj" />
     <ProjectReference Include="..\ServerlessKakeibo.Common\ServerlessKakeibo.Common.csproj" />
   </ItemGroup>
 
