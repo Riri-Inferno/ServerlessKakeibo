@@ -4,7 +4,8 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing;
 using ServerlessKakeibo.Api.Service;
 using ServerlessKakeibo.Api.Service.Interface;
 using ServerlessKakeibo.Api.Common.Settings;
-using System.Net.NetworkInformation;
+using ServerlessKakeibo.Api.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,13 @@ builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 
 // ユースケースの登録
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
+
+// DbContextの登録
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("ServerlessKakeibo.Api.Infrastructure")
+    ));
 
 // APIコントローラー
 builder.Services.AddControllers();
