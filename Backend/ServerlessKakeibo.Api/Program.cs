@@ -1,104 +1,100 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
-using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
-using ServerlessKakeibo.Api.Application.ReceiptParsing;
-using ServerlessKakeibo.Api.Service;
-using ServerlessKakeibo.Api.Service.Interface;
-using ServerlessKakeibo.Api.Common.Settings;
-using ServerlessKakeibo.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
+using ServerlessKakeibo.Api.Infrastructure.Data;
+using ServerlessKakeibo.Api.Service.Interface;
+using ServerlessKakeibo.Api.Service;
+using ServerlessKakeibo.Api.Common.Settings;
+using ServerlessKakeibo.Api.Application.ReceiptParsing;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// HTTPクライアントファクトリーの登録
+// JSONシリアライズ時にEnumを文字列にする
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(opt =>
+    {
+        opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        opt.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+
+// HTTP クライアントなど
 builder.Services.AddHttpClient();
 
-// 設定の読み込み (appsettings.json + User Secrets)
+// 設定バインド
 builder.Services.Configure<GcpAuthSettings>(
     builder.Configuration.GetSection("GcpAuth"));
 builder.Services.Configure<VertexAiSettings>(
     builder.Configuration.GetSection("VertexAi"));
 
-// サービスの登録
+// DI 登録
+#region services
 builder.Services.AddScoped<IGcpAuthService, GcpAuthService>();
 builder.Services.AddScoped<IVertexAiService, VertexAiService>();
+#endregion
 
-// ユースケースの登録
+#region usecases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
+#endregion
 
-// DbContextの登録
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(
+// DbContext 登録
+builder.Services.AddDbContext<ApplicationDbContext>(opts =>
+    opts.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("ServerlessKakeibo.Api.Infrastructure")
-    ));
+        o => o.MigrationsAssembly("ServerlessKakeibo.Api.Infrastructure")));
 
-// APIコントローラー
-builder.Services.AddControllers();
-
-// Swagger/OpenAPI設定
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ServerlessKakeibo API",
-        Version = "v1"
-    });
-
-    // Annotationsサポート
-    options.EnableAnnotations();
-});
-
-// CORS設定（開発環境用）
+// CORS 設定（開発環境のみ全許可）
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors(options =>
     {
-        options.AddDefaultPolicy(policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+        options.AddPolicy("AllowAll", p =>
+            p.AllowAnyOrigin()
+             .AllowAnyHeader()
+             .AllowAnyMethod());
     });
 }
 
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ServerlessKakeibo API",
+        Version = "v1"
+    });
+    c.EnableAnnotations();
+});
+
 var app = builder.Build();
 
-#region Middleware設定
-
-// 開発環境設定
+// ミドルウェア
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-
-    // Swagger UI
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.UseSwaggerUI(c =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ServerlessKakeibo API v1");
-        options.RoutePrefix = string.Empty; // ルートでSwagger UIを表示
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ServerlessKakeibo API v1");
+        c.RoutePrefix = string.Empty;
     });
-
     app.UseCors("AllowAll");
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthorization();
-
-// コントローラーのマッピング
 app.MapControllers();
 
-#endregion
-
-// Health Checkエンドポイント
+// HealthCheck
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
-    .WithName("HealthCheck")
-    .WithTags("System")
-    .ExcludeFromDescription();
+   .WithTags("System")
+   .ExcludeFromDescription();
 
 app.Run();
 
-// 統合テスト用のパーシャルクラス定義
+// 統合テスト用のパーシャルクラス
 public partial class Program { }
