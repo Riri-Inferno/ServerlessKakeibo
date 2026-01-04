@@ -14,8 +14,12 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    // 永続化エンティティを DbSet として登録
-    public DbSet<ReceiptEntity> Receipts { get; set; } = default!;
+    // 永続化エンティティを登録
+    public DbSet<UserEntity> Users { get; set; } = default!;
+    public DbSet<TransactionEntity> Transactions { get; set; } = default!;
+    public DbSet<TransactionItemEntity> TransactionItems { get; set; } = default!;
+    public DbSet<TaxDetailEntity> TaxDetails { get; set; } = default!;
+    public DbSet<ShopDetailEntity> ShopDetails { get; set; } = default!;
 
     /// <summary>
     /// モデル作成時の追加設定
@@ -24,6 +28,34 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Transaction - User のリレーション
+        modelBuilder.Entity<TransactionEntity>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.Transactions)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Transaction - TransactionItem のリレーション
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasOne(i => i.Transaction)
+            .WithMany(t => t.Items)
+            .HasForeignKey(i => i.TransactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Transaction - TaxDetail のリレーション
+        modelBuilder.Entity<TaxDetailEntity>()
+            .HasOne(td => td.Transaction)
+            .WithMany(t => t.Taxes)
+            .HasForeignKey(td => td.TransactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Transaction - ShopDetail の1対1リレーション
+        modelBuilder.Entity<ShopDetailEntity>()
+            .HasOne(sd => sd.Transaction)
+            .WithOne(t => t.ShopDetail)
+            .HasForeignKey<ShopDetailEntity>(sd => sd.TransactionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // すべての BaseEntity 継承クラスに xmin による楽観ロックを設定
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -49,12 +81,4 @@ public class ApplicationDbContext : DbContext
             }
         }
     }
-}
-
-/// <summary>
-/// 仮置き
-/// </summary>
-public class ReceiptEntity : BaseEntity
-{
-    public int hoge { get; set; }
 }
