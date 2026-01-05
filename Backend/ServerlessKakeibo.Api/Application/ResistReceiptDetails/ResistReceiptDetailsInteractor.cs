@@ -16,15 +16,18 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly TransactionDomainService _transactionDomainService;
     private readonly ILogger<ResistReceiptDetailsInteractor> _logger;
+    private readonly IConfiguration _configuration;
 
     public ResistReceiptDetailsInteractor(
         IUnitOfWork unitOfWork,
         TransactionDomainService transactionDomainService,
-        ILogger<ResistReceiptDetailsInteractor> logger)
+        ILogger<ResistReceiptDetailsInteractor> logger,
+        IConfiguration configuration)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     /// <summary>
@@ -36,14 +39,10 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
         CancellationToken cancellationToken = default)
     {
         if (parseResult == null)
-        {
             throw new ArgumentNullException(nameof(parseResult));
-        }
 
         if (userId == Guid.Empty)
-        {
             throw new ArgumentException("UserId cannot be empty", nameof(userId));
-        }
 
         try
         {
@@ -51,38 +50,75 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
 
             return await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                // TODO: 将来的にはユーザーのTenantIdを取得
-                var tenantId = Guid.Parse("deadeade-0001-0000-0000-000000000001");
+                // 1. TenantId取得
+                var tenantId = await GetUserTenantIdAsync(userId, cancellationToken);
 
-                // 1. DTO → エンティティ変換
+                // 2. DTO → エンティティ変換
                 var transactionEntity = TransactionMapper.ToEntity(parseResult, userId, tenantId);
 
-                // 2. ドメインモデルに変換して検証
+                // 3. ドメインモデルに変換して検証
                 var transactionDomain = TransactionMapper.ToDomainModel(transactionEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
 
+                // 4. 検証結果の処理
                 if (!validationResult.IsValid)
                 {
-                    _logger.LogWarning("取引データの検証エラー: {Errors}",
-                        string.Join(", ", validationResult.Errors));
-                    // 検証エラーでも保存は続行（警告として記録）
+                    var criticalErrors = validationResult.Errors
+                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Critical)
+                        .ToList();
+
+                    var warnings = validationResult.Errors
+                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Warning)
+                        .ToList();
+
+                    if (criticalErrors.Any())
+                    {
+                        // 致命的エラーがある場合は保存拒否
+                        var errorMessage = string.Join(", ", criticalErrors.Select(e => e.Message));
+                        _logger.LogError("取引データに致命的エラーがあります: {Errors}", errorMessage);
+
+                        throw new InvalidOperationException(
+                            $"取引データが不正です: {errorMessage}");
+                    }
+
+                    if (warnings.Any())
+                    {
+                        // 警告のみの場合はログ記録して続行
+                        _logger.LogWarning("取引データに警告があります: {Warnings}",
+                            string.Join(", ", warnings.Select(w => w.Message)));
+                    }
                 }
 
-                // 3. カテゴリの推定
+                // 5. カテゴリの推定と設定
                 var suggestedCategory = _transactionDomainService.SuggestCategory(transactionDomain);
-                _logger.LogDebug("推定カテゴリ: {Category}", suggestedCategory);
 
-                // 4. データベースに保存
+                if (suggestedCategory != null)
+                {
+                    transactionEntity.CategoryId = suggestedCategory.Id;
+                    transactionEntity.CategoryName = suggestedCategory.Name;
+
+                    _logger.LogDebug(
+                        "カテゴリを推定しました。CategoryId: {CategoryId}, CategoryName: {CategoryName}",
+                        suggestedCategory.Id,
+                        suggestedCategory.Name);
+                }
+                else
+                {
+                    _logger.LogDebug("カテゴリを推定できませんでした。未分類として保存します。");
+                }
+
+                // 6. データベースに保存
                 var writeRepo = _unitOfWork.WriteRepository<TransactionEntity>();
                 await writeRepo.AddAsync(transactionEntity, cancellationToken);
 
                 _logger.LogInformation(
-                    "取引を保存しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}",
+                    "取引を保存しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}, Category: {Category}",
                     transactionEntity.Id,
                     userId,
-                    transactionEntity.AmountTotal);
+                    transactionEntity.AmountTotal,
+                    suggestedCategory?.Name ?? "未分類");
 
-                // 結果DTOを返す
+                // 7. 結果DTOを返す
                 return new SaveTransactionResultDto
                 {
                     TransactionId = transactionEntity.Id,
@@ -91,7 +127,12 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
                     SavedAt = DateTimeOffset.UtcNow,
-                    SuggestedCategory = suggestedCategory
+                    SuggestedCategory = suggestedCategory?.Name,
+                    CategoryId = suggestedCategory?.Id,
+                    ValidationWarnings = validationResult.Errors
+                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Warning)
+                        .Select(e => e.Message)
+                        .ToList()
                 };
 
             }, cancellationToken);
@@ -101,5 +142,55 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
             _logger.LogError(ex, "取引保存中にエラーが発生しました。UserId: {UserId}", userId);
             throw;
         }
+    }
+
+    /// <summary>
+    /// ユーザーのTenantIdを取得
+    /// </summary>
+    private async Task<Guid> GetUserTenantIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        // ユーザーエンティティからTenantIdを取得
+        var userRepo = _unitOfWork.ReadRepository<UserEntity>();
+        var user = await userRepo.GetByIdAsync(userId, cancellationToken);
+
+        // ユーザーが存在しない場合は保存拒否
+        if (user == null)
+        {
+            _logger.LogError("ユーザーが存在しません。保存を拒否します。UserId: {UserId}", userId);
+            throw new InvalidOperationException($"ユーザーが存在しません。UserId: {userId}");
+        }
+
+        // TenantIdが未設定の場合はデフォルト値を使用(仮データ対応)
+        if (user.TenantId == Guid.Empty)
+        {
+            var defaultTenantId = GetDefaultTenantId();
+
+            _logger.LogWarning(
+                "ユーザーのTenantIdが未設定です。デフォルトTenantIdを使用します。UserId: {UserId}, TenantId: {TenantId}",
+                userId,
+                defaultTenantId);
+
+            return defaultTenantId;
+        }
+
+        _logger.LogDebug("TenantIdを取得しました。UserId: {UserId}, TenantId: {TenantId}", userId, user.TenantId);
+        return user.TenantId;
+    }
+
+    /// <summary>
+    /// デフォルトTenantIdを取得
+    /// </summary>
+    private Guid GetDefaultTenantId()
+    {
+        var tenantIdString = _configuration["DefaultTenantId"]
+            ?? "deadeade-0001-0000-0000-000000000001";
+
+        if (!Guid.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("デフォルトTenantIdの解析に失敗しました。ハードコード値を使用します。");
+            return Guid.Parse("deadeade-0001-0000-0000-000000000001");
+        }
+
+        return tenantId;
     }
 }

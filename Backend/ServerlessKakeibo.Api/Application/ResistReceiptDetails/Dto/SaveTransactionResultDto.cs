@@ -39,4 +39,14 @@ public class SaveTransactionResultDto
     /// 推定カテゴリ
     /// </summary>
     public string? SuggestedCategory { get; set; }
+
+    /// <summary>
+    /// 推定カテゴリID
+    /// </summary>
+    public Guid? CategoryId { get; set; }
+
+    /// <summary>
+    /// 検証時の警告リスト
+    /// </summary>
+    public List<string> ValidationWarnings { get; set; } = new();
 }

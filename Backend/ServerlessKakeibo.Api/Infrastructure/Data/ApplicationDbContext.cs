@@ -30,23 +30,26 @@ public class ApplicationDbContext : DbContext
 
         foreach (var entry in entries)
         {
-            var now = DateTimeOffset.UtcNow;
-
-            switch (entry.State)
+            // すでに設定済みの場合はスキップ
+            if (entry.State == EntityState.Added)
             {
-                case EntityState.Added:
+                if (entry.Entity.CreatedAt == default)  // 未設定の場合のみ
+                {
+                    var now = DateTimeOffset.UtcNow;
                     entry.Entity.CreatedAt = now;
                     entry.Entity.UpdatedAt = now;
-                    // CreatedBy はユースケースで設定
-                    break;
+                }
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                if (entry.Entity.UpdatedAt == default ||
+                    entry.Entity.UpdatedAt < entry.Entity.CreatedAt)  // 不正な値の場合のみ
+                {
+                    entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+                }
 
-                case EntityState.Modified:
-                    entry.Entity.UpdatedAt = now;
-                    // UpdatedBy は既にInteractorで設定済み
-                    // CreatedAt は変更しない
-                    entry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
-                    entry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
-                    break;
+                entry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
+                entry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
             }
         }
 
