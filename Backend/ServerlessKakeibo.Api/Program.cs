@@ -8,6 +8,9 @@ using ServerlessKakeibo.Api.Service.Interface;
 using ServerlessKakeibo.Api.Service;
 using ServerlessKakeibo.Api.Common.Settings;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
+using ServerlessKakeibo.Api.Domain.Transaction.Services;
+using ServerlessKakeibo.Api.Domain.User.Services;
+using ServerlessKakeibo.Api.Domain.Receipt.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +40,12 @@ builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 
 #region usecases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
+#endregion
+
+#region DomainServices
+builder.Services.AddScoped<TransactionDomainService>();
+builder.Services.AddScoped<UserDomainService>();
+builder.Services.AddScoped<ReceiptEvaluatorService>();
 #endregion
 
 // DbContext 登録
