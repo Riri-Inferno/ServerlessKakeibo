@@ -1,5 +1,6 @@
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ResistReceiptDetails.Mappers;
 
@@ -12,9 +13,10 @@ public static class TransactionMapper
     /// ReceiptParseResult → TransactionEntity 変換
     /// </summary>
     public static TransactionEntity ToEntity(
-     ReceiptParseResult parseResult,
-     Guid userId,
-     Guid tenantId)
+        ReceiptParseResult parseResult,
+        Guid userId,
+        Guid tenantId,
+        TransactionCategory? category = null)
     {
         var transaction = new TransactionEntity
         {
@@ -39,6 +41,7 @@ public static class TransactionMapper
             RawDataJson = parseResult.Raw.HasValue
                 ? parseResult.Raw.Value.GetRawText()
                 : null,
+            Category = category ?? TransactionCategory.Uncategorized,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -58,7 +61,7 @@ public static class TransactionMapper
             })
             .ToList();
 
-        // 税情報の変換（DTO TaxInfo → Entity）
+        // 税情報の変換
         transaction.Taxes = parseResult.Normalized.Taxes
             .Select(tax => new TaxDetailEntity
             {
@@ -75,7 +78,7 @@ public static class TransactionMapper
             })
             .ToList();
 
-        // 店舗情報の変換（DTO ShopDetails → Entity）
+        // 店舗情報の変換
         if (parseResult.Normalized.ShopDetails != null)
         {
             var shop = parseResult.Normalized.ShopDetails;
@@ -111,7 +114,6 @@ public static class TransactionMapper
             Currency = entity.Currency,
             Payer = entity.Payer,
             Payee = entity.Payee,
-            // string → Domain ValueObject
             PaymentMethod = entity.PaymentMethod != null
                 ? Domain.ValueObjects.PaymentMethod.FromString(entity.PaymentMethod)
                 : null,
@@ -122,7 +124,6 @@ public static class TransactionMapper
                 UnitPrice = i.UnitPrice,
                 Amount = i.Amount
             }).ToList(),
-            // Entity → Domain TaxDetail
             Taxes = entity.Taxes.Select(t => new Domain.Receipt.Models.TaxDetail
             {
                 TaxType = t.TaxType ?? "消費税",
@@ -132,7 +133,6 @@ public static class TransactionMapper
                 IsFixedAmount = t.IsFixedAmount,
                 ApplicableCategory = t.ApplicableCategory
             }).ToList(),
-            // Entity → Domain ShopDetails
             ShopDetails = entity.ShopDetail != null
                 ? new Domain.Receipt.Models.ShopDetails
                 {

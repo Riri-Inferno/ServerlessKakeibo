@@ -1,3 +1,5 @@
+using ServerlessKakeibo.Api.Domain.ValueObjects;
+
 namespace ServerlessKakeibo.Api.Application.ResistReceiptDetails.Dto;
 
 /// <summary>
@@ -6,17 +8,17 @@ namespace ServerlessKakeibo.Api.Application.ResistReceiptDetails.Dto;
 public class SaveTransactionResultDto
 {
     /// <summary>
-    /// 保存された取引ID
+    /// 取引ID
     /// </summary>
     public Guid TransactionId { get; set; }
 
     /// <summary>
-    /// 取引日時
+    /// 取引日
     /// </summary>
     public DateTimeOffset? TransactionDate { get; set; }
 
     /// <summary>
-    /// 合計金額
+    /// 取引金額
     /// </summary>
     public decimal? AmountTotal { get; set; }
 
@@ -26,7 +28,7 @@ public class SaveTransactionResultDto
     public string Currency { get; set; } = "JPY";
 
     /// <summary>
-    /// 受取者（店舗名など）
+    /// 受取者
     /// </summary>
     public string? Payee { get; set; }
 
@@ -36,14 +38,9 @@ public class SaveTransactionResultDto
     public DateTimeOffset SavedAt { get; set; }
 
     /// <summary>
-    /// 推定カテゴリ
+    /// カテゴリ(保存された値)
     /// </summary>
-    public string? SuggestedCategory { get; set; }
-
-    /// <summary>
-    /// 推定カテゴリID
-    /// </summary>
-    public Guid? CategoryId { get; set; }
+    public TransactionCategory Category { get; set; }
 
     /// <summary>
     /// 検証時の警告リスト

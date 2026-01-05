@@ -1,5 +1,5 @@
-using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Dto;
+using ServerlessKakeibo.Api.Contracts;
 
 namespace ServerlessKakeibo.Api.Application.ResistReceiptDetails.Usecases;
 
@@ -12,7 +12,7 @@ public interface IResistReceiptDetailsUseCase
     /// 領収書解析結果を取引として保存
     /// </summary>
     Task<SaveTransactionResultDto> ExecuteSaveAsync(
-        ReceiptParseResult parseResult,
+        SaveReceiptParseResultRequest request,
         Guid userId,
         CancellationToken cancellationToken = default);
 }

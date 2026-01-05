@@ -2,7 +2,10 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Dto;
 using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Mappers;
 using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Contracts;
+using ServerlessKakeibo.Api.Domain.Receipt.Models;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 
@@ -34,12 +37,12 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
     /// 領収書解析結果を取引として保存
     /// </summary>
     public async Task<SaveTransactionResultDto> ExecuteSaveAsync(
-        ReceiptParseResult parseResult,
+        SaveReceiptParseResultRequest request,
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        if (parseResult == null)
-            throw new ArgumentNullException(nameof(parseResult));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
 
         if (userId == Guid.Empty)
             throw new ArgumentException("UserId cannot be empty", nameof(userId));
@@ -53,27 +56,33 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
                 // 1. TenantId取得
                 var tenantId = await GetUserTenantIdAsync(userId, cancellationToken);
 
-                // 2. DTO → エンティティ変換
-                var transactionEntity = TransactionMapper.ToEntity(parseResult, userId, tenantId);
+                // 2. リクエスト → ReceiptParseResult 変換(内部処理用)
+                var parseResult = MapToParseResult(request);
 
-                // 3. ドメインモデルに変換して検証
+                // 3. DTO → エンティティ変換(カテゴリを渡す)
+                var transactionEntity = TransactionMapper.ToEntity(
+                    parseResult,
+                    userId,
+                    tenantId,
+                    request.Category);
+
+                // 4. ドメインモデルに変換して検証
                 var transactionDomain = TransactionMapper.ToDomainModel(transactionEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
 
-                // 4. 検証結果の処理
+                // 5. 検証結果の処理
                 if (!validationResult.IsValid)
                 {
                     var criticalErrors = validationResult.Errors
-                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Critical)
+                        .Where(e => e.Severity == ErrorSeverity.Critical)
                         .ToList();
 
                     var warnings = validationResult.Errors
-                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Warning)
+                        .Where(e => e.Severity == ErrorSeverity.Warning)
                         .ToList();
 
                     if (criticalErrors.Any())
                     {
-                        // 致命的エラーがある場合は保存拒否
                         var errorMessage = string.Join(", ", criticalErrors.Select(e => e.Message));
                         _logger.LogError("取引データに致命的エラーがあります: {Errors}", errorMessage);
 
@@ -83,28 +92,9 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
 
                     if (warnings.Any())
                     {
-                        // 警告のみの場合はログ記録して続行
                         _logger.LogWarning("取引データに警告があります: {Warnings}",
                             string.Join(", ", warnings.Select(w => w.Message)));
                     }
-                }
-
-                // 5. カテゴリの推定と設定
-                var suggestedCategory = _transactionDomainService.SuggestCategory(transactionDomain);
-
-                if (suggestedCategory != null)
-                {
-                    transactionEntity.CategoryId = suggestedCategory.Id;
-                    transactionEntity.CategoryName = suggestedCategory.Name;
-
-                    _logger.LogDebug(
-                        "カテゴリを推定しました。CategoryId: {CategoryId}, CategoryName: {CategoryName}",
-                        suggestedCategory.Id,
-                        suggestedCategory.Name);
-                }
-                else
-                {
-                    _logger.LogDebug("カテゴリを推定できませんでした。未分類として保存します。");
                 }
 
                 // 6. データベースに保存
@@ -116,7 +106,7 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
                     transactionEntity.Id,
                     userId,
                     transactionEntity.AmountTotal,
-                    suggestedCategory?.Name ?? "未分類");
+                    transactionEntity.Category.ToJapanese());
 
                 // 7. 結果DTOを返す
                 return new SaveTransactionResultDto
@@ -127,10 +117,9 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
                     SavedAt = DateTimeOffset.UtcNow,
-                    SuggestedCategory = suggestedCategory?.Name,
-                    CategoryId = suggestedCategory?.Id,
+                    Category = transactionEntity.Category,
                     ValidationWarnings = validationResult.Errors
-                        .Where(e => e.Severity == Domain.ValueObjects.ErrorSeverity.Warning)
+                        .Where(e => e.Severity == ErrorSeverity.Warning)
                         .Select(e => e.Message)
                         .ToList()
                 };
@@ -145,22 +134,69 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
     }
 
     /// <summary>
+    /// リクエスト → ReceiptParseResult 変換
+    /// </summary>
+    private ReceiptParseResult MapToParseResult(SaveReceiptParseResultRequest request)
+    {
+        return new ReceiptParseResult
+        {
+            ReceiptType = request.ReceiptType,
+            Confidence = request.Confidence,
+            ParseStatus = request.ParseStatus,
+            Warnings = request.Warnings,
+            MissingFields = request.MissingFields,
+            Raw = null,
+            Normalized = new NormalizedTransaction
+            {
+                TransactionDate = request.Normalized.TransactionDate,
+                AmountTotal = request.Normalized.AmountTotal,
+                Currency = request.Normalized.Currency,
+                Payer = request.Normalized.Payer,
+                Payee = request.Normalized.Payee,
+                PaymentMethod = request.Normalized.PaymentMethod,
+                Taxes = request.Normalized.Taxes.Select(t => new TaxInfo
+                {
+                    TaxRate = t.TaxRate,
+                    TaxAmount = t.TaxAmount,
+                    TaxableAmount = t.TaxableAmount
+                }).ToList(),
+                Items = request.Normalized.Items.Select(i => new NormalizedItem
+                {
+                    Name = i.Name,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    Amount = i.Amount
+                }).ToList(),
+                ShopDetails = request.Normalized.ShopDetails != null
+                    ? new ShopDetails
+                    {
+                        Name = request.Normalized.ShopDetails.Name,
+                        Branch = request.Normalized.ShopDetails.Branch,
+                        PhoneNumber = request.Normalized.ShopDetails.PhoneNumber,
+                        Address = request.Normalized.ShopDetails.Address,
+                        PostalCode = request.Normalized.ShopDetails.PostalCode,
+                        InvoiceRegistrationNumber = request.Normalized.ShopDetails.InvoiceRegistrationNumber,
+                        RegisteredBusinessName = request.Normalized.ShopDetails.RegisteredBusinessName
+                    }
+                    : null
+            }
+        };
+    }
+
+    /// <summary>
     /// ユーザーのTenantIdを取得
     /// </summary>
     private async Task<Guid> GetUserTenantIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        // ユーザーエンティティからTenantIdを取得
         var userRepo = _unitOfWork.ReadRepository<UserEntity>();
         var user = await userRepo.GetByIdAsync(userId, cancellationToken);
 
-        // ユーザーが存在しない場合は保存拒否
         if (user == null)
         {
             _logger.LogError("ユーザーが存在しません。保存を拒否します。UserId: {UserId}", userId);
             throw new InvalidOperationException($"ユーザーが存在しません。UserId: {userId}");
         }
 
-        // TenantIdが未設定の場合はデフォルト値を使用(仮データ対応)
         if (user.TenantId == Guid.Empty)
         {
             var defaultTenantId = GetDefaultTenantId();
