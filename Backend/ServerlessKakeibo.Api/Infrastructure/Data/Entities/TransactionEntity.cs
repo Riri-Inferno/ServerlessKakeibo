@@ -50,6 +50,17 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? ReceiptType { get; set; }
 
         /// <summary>
+        /// カテゴリID
+        /// </summary>
+        public Guid? CategoryId { get; set; }
+
+        /// <summary>
+        /// カテゴリ名
+        /// </summary>
+        [MaxLength(100)]
+        public string? CategoryName { get; set; }
+
+        /// <summary>
         /// LLMによる判定信頼度（0.0 - 1.0）
         /// </summary>
         [Column(TypeName = "decimal(5,4)")]
