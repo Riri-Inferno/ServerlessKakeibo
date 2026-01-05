@@ -116,7 +116,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// トランザクションスコープ内で処理を実行（戻り値あり）
+    /// トランザクションスコープ内で処理を実行(戻り値あり)
     /// </summary>
     public async Task<TResult> ExecuteInTransactionAsync<TResult>(
         Func<Task<TResult>> operation,
@@ -130,24 +130,26 @@ public class UnitOfWork : IUnitOfWork
 
         return await strategy.ExecuteAsync(async () =>
         {
-            await BeginTransactionAsync(cancellationToken);
+            // ExecutionStrategy使用時は内部でトランザクションを管理
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
                 var result = await operation();
-                await CommitAsync(cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
                 return result;
             }
             catch
             {
-                await RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
         });
     }
 
     /// <summary>
-    /// トランザクションスコープ内で処理を実行（戻り値なし）
+    /// トランザクションスコープ内で処理を実行(戻り値なし)
     /// </summary>
     public async Task ExecuteInTransactionAsync(
         Func<Task> operation,
@@ -160,16 +162,18 @@ public class UnitOfWork : IUnitOfWork
 
         await strategy.ExecuteAsync(async () =>
         {
-            await BeginTransactionAsync(cancellationToken);
+            // ExecutionStrategy使用時は内部でトランザクションを管理
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
                 await operation();
-                await CommitAsync(cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
             }
             catch
             {
-                await RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
         });
@@ -185,7 +189,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// リソース解放（非同期）
+    /// リソース解放(非同期)
     /// </summary>
     public async ValueTask DisposeAsync()
     {

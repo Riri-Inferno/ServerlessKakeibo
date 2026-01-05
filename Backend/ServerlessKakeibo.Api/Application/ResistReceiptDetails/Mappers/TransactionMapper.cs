@@ -12,21 +12,20 @@ public static class TransactionMapper
     /// ReceiptParseResult → TransactionEntity 変換
     /// </summary>
     public static TransactionEntity ToEntity(
-        ReceiptParseResult parseResult,
-        Guid userId,
-        Guid tenantId)
+     ReceiptParseResult parseResult,
+     Guid userId,
+     Guid tenantId)
     {
         var transaction = new TransactionEntity
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             TenantId = tenantId,
-            TransactionDate = parseResult.Normalized.TransactionDate,
+            TransactionDate = parseResult.Normalized.TransactionDate?.ToUniversalTime(),
             AmountTotal = parseResult.Normalized.AmountTotal,
             Currency = parseResult.Normalized.Currency,
             Payer = parseResult.Normalized.Payer,
             Payee = parseResult.Normalized.Payee,
-            // DTO Enum → string
             PaymentMethod = parseResult.Normalized.PaymentMethod?.ToString(),
             ReceiptType = parseResult.ReceiptType.ToString(),
             Confidence = parseResult.Confidence,

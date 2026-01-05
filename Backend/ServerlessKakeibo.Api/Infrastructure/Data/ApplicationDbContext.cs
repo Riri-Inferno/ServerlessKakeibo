@@ -21,12 +21,63 @@ public class ApplicationDbContext : DbContext
     public DbSet<ShopDetailEntity> ShopDetails { get; set; } = default!;
 
     /// <summary>
-    /// モデル作成時の追加設定
+    /// 保存前の自動処理
     /// </summary>
-    /// <param name="modelBuilder"></param>
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        // BaseEntity継承エンティティの自動設定
+        var entries = ChangeTracker.Entries<BaseEntity>();
+
+        foreach (var entry in entries)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = now;
+                    entry.Entity.UpdatedAt = now;
+                    // CreatedBy はユースケースで設定
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = now;
+                    // UpdatedBy は既にInteractorで設定済み
+                    // CreatedAt は変更しない
+                    entry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
+                    entry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
+                    break;
+            }
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        #region DateTimeOffset Conversion
+
+        // すべての DateTimeOffset 型プロパティを UTC に正規化
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset) ||
+                    property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(
+                        new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTimeOffset, DateTimeOffset>(
+                            v => v.ToUniversalTime(),      // 書き込み時
+                            v => v.ToUniversalTime()       // 読み込み時
+                        )
+                    );
+                }
+            }
+        }
+
+        #endregion
 
         #region indexes
 
@@ -56,7 +107,6 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<TransactionEntity>()
             .HasIndex(t => t.IsDeleted);
 
-        // TransactionItemEntity
         modelBuilder.Entity<TransactionItemEntity>()
             .HasIndex(i => i.TransactionId);
 
