@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
 {
     /// <summary>
-    /// 取引（収入・支出）エンティティ
+    /// 取引(収入・支出)エンティティ
     /// </summary>
     public class TransactionEntity : BaseEntity
     {
@@ -20,7 +21,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public decimal? AmountTotal { get; set; }
 
         /// <summary>
-        /// 通貨コード（ISO 4217）
+        /// 通貨コード(ISO 4217)
         /// </summary>
         [MaxLength(3)]
         public string Currency { get; set; } = "JPY";
@@ -32,7 +33,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? Payer { get; set; }
 
         /// <summary>
-        /// 受取者（店舗名など）
+        /// 受取者(店舗名など)
         /// </summary>
         [MaxLength(200)]
         public string? Payee { get; set; }
@@ -50,18 +51,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? ReceiptType { get; set; }
 
         /// <summary>
-        /// カテゴリID
-        /// </summary>
-        public Guid? CategoryId { get; set; }
-
-        /// <summary>
-        /// カテゴリ名
-        /// </summary>
-        [MaxLength(100)]
-        public string? CategoryName { get; set; }
-
-        /// <summary>
-        /// LLMによる判定信頼度（0.0 - 1.0）
+        /// LLMによる判定信頼度(0.0 - 1.0)
         /// </summary>
         [Column(TypeName = "decimal(5,4)")]
         public decimal? Confidence { get; set; }
@@ -73,27 +63,32 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? ParseStatus { get; set; }
 
         /// <summary>
-        /// 警告メッセージ（JSON配列）
+        /// 警告メッセージ(JSON配列)
         /// </summary>
         public string? WarningsJson { get; set; }
 
         /// <summary>
-        /// 欠落フィールド（JSON配列）
+        /// 欠落フィールド(JSON配列)
         /// </summary>
         public string? MissingFieldsJson { get; set; }
 
         /// <summary>
-        /// 元帳票の生データ（JSON）
+        /// 元帳票の生データ(JSON)
         /// </summary>
         public string? RawDataJson { get; set; }
 
         /// <summary>
-        /// ユーザーID（外部キー）
+        /// カテゴリ(Enum)
+        /// </summary>
+        public TransactionCategory Category { get; set; } = TransactionCategory.Uncategorized;
+
+        /// <summary>
+        /// ユーザーID(外部キー)
         /// </summary>
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// ユーザー（ナビゲーションプロパティ）
+        /// ユーザー(ナビゲーションプロパティ)
         /// </summary>
         public UserEntity User { get; set; } = default!;
 

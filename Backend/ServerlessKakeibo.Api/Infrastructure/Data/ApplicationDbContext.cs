@@ -95,6 +95,9 @@ public class ApplicationDbContext : DbContext
 
         // TransactionEntity
         modelBuilder.Entity<TransactionEntity>()
+        .HasIndex(t => t.Category);
+
+        modelBuilder.Entity<TransactionEntity>()
             .HasIndex(t => t.UserId);
 
         modelBuilder.Entity<TransactionEntity>()
