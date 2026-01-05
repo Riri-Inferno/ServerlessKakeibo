@@ -15,34 +15,74 @@ public class Transaction
     public string? Payer { get; set; }
     public string? Payee { get; set; }
     public PaymentMethod? PaymentMethod { get; set; }
-
     public List<TransactionItem> Items { get; set; } = new();
     public List<TaxDetail> Taxes { get; set; } = new();
     public ShopDetails? ShopDetails { get; set; }
 
     /// <summary>
-    /// ドメインルール：取引の整合性チェック
+    /// ドメインルール: 取引の整合性チェック
     /// </summary>
     public bool IsValid()
     {
+        // 金額が0以下は不正
         if (AmountTotal == null || AmountTotal <= 0)
             return false;
 
-        // 項目の合計と取引金額が一致するか
+        // 項目がある場合、項目合計 + 税額 = 取引金額 をチェック
         var itemsTotal = Items.Sum(i => i.Amount ?? 0);
-        if (itemsTotal > 0 && Math.Abs(itemsTotal - AmountTotal.Value) > 0.01m)
-            return false;
+        if (itemsTotal > 0)
+        {
+            var taxTotal = Taxes.Sum(t => t.TaxAmount ?? 0);
+            var calculatedTotal = itemsTotal + taxTotal;
+
+            // 1円以内の誤差を許容(丸め誤差対策)
+            if (Math.Abs(calculatedTotal - AmountTotal.Value) > 1.0m)
+                return false;
+        }
 
         return true;
     }
 
     /// <summary>
-    /// ドメインルール：税額の整合性チェック
+    /// ドメインルール: 税額の整合性チェック
     /// </summary>
     public bool AreTaxesValid()
     {
-        var taxTotal = Taxes.Sum(t => t.TaxAmount ?? 0);
-        // TODO: 税額の検証ロジック
+        if (!Taxes.Any())
+            return true;
+
+        var itemsTotal = Items.Sum(i => i.Amount ?? 0);
+        if (itemsTotal <= 0)
+            return true;
+
+        // 税率が設定されている税情報のみ検証
+        foreach (var tax in Taxes)
+        {
+            // 税率がnullの場合は固定額として扱うのでスキップ
+            if (!tax.TaxRate.HasValue)
+                continue;
+
+            // 税額がnullの場合はスキップ
+            if (!tax.TaxAmount.HasValue)
+                continue;
+
+            var taxRate = tax.TaxRate.Value;
+            var taxAmount = tax.TaxAmount.Value;
+
+            // 課税対象額が指定されている場合はそれを使用、なければ項目合計を使用
+            var taxableAmount = tax.TaxableAmount ?? itemsTotal;
+
+            // 期待される税額を計算
+            var expectedTax = taxableAmount * (taxRate / 100m);
+
+            // 税額が期待値から大きく外れていないかチェック
+            var diff = Math.Abs(taxAmount - expectedTax);
+            var tolerance = Math.Max(expectedTax * 0.15m, 2.0m); // 15%または2円の誤差許容
+
+            if (diff > tolerance)
+                return false;
+        }
+
         return true;
     }
 }
