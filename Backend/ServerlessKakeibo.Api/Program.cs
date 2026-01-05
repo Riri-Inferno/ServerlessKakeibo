@@ -11,6 +11,11 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.User.Services;
 using ServerlessKakeibo.Api.Domain.Receipt.Services;
+using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.ResistReceiptDetails;
+using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
+using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
+using ServerlessKakeibo.Api.Infrastructure.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,12 +45,22 @@ builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 
 #region usecases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
+builder.Services.AddScoped<IResistReceiptDetailsUseCase, ResistReceiptDetailsInteractor>();
 #endregion
 
 #region DomainServices
 builder.Services.AddScoped<TransactionDomainService>();
 builder.Services.AddScoped<UserDomainService>();
 builder.Services.AddScoped<ReceiptEvaluatorService>();
+#endregion
+
+#region Repositories
+builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
+builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
+#endregion
+
+#region TransactionResolver
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 #endregion
 
 // DbContext 登録

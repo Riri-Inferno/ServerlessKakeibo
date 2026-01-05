@@ -6,6 +6,16 @@ namespace ServerlessKakeibo.Api.Domain.Receipt.Models;
 public class ShopDetails
 {
     /// <summary>
+    /// 店舗名
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// 支店名
+    /// </summary>
+    public string? Branch { get; set; }
+
+    /// <summary>
     /// 電話番号
     /// </summary>
     public string? PhoneNumber { get; set; }

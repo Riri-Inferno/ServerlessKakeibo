@@ -72,7 +72,7 @@ public class ReceiptResponseParser
                 {
                     Currency = "JPY",
                     Items = new List<NormalizedItem>(),
-                    Taxes = new List<TaxDetail>()
+                    Taxes = new List<TaxInfo>()
                 },
                 ParseStatus = ParseStatus.Failed,
                 Warnings = new List<string> { "解析に失敗しました" },
@@ -136,11 +136,11 @@ public class ReceiptResponseParser
     }
 
     /// <summary>
-    /// 税情報リストをパース
+    /// 税情報リストをパース（DTO用）
     /// </summary>
-    private static List<TaxDetail> ParseTaxes(JsonElement root)
+    private static List<TaxInfo> ParseTaxes(JsonElement root)
     {
-        var taxes = new List<TaxDetail>();
+        var taxes = new List<TaxInfo>();
 
         // taxes配列から取得
         if (root.TryGetProperty("taxes", out var taxesProp) &&
@@ -148,15 +148,11 @@ public class ReceiptResponseParser
         {
             foreach (var taxElement in taxesProp.EnumerateArray())
             {
-                var tax = new TaxDetail
+                var tax = new TaxInfo
                 {
-                    TaxType = JsonHelper.GetStringOrNull(taxElement, "tax_type") ?? "消費税",
                     TaxRate = JsonHelper.ParseTaxRateFromJson(taxElement, "tax_rate"),
                     TaxAmount = JsonHelper.ParseDecimalFromJson(taxElement, "tax_amount"),
-                    IsFixedAmount = taxElement.TryGetProperty("is_fixed_amount", out var fixedProp)
-                        ? fixedProp.GetBoolean()
-                        : false,
-                    ApplicableCategory = JsonHelper.GetStringOrNull(taxElement, "applicable_category")
+                    TaxableAmount = JsonHelper.ParseDecimalFromJson(taxElement, "taxable_amount")
                 };
                 taxes.Add(tax);
             }
@@ -176,6 +172,8 @@ public class ReceiptResponseParser
 
         return new ShopDetails
         {
+            Name = JsonHelper.GetStringOrNull(shopProp, "name"),
+            Branch = JsonHelper.GetStringOrNull(shopProp, "branch"),
             PhoneNumber = JsonHelper.GetStringOrNull(shopProp, "phone_number"),
             Address = JsonHelper.GetStringOrNull(shopProp, "address"),
             PostalCode = JsonHelper.GetStringOrNull(shopProp, "postal_code"),

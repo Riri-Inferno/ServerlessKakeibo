@@ -21,6 +21,11 @@ public class TaxDetail
     public decimal? TaxAmount { get; set; }
 
     /// <summary>
+    /// 課税対象額（税抜金額）
+    /// </summary>
+    public decimal? TaxableAmount { get; set; }
+
+    /// <summary>
     /// 固定額の税金かどうか
     /// </summary>
     public bool IsFixedAmount { get; set; }

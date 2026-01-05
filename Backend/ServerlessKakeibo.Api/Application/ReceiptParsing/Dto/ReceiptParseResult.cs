@@ -87,7 +87,7 @@ public class NormalizedTransaction
     /// <summary>
     /// 税情報リスト（複数税率対応）
     /// </summary>
-    public List<TaxDetail> Taxes { get; set; } = new();
+    public List<TaxInfo> Taxes { get; set; } = new();
 
     /// <summary>
     /// 取引項目一覧
@@ -127,7 +127,7 @@ public class NormalizedItem
 }
 
 /// <summary>
-/// 税情報
+/// 税情報（DTO）
 /// </summary>
 public class TaxInfo
 {
@@ -140,4 +140,9 @@ public class TaxInfo
     /// 税額
     /// </summary>
     public decimal? TaxAmount { get; set; }
+
+    /// <summary>
+    /// 課税対象額（税抜金額）
+    /// </summary>
+    public decimal? TaxableAmount { get; set; }
 }
