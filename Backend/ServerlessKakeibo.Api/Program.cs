@@ -36,6 +36,8 @@ builder.Services.Configure<GcpAuthSettings>(
     builder.Configuration.GetSection("GcpAuth"));
 builder.Services.Configure<VertexAiSettings>(
     builder.Configuration.GetSection("VertexAi"));
+builder.Services.Configure<GoogleAiStudioSettings>(
+    builder.Configuration.GetSection("GoogleAiStudio"));
 
 // DI 登録
 #region services
