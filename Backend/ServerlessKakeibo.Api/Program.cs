@@ -43,6 +43,7 @@ builder.Services.Configure<GoogleAiStudioSettings>(
 #region services
 builder.Services.AddScoped<IGcpAuthService, GcpAuthService>();
 builder.Services.AddScoped<IVertexAiService, VertexAiService>();
+builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 #endregion
 
 #region usecases
