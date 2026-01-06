@@ -16,6 +16,8 @@ namespace ServerlessKakeibo.Api.Application.ReceiptParsing;
 public class ReceiptParsingInteractor : IReceiptParsingUseCase
 {
     private readonly IVertexAiService _vertexAiService;
+    private readonly IGoogleAiStudioService _googleAiStudioService;
+    private readonly IWebHostEnvironment _environment;
     private readonly ILogger<ReceiptParsingInteractor> _logger;
 
     /// <summary>
@@ -23,9 +25,13 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     /// </summary>
     public ReceiptParsingInteractor(
         IVertexAiService vertexAiService,
+        IGoogleAiStudioService googleAiStudioService,
+        IWebHostEnvironment environment,
         ILogger<ReceiptParsingInteractor> logger)
     {
         _vertexAiService = vertexAiService ?? throw new ArgumentNullException(nameof(vertexAiService));
+        _googleAiStudioService = googleAiStudioService ?? throw new ArgumentNullException(nameof(googleAiStudioService));
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -71,13 +77,31 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 }
             };
 
-            // 5. VertexAI API呼び出し
-            _logger.LogDebug("VertexAI APIを呼び出します");
-            var llmResponse = await _vertexAiService.GenerateContentAsync(
-                userPrompt: userPrompt,
-                systemPrompt: systemPrompt,
-                images: images
-            );
+            // 5. LLM API呼び出し
+            #region Call External LLM Service
+            string llmResponse;
+
+            if (_environment.IsDevelopment())
+            {
+                // 開発環境: Google AI Studio を使用
+                _logger.LogDebug("Google AI Studio APIを呼び出します");
+                llmResponse = await _googleAiStudioService.GenerateContentAsync(
+                    userPrompt: userPrompt,
+                    systemPrompt: systemPrompt,
+                    images: images
+                );
+            }
+            else
+            {
+                // 本番環境: VertexAI を使用
+                _logger.LogDebug("VertexAI APIを呼び出します");
+                llmResponse = await _vertexAiService.GenerateContentAsync(
+                    userPrompt: userPrompt,
+                    systemPrompt: systemPrompt,
+                    images: images
+                );
+            }
+            #endregion
 
             // 6. レスポンスのJSONを検証・クリーニング
             var (isJsonValid, cleanedJson, jsonError) = JsonHelper.ExtractAndValidateLlmJson(llmResponse);
