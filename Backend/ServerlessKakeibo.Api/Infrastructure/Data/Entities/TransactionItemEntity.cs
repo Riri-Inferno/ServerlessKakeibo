@@ -36,7 +36,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// <summary>
         /// 商品カテゴリ（LLMが推論）
         /// </summary>
-        public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
+        public ItemCategory Category { get; set; }
 
         /// <summary>
         /// 取引ID（外部キー）
