@@ -116,6 +116,9 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<TransactionItemEntity>()
             .HasIndex(i => i.TransactionId);
 
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasIndex(i => i.Category);
+
         // TaxDetailEntity
         modelBuilder.Entity<TaxDetailEntity>()
             .HasIndex(td => td.TransactionId);
