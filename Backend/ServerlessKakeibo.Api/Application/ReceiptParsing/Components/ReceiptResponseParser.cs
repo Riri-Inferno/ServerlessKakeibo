@@ -3,6 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Components;
 
@@ -42,6 +43,7 @@ public class ReceiptResponseParser
                     Payer = JsonHelper.GetStringOrNull(root, "payer"),
                     Payee = JsonHelper.GetStringOrNull(root, "payee"),
                     PaymentMethod = ParsePaymentMethod(root, "payment_method"),
+                    Category = ParseTransactionCategory(root, "category"),
                     Taxes = ParseTaxes(root),
                     Items = ParseItems(root),
                     ShopDetails = ParseShopDetails(root)
@@ -113,7 +115,7 @@ public class ReceiptResponseParser
     /// <summary>
     /// 支払方法をパース
     /// </summary>
-    private static PaymentMethod? ParsePaymentMethod(JsonElement root, string propertyName)
+    private static Dto.Enum.PaymentMethod? ParsePaymentMethod(JsonElement root, string propertyName)
     {
         if (!root.TryGetProperty(propertyName, out var prop))
             return null;
@@ -124,14 +126,89 @@ public class ReceiptResponseParser
 
         return methodString.ToUpperInvariant() switch
         {
-            "CASH" => PaymentMethod.Cash,
-            "CREDITCARD" => PaymentMethod.CreditCard,
-            "DEBITCARD" => PaymentMethod.DebitCard,
-            "ELECTRONICMONEY" => PaymentMethod.ElectronicMoney,
-            "QRCODEPAYMENT" => PaymentMethod.QRCodePayment,
-            "BANKTRANSFER" => PaymentMethod.BankTransfer,
-            "OTHER" => PaymentMethod.Other,
-            _ => PaymentMethod.Unknown
+            "CASH" => Dto.Enum.PaymentMethod.Cash,
+            "CREDITCARD" => Dto.Enum.PaymentMethod.CreditCard,
+            "DEBITCARD" => Dto.Enum.PaymentMethod.DebitCard,
+            "ELECTRONICMONEY" => Dto.Enum.PaymentMethod.ElectronicMoney,
+            "QRCODEPAYMENT" => Dto.Enum.PaymentMethod.QRCodePayment,
+            "BANKTRANSFER" => Dto.Enum.PaymentMethod.BankTransfer,
+            "OTHER" => Dto.Enum.PaymentMethod.Other,
+            _ => Dto.Enum.PaymentMethod.Unknown
+        };
+    }
+
+    /// <summary>
+    /// 取引カテゴリをパース
+    /// </summary>
+    private static TransactionCategory? ParseTransactionCategory(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        var categoryString = prop.GetString();
+        if (string.IsNullOrWhiteSpace(categoryString))
+            return null;
+
+        return categoryString.ToUpperInvariant() switch
+        {
+            "UNCATEGORIZED" => TransactionCategory.Uncategorized,
+            "FOOD" => TransactionCategory.Food,
+            "DININGOUT" => TransactionCategory.DiningOut,
+            "DAILYNECESSITIES" => TransactionCategory.DailyNecessities,
+            "TRANSPORTATION" => TransactionCategory.Transportation,
+            "EDUCATION" => TransactionCategory.Education,
+            "MEDICAL" => TransactionCategory.Medical,
+            "ENTERTAINMENT" => TransactionCategory.Entertainment,
+            "FASHION" => TransactionCategory.Fashion,
+            "UTILITIES" => TransactionCategory.Utilities,
+            "COMMUNICATION" => TransactionCategory.Communication,
+            "OTHER" => TransactionCategory.Other,
+            _ => TransactionCategory.Uncategorized
+        };
+    }
+
+    /// <summary>
+    /// 商品カテゴリをパース
+    /// </summary>
+    private static ItemCategory? ParseItemCategory(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        var categoryString = prop.GetString();
+        if (string.IsNullOrWhiteSpace(categoryString))
+            return null;
+
+        return categoryString.ToUpperInvariant() switch
+        {
+            "UNCATEGORIZED" => ItemCategory.Uncategorized,
+            "FOOD" => ItemCategory.Food,
+            "BEVERAGE" => ItemCategory.Beverage,
+            "SNACK" => ItemCategory.Snack,
+            "FROZENFOOD" => ItemCategory.FrozenFood,
+            "DAIRYPRODUCT" => ItemCategory.DairyProduct,
+            "SEASONING" => ItemCategory.Seasoning,
+            "TOILETRIES" => ItemCategory.Toiletries,
+            "KITCHENSUPPLIES" => ItemCategory.KitchenSupplies,
+            "CLEANINGSUPPLIES" => ItemCategory.CleaningSupplies,
+            "LAUNDRYSUPPLIES" => ItemCategory.LaundrySupplies,
+            "STATIONERY" => ItemCategory.Stationery,
+            "MISCELLANEOUS" => ItemCategory.Miscellaneous,
+            "MEDICINE" => ItemCategory.Medicine,
+            "SUPPLEMENT" => ItemCategory.Supplement,
+            "COSMETICS" => ItemCategory.Cosmetics,
+            "CLOTHING" => ItemCategory.Clothing,
+            "SHOES" => ItemCategory.Shoes,
+            "ACCESSORIES" => ItemCategory.Accessories,
+            "ELECTRONICS" => ItemCategory.Electronics,
+            "BATTERY" => ItemCategory.Battery,
+            "PETSUPPLIES" => ItemCategory.PetSupplies,
+            "BABYPRODUCTS" => ItemCategory.BabyProducts,
+            "PACKAGING" => ItemCategory.Packaging,
+            "TOBACCO" => ItemCategory.Tobacco,
+            "BOOKS" => ItemCategory.Books,
+            "OTHER" => ItemCategory.Other,
+            _ => ItemCategory.Uncategorized
         };
     }
 
@@ -200,7 +277,8 @@ public class ReceiptResponseParser
                 Name = JsonHelper.GetStringOrNull(itemElement, "name"),
                 Quantity = JsonHelper.ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
                 UnitPrice = JsonHelper.ParseDecimalFromJson(itemElement, "unit_price"),
-                Amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount")
+                Amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount"),
+                Category = ParseItemCategory(itemElement, "category")
             };
 
             items.Add(item);

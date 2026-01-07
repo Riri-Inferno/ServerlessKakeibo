@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 
@@ -82,7 +83,7 @@ public class NormalizedTransaction
     /// 支払方法
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public PaymentMethod? PaymentMethod { get; set; }
+    public Application.ReceiptParsing.Dto.Enum.PaymentMethod? PaymentMethod { get; set; }
 
     /// <summary>
     /// 税情報リスト（複数税率対応）
@@ -98,6 +99,12 @@ public class NormalizedTransaction
     /// 店舗詳細情報
     /// </summary>
     public ShopDetails? ShopDetails { get; set; }
+
+    /// <summary>
+    /// LLMが推論したカテゴリ
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionCategory? Category { get; set; }
 }
 
 /// <summary>
@@ -124,6 +131,12 @@ public class NormalizedItem
     /// 金額
     /// </summary>
     public decimal? Amount { get; set; }
+
+    /// <summary>
+    /// 商品カテゴリ（LLMが推論）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ItemCategory? Category { get; set; }
 }
 
 /// <summary>

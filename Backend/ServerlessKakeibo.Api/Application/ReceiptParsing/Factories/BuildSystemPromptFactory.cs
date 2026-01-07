@@ -23,6 +23,7 @@ public class BuildSystemPromptFactory
   ""payer"": ""支払者名"",
   ""payee"": ""受取者名（店舗名等）"",
   ""payment_method"": ""Cash|CreditCard|DebitCard|ElectronicMoney|QRCodePayment|BankTransfer|Other|Unknown"",
+  ""category"": ""取引カテゴリ（後述）"",
   ""taxes"": [
     {
       ""tax_type"": ""消費税|入湯税|宿泊税|その他"",
@@ -37,7 +38,8 @@ public class BuildSystemPromptFactory
       ""name"": ""商品名"",
       ""quantity"": 数量,
       ""unit_price"": 単価,
-      ""amount"": 金額
+      ""amount"": 金額,
+      ""category"": ""商品カテゴリ（後述）""
     }
   ],
   ""shop_details"": {
@@ -59,6 +61,62 @@ public class BuildSystemPromptFactory
 - Other: その他の支払方法
 - Unknown: 不明または判定不可
 
+取引カテゴリ（category）の判定基準：
+- Uncategorized: 未分類
+- Food: 食費（スーパー、食品店など）
+- DiningOut: 外食（レストラン、カフェなど）
+- DailyNecessities: 日用品（ドラッグストア、雑貨店など）
+- Transportation: 交通費（電車、バス、タクシー、ガソリンなど）
+- Education: 教育・教養（書店、塾、習い事など）
+- Medical: 医療・健康（病院、薬局など）
+- Entertainment: 趣味・娯楽（映画、ゲーム、スポーツなど）
+- Fashion: 衣服・美容（衣料品店、美容院など）
+- Utilities: 水道・光熱費（電気、ガス、水道）
+- Communication: 通信費（携帯電話、インターネット）
+- Other: その他
+
+商品カテゴリ（items内のcategory）の判定基準：
+【食品・飲料】
+- Food: 食品全般
+- Beverage: 飲料
+- Snack: お菓子・スナック
+- FrozenFood: 冷凍食品
+- DairyProduct: 乳製品
+- Seasoning: 調味料
+
+【日用品】
+- Toiletries: トイレタリー（シャンプー、石鹸など）
+- KitchenSupplies: キッチン用品
+- CleaningSupplies: 掃除用品
+- LaundrySupplies: 洗濯用品
+
+【文具・雑貨】
+- Stationery: 文房具
+- Miscellaneous: 雑貨
+
+【医薬品・化粧品】
+- Medicine: 医薬品
+- Supplement: サプリメント
+- Cosmetics: 化粧品
+
+【衣類・ファッション】
+- Clothing: 衣類
+- Shoes: 靴
+- Accessories: アクセサリー
+
+【電子機器】
+- Electronics: 電子機器
+- Battery: 電池
+
+【その他】
+- PetSupplies: ペット用品
+- BabyProducts: ベビー用品
+- Packaging: レジ袋・包装材
+- Tobacco: タバコ
+- Books: 書籍・雑誌
+- Other: その他
+- Uncategorized: 未分類
+
 重要な指示：
 1. 日付は必ずyyyy-MM-dd HH:mm:ss形式に変換してください（時刻情報がある場合は必ず含める）
 2. 金額は数値のみで、通貨記号や単位は含めないでください
@@ -67,7 +125,9 @@ public class BuildSystemPromptFactory
 5. 必ず有効なJSONを返してください
 6. JSONのみを返し、説明文は含めないでください
 7. 税金が複数ある場合は、taxes配列に全て含めてください
-8. インボイス番号が記載されている場合は必ず抽出してください";
+8. インボイス番号が記載されている場合は必ず抽出してください
+9. 取引全体のcategoryと、各商品のcategoryを必ず判定してください
+10. 店舗名や商品名から適切なカテゴリを推論してください";
 
     if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
     {
