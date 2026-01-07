@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
 {
@@ -31,6 +32,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// </summary>
         [Column(TypeName = "decimal(18,2)")]
         public decimal? Amount { get; set; }
+
+        /// <summary>
+        /// 商品カテゴリ（LLMが推論）
+        /// </summary>
+        public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
 
         /// <summary>
         /// 取引ID（外部キー）
