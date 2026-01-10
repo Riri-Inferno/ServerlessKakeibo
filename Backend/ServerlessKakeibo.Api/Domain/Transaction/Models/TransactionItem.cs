@@ -1,3 +1,5 @@
+using ServerlessKakeibo.Api.Domain.ValueObjects;
+
 namespace ServerlessKakeibo.Api.Domain.Transaction.Models;
 
 /// <summary>
@@ -9,6 +11,11 @@ public class TransactionItem
     public decimal? Quantity { get; set; }
     public decimal? UnitPrice { get; set; }
     public decimal? Amount { get; set; }
+
+    /// <summary>
+    /// 商品カテゴリ
+    /// </summary>
+    public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
 
     /// <summary>
     /// ドメインルール：金額の整合性チェック

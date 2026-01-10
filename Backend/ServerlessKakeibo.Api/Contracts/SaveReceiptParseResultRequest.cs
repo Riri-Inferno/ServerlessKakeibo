@@ -133,6 +133,12 @@ public class TransactionItemRequest
     /// 金額
     /// </summary>
     public decimal? Amount { get; set; }
+
+    /// <summary>
+    /// 商品カテゴリ
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ItemCategory? Category { get; set; }
 }
 
 /// <summary>

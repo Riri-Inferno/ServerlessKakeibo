@@ -56,6 +56,7 @@ public static class TransactionMapper
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
                 Amount = item.Amount,
+                Category = item.Category ?? ItemCategory.Uncategorized,
                 TenantId = tenantId,
                 CreatedBy = userId
             })
@@ -122,7 +123,8 @@ public static class TransactionMapper
                 Name = i.Name,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                Amount = i.Amount
+                Amount = i.Amount,
+                Category = i.Category
             }).ToList(),
             Taxes = entity.Taxes.Select(t => new Domain.Receipt.Models.TaxDetail
             {
