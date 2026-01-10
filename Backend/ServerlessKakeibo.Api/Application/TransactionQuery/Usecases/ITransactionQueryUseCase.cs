@@ -1,4 +1,6 @@
+using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Dto;
+using ServerlessKakeibo.Api.Common.Models;
 
 namespace ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
 
@@ -16,6 +18,14 @@ public interface ITransactionQueryUseCase
     /// <returns>取引詳細。存在しない場合はnull</returns>
     Task<TransactionDetailResult?> GetByIdAsync(
         Guid id,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取引一覧を取得
+    /// </summary>
+    Task<PagedResult<TransactionSummaryResult>> GetPagedListAsync(
+        GetTransactionsRequest request,
         Guid userId,
         CancellationToken cancellationToken = default);
 }

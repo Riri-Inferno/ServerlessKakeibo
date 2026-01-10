@@ -2,6 +2,8 @@ using ServerlessKakeibo.Api.Application.TransactionQuery.Dto;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Mappers;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
+using ServerlessKakeibo.Api.Common.Models;
+using ServerlessKakeibo.Api.Contracts;
 
 namespace ServerlessKakeibo.Api.Application.TransactionQuery;
 
@@ -62,6 +64,57 @@ public class TransactionQueryInteractor : ITransactionQueryUseCase
             _logger.LogError(ex,
                 "取引詳細取得中にエラーが発生しました。TransactionId: {TransactionId}, UserId: {UserId}",
                 id, userId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 取引一覧を取得
+    /// </summary>
+    public async Task<PagedResult<TransactionSummaryResult>> GetPagedListAsync(
+        GetTransactionsRequest request,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
+
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        try
+        {
+            _logger.LogInformation(
+                "取引一覧取得を開始します。UserId: {UserId}, Page: {Page}, PageSize: {PageSize}",
+                userId, request.Page, request.PageSize);
+
+            var (items, totalCount) = await _transactionRepository.GetPagedListAsync(
+                userId,
+                request.Page,
+                request.PageSize,
+                request.StartDate,
+                request.EndDate,
+                request.Category,
+                request.Payee,
+                request.MinAmount,
+                request.MaxAmount,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "取引一覧を取得しました。UserId: {UserId}, 取得件数: {Count}, 総件数: {TotalCount}",
+                userId, items.Count, totalCount);
+
+            return new PagedResult<TransactionSummaryResult>
+            {
+                Items = items.Select(TransactionQueryMapper.ToSummaryResult).ToList(),
+                CurrentPage = request.Page,
+                PageSize = request.PageSize,
+                TotalCount = totalCount
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "取引一覧取得中にエラーが発生しました。UserId: {UserId}", userId);
             throw;
         }
     }

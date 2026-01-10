@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Dto;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Common.Helpers;
@@ -104,6 +103,27 @@ public static class TransactionQueryMapper
             PhoneNumber = entity.PhoneNumber,
             InvoiceRegistrationNumber = entity.InvoiceRegistrationNumber,
             RegisteredBusinessName = entity.RegisteredBusinessName
+        };
+    }
+
+    /// <summary>
+    /// TransactionEntity → TransactionSummaryResult 変換(一覧用)
+    /// </summary>
+    public static TransactionSummaryResult ToSummaryResult(TransactionEntity entity)
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        return new TransactionSummaryResult
+        {
+            Id = entity.Id,
+            TransactionDate = entity.TransactionDate,
+            AmountTotal = entity.AmountTotal,
+            Currency = entity.Currency,
+            Payee = entity.Payee,
+            Category = entity.Category,
+            PaymentMethod = entity.PaymentMethod,
+            ItemCount = entity.Items?.Count ?? 0
         };
     }
 }

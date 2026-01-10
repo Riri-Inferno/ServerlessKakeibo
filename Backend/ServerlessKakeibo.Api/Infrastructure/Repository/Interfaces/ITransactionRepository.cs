@@ -1,3 +1,4 @@
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
@@ -10,5 +11,20 @@ public interface ITransactionRepository
     Task<TransactionEntity?> GetDetailByIdAsync(
         Guid id,
         Guid userId,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 取引一覧を取得(ページング対応)
+    /// </summary>
+    Task<(List<TransactionEntity> Items, int TotalCount)> GetPagedListAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        DateTimeOffset? startDate = null,
+        DateTimeOffset? endDate = null,
+        TransactionCategory? category = null,
+        string? payee = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null,
         CancellationToken ct = default);
 }

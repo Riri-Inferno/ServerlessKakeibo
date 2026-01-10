@@ -4,6 +4,7 @@ using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using Swashbuckle.AspNetCore.Annotations;
+using ServerlessKakeibo.Api.Common.Models;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
@@ -70,6 +71,56 @@ public class TransactionController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 ApiResponse<TransactionDetailResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// 取引一覧を取得
+    /// </summary>
+    [HttpGet]
+    [SwaggerOperation(
+        Summary = "取引一覧を取得",
+        Description = "取引の一覧をページングして取得する。\n\n日付範囲、カテゴリ、金額などでフィルタ可能。")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<PagedResult<TransactionSummaryResult>>>> GetTransactionsAsync(
+        [FromQuery] GetTransactionsRequest request,
+        [FromServices] ITransactionQueryUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            // TODO: 認証実装後はトークンからユーザーIDを取得
+            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+
+            var result = await useCase.GetPagedListAsync(request, userId);
+
+            return Ok(ApiResponse<PagedResult<TransactionSummaryResult>>.Success(result));
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<PagedResult<TransactionSummaryResult>>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<PagedResult<TransactionSummaryResult>>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<PagedResult<TransactionSummaryResult>>.Fail(
                     ApiStatus.InternalError,
                     ex.ToString()
                 )
