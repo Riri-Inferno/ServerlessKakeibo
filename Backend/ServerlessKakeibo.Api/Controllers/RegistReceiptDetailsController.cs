@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using ServerlessKakeibo.Api.Application.ResistReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.registReceiptDetails.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
 [ApiController]
 [Route("api/receipt")]
-public class ResistReceiptDetailsController : ControllerBase
+public class registReceiptDetailsController : ControllerBase
 {
-    private readonly ILogger<ResistReceiptDetailsController> _logger;
+    private readonly ILogger<registReceiptDetailsController> _logger;
 
-    public ResistReceiptDetailsController(
-        ILogger<ResistReceiptDetailsController> logger)
+    public registReceiptDetailsController(
+        ILogger<registReceiptDetailsController> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -25,7 +25,7 @@ public class ResistReceiptDetailsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SaveTransactionAsync(
         [FromBody] SaveReceiptParseResultRequest request,
-        [FromServices] IResistReceiptDetailsUseCase useCase,
+        [FromServices] IregistReceiptDetailsUseCase useCase,
         [FromServices] IHostEnvironment environment,
         CancellationToken cancellationToken)
     {
