@@ -1,31 +1,28 @@
 using Microsoft.AspNetCore.Mvc;
-using ServerlessKakeibo.Api.Application.registReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
 using ServerlessKakeibo.Api.Contracts;
+using ServerlessKakeibo.Api.Contracts.Enums;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
 [ApiController]
-[Route("api/receipt")]
-public class registReceiptDetailsController : ControllerBase
+[Route("[controller]")]
+public class RegistReceiptDetailsController : ControllerBase
 {
-    private readonly ILogger<registReceiptDetailsController> _logger;
-
-    public registReceiptDetailsController(
-        ILogger<registReceiptDetailsController> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     /// <summary>
     /// 領収書解析結果を保存
     /// </summary>
     [HttpPost("parse-and-save")]
+    [SwaggerOperation(
+        Summary = "領収書解析結果を保存",
+        Description = "解析済みの領収書データをトランザクションとして保存する。")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SaveTransactionAsync(
+    public async Task<ActionResult<ApiResponse<object>>> SaveTransactionAsync(
         [FromBody] SaveReceiptParseResultRequest request,
-        [FromServices] IregistReceiptDetailsUseCase useCase,
+        [FromServices] IRegistReceiptDetailsUseCase useCase,
         [FromServices] IHostEnvironment environment,
         CancellationToken cancellationToken)
     {
@@ -36,47 +33,47 @@ public class registReceiptDetailsController : ControllerBase
 
             var result = await useCase.ExecuteSaveAsync(request, userId, cancellationToken);
 
-            return Ok(new
-            {
-                status = "Success",
-                message = (string?)null,
-                data = result
-            });
+            return Ok(ApiResponse<object>.Success(result));
         }
-        catch (ArgumentException ex)
+        catch (ArgumentException)
         {
-            _logger.LogWarning(ex, "リクエストが不正です");
-            return BadRequest(new
-            {
-                status = "BadRequest",
-                message = ex.Message,
-                data = (object?)null
-            });
+            return BadRequest(
+                ApiResponse<object>.Fail(ApiStatus.InvalidRequest)
+            );
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "取引保存に失敗しました");
-            return StatusCode(StatusCodes.Status500InternalServerError, new
+            // 開発環境以外では詳細を返さない
+            if (!environment.IsDevelopment())
             {
-                status = "InternalError",
-                message = ex.Message,
-                data = (object?)null
-            });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<object>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            // 開発環境では詳細を返す
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<object>.Fail(ApiStatus.InternalError, ex.ToString())
+            );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "予期しないエラーが発生しました");
-
-            var message = environment.IsDevelopment()
-                ? ex.ToString()
-                : "取引保存中にエラーが発生しました";
-
-            return StatusCode(StatusCodes.Status500InternalServerError, new
+            // 開発環境以外では詳細を返さない
+            if (!environment.IsDevelopment())
             {
-                status = "InternalError",
-                message,
-                data = (object?)null
-            });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<object>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            // 開発環境では詳細を返す
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<object>.Fail(ApiStatus.InternalError, ex.ToString())
+            );
         }
     }
 }

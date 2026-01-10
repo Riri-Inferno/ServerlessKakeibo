@@ -11,8 +11,8 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.User.Services;
 using ServerlessKakeibo.Api.Domain.Receipt.Services;
-using ServerlessKakeibo.Api.Application.registReceiptDetails.Usecases;
-using ServerlessKakeibo.Api.Application.registReceiptDetails;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository;
@@ -48,7 +48,7 @@ builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 
 #region usecases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
-builder.Services.AddScoped<IregistReceiptDetailsUseCase, registReceiptDetailsInteractor>();
+builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInteractor>();
 #endregion
 
 #region DomainServices

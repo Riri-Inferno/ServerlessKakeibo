@@ -2,7 +2,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 
-namespace ServerlessKakeibo.Api.Application.registReceiptDetails.Mappers;
+namespace ServerlessKakeibo.Api.Application.RegistReceiptDetails.Mappers;
 
 /// <summary>
 /// 取引マッパー

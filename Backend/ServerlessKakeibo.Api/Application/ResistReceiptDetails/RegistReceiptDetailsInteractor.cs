@@ -1,7 +1,7 @@
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
-using ServerlessKakeibo.Api.Application.registReceiptDetails.Dto;
-using ServerlessKakeibo.Api.Application.registReceiptDetails.Mappers;
-using ServerlessKakeibo.Api.Application.registReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Dto;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Mappers;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
@@ -9,22 +9,22 @@ using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 
-namespace ServerlessKakeibo.Api.Application.registReceiptDetails;
+namespace ServerlessKakeibo.Api.Application.RegistReceiptDetails;
 
 /// <summary>
 /// 領収書詳細保存インタラクター
 /// </summary>
-public class registReceiptDetailsInteractor : IregistReceiptDetailsUseCase
+public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly TransactionDomainService _transactionDomainService;
-    private readonly ILogger<registReceiptDetailsInteractor> _logger;
+    private readonly ILogger<RegistReceiptDetailsInteractor> _logger;
     private readonly IConfiguration _configuration;
 
-    public registReceiptDetailsInteractor(
+    public RegistReceiptDetailsInteractor(
         IUnitOfWork unitOfWork,
         TransactionDomainService transactionDomainService,
-        ILogger<registReceiptDetailsInteractor> logger,
+        ILogger<RegistReceiptDetailsInteractor> logger,
         IConfiguration configuration)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

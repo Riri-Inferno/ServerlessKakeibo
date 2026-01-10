@@ -1,6 +1,6 @@
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 
-namespace ServerlessKakeibo.Api.Application.registReceiptDetails.Dto;
+namespace ServerlessKakeibo.Api.Application.RegistReceiptDetails.Dto;
 
 /// <summary>
 /// 取引保存結果DTO
