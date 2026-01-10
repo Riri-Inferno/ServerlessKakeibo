@@ -16,6 +16,8 @@ using ServerlessKakeibo.Api.Application.RegistReceiptDetails;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository;
+using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionQuery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +51,7 @@ builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 #region usecases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
 builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInteractor>();
+builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>();
 #endregion
 
 #region DomainServices
@@ -60,6 +63,7 @@ builder.Services.AddScoped<ReceiptEvaluatorService>();
 #region Repositories
 builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
+builder.Services.AddScoped(typeof(ITransactionRepository), typeof(TransactionRepository));
 #endregion
 
 #region TransactionResolver
