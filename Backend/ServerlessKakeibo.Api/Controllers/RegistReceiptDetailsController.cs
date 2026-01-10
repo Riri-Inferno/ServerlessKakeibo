@@ -13,7 +13,7 @@ public class RegistReceiptDetailsController : ControllerBase
     /// <summary>
     /// 領収書解析結果を保存
     /// </summary>
-    [HttpPost("parse-and-save")]
+    [HttpPost("save-receipt-parse-result")]
     [SwaggerOperation(
         Summary = "領収書解析結果を保存",
         Description = "解析済みの領収書データをトランザクションとして保存する。")]
