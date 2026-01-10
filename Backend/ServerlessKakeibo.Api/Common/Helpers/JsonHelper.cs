@@ -199,4 +199,26 @@ public static class JsonHelper
 
         return prop.GetString();
     }
+
+    /// <summary>
+    /// JSON配列文字列をList<string>にデシリアライズ
+    /// </summary>
+    /// <param name="jsonArray">JSON配列文字列</param>
+    /// <returns>デシリアライズされたリスト。失敗時は空リスト</returns>
+    public static List<string> DeserializeStringArray(string? jsonArray)
+    {
+        if (string.IsNullOrWhiteSpace(jsonArray))
+            return new List<string>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(jsonArray)
+                ?? new List<string>();
+        }
+        catch (JsonException)
+        {
+            // デシリアライズ失敗時は空リストを返す
+            return new List<string>();
+        }
+    }
 }
