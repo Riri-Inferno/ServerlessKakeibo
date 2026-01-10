@@ -165,7 +165,8 @@ public class ResistReceiptDetailsInteractor : IResistReceiptDetailsUseCase
                     Name = i.Name,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    Amount = i.Amount
+                    Amount = i.Amount,
+                    Category = i.Category
                 }).ToList(),
                 ShopDetails = request.Normalized.ShopDetails != null
                     ? new ShopDetails
