@@ -189,12 +189,6 @@ public class ApplicationDbContext : DbContext
             }
         }
 
-        // TransactionItemEntity の Category設定
-        modelBuilder.Entity<TransactionItemEntity>()
-            .Property(i => i.Category)
-            .HasDefaultValue(null)  // ← デフォルト値を明示的に無効化
-            .IsRequired();
-
         #endregion
     }
 }
