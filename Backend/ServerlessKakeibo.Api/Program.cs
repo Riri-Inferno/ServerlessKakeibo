@@ -18,6 +18,10 @@ using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionQuery;
+using ServerlessKakeibo.Api.Application.TransactionCreate.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionCreate;
+using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionUpdate;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +56,8 @@ builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
 builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInteractor>();
 builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>();
+builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteractor>();
+builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();
 #endregion
 
 #region DomainServices
@@ -61,19 +67,16 @@ builder.Services.AddScoped<ReceiptEvaluatorService>();
 #endregion
 
 #region Repositories
-builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
-builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
-builder.Services.AddScoped(typeof(ITransactionRepository), typeof(TransactionRepository));
-#endregion
-
-#region TransactionResolver
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-#endregion
-
-// DbContext 登録
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
     opts.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
+builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // トランザクションヘルパーに置き換えて消す。
+builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
+#endregion
 
 // CORS 設定（開発環境のみ全許可）
 if (builder.Environment.IsDevelopment())

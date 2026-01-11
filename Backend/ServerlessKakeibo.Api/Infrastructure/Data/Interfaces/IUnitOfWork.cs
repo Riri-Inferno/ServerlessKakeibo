@@ -5,6 +5,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 
 /// <summary>
 /// Unit of Work パターンによるトランザクション管理
+/// 使用禁止：トランザクションヘルパーに置き換えて消す。
 /// </summary>
 public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
