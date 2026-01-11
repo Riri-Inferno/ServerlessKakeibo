@@ -85,4 +85,22 @@ public class TransactionRepository : ITransactionRepository
 
         return (items, totalCount);
     }
+
+    /// <summary>
+    /// 取引を更新用に取得(関連データを含む)
+    /// </summary>
+    public async Task<TransactionEntity?> GetForUpdateAsync(
+        Guid id,
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        return await _context.Transactions
+            .Include(t => t.Items)
+            .Include(t => t.Taxes)
+            .Include(t => t.ShopDetail)
+            .Where(t => t.Id == id
+                && t.UserId == userId
+                && !t.IsDeleted)
+            .FirstOrDefaultAsync(ct);
+    }
 }

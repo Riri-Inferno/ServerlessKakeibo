@@ -5,6 +5,9 @@ using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using Swashbuckle.AspNetCore.Annotations;
 using ServerlessKakeibo.Api.Common.Models;
+using ServerlessKakeibo.Api.Application.Transaction.Dto;
+using ServerlessKakeibo.Api.Application.TransactionCreate.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
@@ -121,6 +124,138 @@ public class TransactionController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 ApiResponse<PagedResult<TransactionSummaryResult>>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// 取引を新規作成
+    /// </summary>
+    [HttpPost]
+    [SwaggerOperation(
+        Summary = "取引を新規作成",
+        Description = "新しい取引を作成する。\n\n" +
+                      "金額はクライアント指定値を優先します。")]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<TransactionResult>>> CreateTransactionAsync(
+        [FromBody] CreateTransactionRequest request,
+        [FromServices] ITransactionCreateUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            // TODO: 認証実装後はトークンからユーザーIDを取得
+            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+
+            var result = await useCase.ExecuteAsync(request, userId);
+
+            return Ok(ApiResponse<TransactionResult>.Success(result));
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<TransactionResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// 取引を更新
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "取引を更新",
+        Description = "既存の取引を更新する。\n\n" +
+                      "金額はサーバー側で自動計算されます（Items合計 + Taxes合計）。\n" +
+                      "子エンティティ（Items, Taxes, ShopDetails）は Full Replace 方式です。")]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<TransactionResult>>> UpdateTransactionAsync(
+        [FromRoute] Guid id,
+        [FromBody] UpdateTransactionRequest request,
+        [FromServices] ITransactionUpdateUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            // TODO: 認証実装後はトークンからユーザーIDを取得
+            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+
+            var result = await useCase.ExecuteAsync(id, request, userId);
+
+            return Ok(ApiResponse<TransactionResult>.Success(result));
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("見つかりません"))
+        {
+            return NotFound(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.NotFound,
+                    ex.Message
+                )
+            );
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<TransactionResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<TransactionResult>.Fail(
                     ApiStatus.InternalError,
                     ex.ToString()
                 )

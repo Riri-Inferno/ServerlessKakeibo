@@ -27,4 +27,12 @@ public interface ITransactionRepository
         decimal? minAmount = null,
         decimal? maxAmount = null,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// 取引を更新用に取得(関連データを含む)
+    /// </summary>
+    Task<TransactionEntity?> GetForUpdateAsync(
+        Guid id,
+        Guid userId,
+        CancellationToken ct = default);
 }
