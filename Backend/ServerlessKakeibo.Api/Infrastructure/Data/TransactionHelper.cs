@@ -88,4 +88,52 @@ public class TransactionHelper : ITransactionHelper
             }
         });
     }
+
+    /// <summary>
+    /// トランザクション内で中間コミットを伴う処理を実行し、結果を返す
+    /// </summary>
+    /// <typeparam name="T">戻り値の型</typeparam>
+    /// <param name="func">実行する関数（中間保存用のデリゲートを受け取る）</param>
+    /// <returns>関数の実行結果</returns>
+    /// <exception cref="InvalidOperationException">同時実行の競合またはトランザクションエラーが発生した場合</exception>
+    public async Task<T> ExecuteInTransactionWithIntermediateSaveAsync<T>(
+        Func<Func<Task>, Task<T>> func)
+    {
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 中間保存用のデリゲート
+                async Task IntermediateSave()
+                {
+                    await _context.SaveChangesAsync();
+                    _context.ChangeTracker.Clear();
+                    _logger.LogDebug("Intermediate save completed and ChangeTracker cleared");
+                }
+
+                var result = await func(IntermediateSave);
+
+                // 最終コミット
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return result;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
+                throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Transaction execution failed");
+                throw new InvalidOperationException("トランザクションの実行中にエラーが発生しました。", ex);
+            }
+        });
+    }
 }

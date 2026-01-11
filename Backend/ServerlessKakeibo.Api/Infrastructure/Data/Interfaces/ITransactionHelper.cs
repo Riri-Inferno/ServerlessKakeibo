@@ -33,4 +33,12 @@ public interface ITransactionHelper
     /// Entity Framework Core の ExecutionStrategy を使用して再試行可能なエラーに対応する。
     /// </remarks>
     Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> func);
+
+    /// <summary>
+    /// トランザクション内で中間コミットを伴う処理を実行し、結果を返す
+    /// </summary>
+    /// <typeparam name="T">戻り値の型</typeparam>
+    /// <param name="func">実行する関数（中間保存用のデリゲートを受け取る）</param>
+    Task<T> ExecuteInTransactionWithIntermediateSaveAsync<T>(
+        Func<Func<Task>, Task<T>> func);
 }
