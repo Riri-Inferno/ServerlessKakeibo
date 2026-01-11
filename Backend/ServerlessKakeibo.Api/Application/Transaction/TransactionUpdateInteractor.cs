@@ -1,5 +1,4 @@
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
-using ServerlessKakeibo.Api.Application.TransactionUpdate.Mappers;
 using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
@@ -7,6 +6,7 @@ using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
+using ServerlessKakeibo.Api.Application.TransactionCreate.Mappers;
 
 namespace ServerlessKakeibo.Api.Application.TransactionUpdate;
 
@@ -18,9 +18,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
     private readonly ITransactionHelper _transactionHelper;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
-    private readonly IGenericWriteRepository<TransactionItemEntity> _itemWriteRepository;
-    private readonly IGenericWriteRepository<TaxDetailEntity> _taxWriteRepository;
-    private readonly IGenericWriteRepository<ShopDetailEntity> _shopWriteRepository;
+    private readonly IGenericWriteRepository<TransactionEntity> _transactionWriteRepository;
     private readonly TransactionDomainService _transactionDomainService;
     private readonly ILogger<TransactionUpdateInteractor> _logger;
     private readonly IConfiguration _configuration;
@@ -29,9 +27,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         ITransactionHelper transactionHelper,
         ITransactionRepository transactionRepository,
         IGenericReadRepository<UserEntity> userReadRepository,
-        IGenericWriteRepository<TransactionItemEntity> itemWriteRepository,
-        IGenericWriteRepository<TaxDetailEntity> taxWriteRepository,
-        IGenericWriteRepository<ShopDetailEntity> shopWriteRepository,
+        IGenericWriteRepository<TransactionEntity> transactionWriteRepository,
         TransactionDomainService transactionDomainService,
         ILogger<TransactionUpdateInteractor> logger,
         IConfiguration configuration)
@@ -39,16 +35,14 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
-        _itemWriteRepository = itemWriteRepository ?? throw new ArgumentNullException(nameof(itemWriteRepository));
-        _taxWriteRepository = taxWriteRepository ?? throw new ArgumentNullException(nameof(taxWriteRepository));
-        _shopWriteRepository = shopWriteRepository ?? throw new ArgumentNullException(nameof(shopWriteRepository));
+        _transactionWriteRepository = transactionWriteRepository ?? throw new ArgumentNullException(nameof(transactionWriteRepository));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     /// <summary>
-    /// 取引を更新
+    /// 取引を更新（DELETE → INSERT 方式）
     /// </summary>
     public async Task<TransactionResult> ExecuteAsync(
         Guid transactionId,
@@ -68,16 +62,17 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         try
         {
             _logger.LogInformation(
-                "取引更新処理を開始します。UserId: {UserId}, TransactionId: {TransactionId}",
+                "取引更新処理を開始します（DELETE→INSERT方式）。UserId: {UserId}, TransactionId: {TransactionId}",
                 userId, transactionId);
 
-            return await _transactionHelper.ExecuteInTransactionAsync(async () =>
+            return await _transactionHelper.ExecuteInTransactionWithIntermediateSaveAsync(
+            async (saveChanges) =>
             {
                 // 1. ユーザーのTenantIdを取得
                 var tenantId = await GetUserTenantIdAsync(userId, cancellationToken);
 
-                // 2. 既存データ取得（削除前の状態）
-                var existingEntity = await _transactionRepository.GetForUpdateAsync(
+                // 2. 既存の取引が存在するか確認
+                var existingEntity = await _transactionRepository.GetDetailByIdAsync(
                     transactionId, userId, cancellationToken);
 
                 if (existingEntity == null)
@@ -86,43 +81,23 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                         $"指定された取引が見つかりません。TransactionId: {transactionId}");
                 }
 
-                _logger.LogDebug(
-                    "取得時 - Transaction xmin: {Xmin}, Items: {ItemCount}件",
-                    existingEntity.RowVersion,
-                    existingEntity.Items.Count);
+                _logger.LogDebug("既存取引を確認しました。TransactionId: {TransactionId}", transactionId);
 
-                // 3. 削除対象の子エンティティを特定して事前削除（物理削除）
-                await DeleteRemovedChildEntitiesAsync(
-                    existingEntity, request, userId, cancellationToken);
+                // 3. 既存の取引を削除（CASCADE で子も削除される）
+                await _transactionWriteRepository.DeleteAsync(transactionId, cancellationToken);
+                await saveChanges();
 
-                // 4. 削除後に再取得
-                existingEntity = await _transactionRepository.GetForUpdateAsync(
-                    transactionId, userId, cancellationToken);
+                _logger.LogDebug("既存取引を削除しました。TransactionId: {TransactionId}", transactionId);
 
-                if (existingEntity == null)
-                {
-                    throw new InvalidOperationException(
-                        $"取引の再取得に失敗しました。TransactionId: {transactionId}");
-                }
+                // 4. 新しい取引エンティティを作成
+                var newEntity = CreateTransactionEntity(
+                    transactionId, request, userId, tenantId);
 
-                // 5. エンティティを更新
-                TransactionUpdateMapper.UpdateEntity(request, existingEntity, userId);
-
-                // 6. 子エンティティの処理（Full Replace方式）
-                TransactionUpdateMapper.ProcessChildEntities(
-                    existingEntity, request, userId, tenantId);
-
-                _logger.LogDebug(
-                    "ProcessChildEntities後 - Items数: {Count}, AmountTotal: {Amount}",
-                    existingEntity.Items.Count,
-                    existingEntity.AmountTotal);
-
-                // 7. ドメインモデルに変換して検証
+                // 5. ドメイン検証
                 var transactionDomain = Application.RegistReceiptDetails.Mappers.TransactionMapper
-                    .ToDomainModel(existingEntity);
+                    .ToDomainModel(newEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
 
-                // 8. 検証結果の処理
                 var warnings = new List<string>();
                 if (!validationResult.IsValid)
                 {
@@ -149,25 +124,22 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     }
                 }
 
-                // 9. ログ出力（SaveChangesはTransactionHelperが実行）
-                _logger.LogDebug(
-                    "SaveChanges直前 - Items数: {Count}, AmountTotal: {Amount}",
-                    existingEntity.Items.Count,
-                    existingEntity.AmountTotal);
+                // 6. 新しい取引を追加
+                await _transactionWriteRepository.AddAsync(newEntity, cancellationToken);
 
                 _logger.LogInformation(
-                    "取引を更新しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}",
-                    existingEntity.Id, userId, existingEntity.AmountTotal);
+                    "取引を再作成しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}",
+                    newEntity.Id, userId, newEntity.AmountTotal);
 
-                // 10. 結果DTOを返す
+                // 7. 結果DTOを返す
                 return new TransactionResult
                 {
-                    TransactionId = existingEntity.Id,
-                    TransactionDate = existingEntity.TransactionDate ?? DateTimeOffset.UtcNow,
-                    AmountTotal = existingEntity.AmountTotal ?? 0,
-                    Currency = existingEntity.Currency,
-                    Payee = existingEntity.Payee,
-                    Category = existingEntity.Category,
+                    TransactionId = newEntity.Id,
+                    TransactionDate = newEntity.TransactionDate ?? DateTimeOffset.UtcNow,
+                    AmountTotal = newEntity.AmountTotal ?? 0,
+                    Currency = newEntity.Currency,
+                    Payee = newEntity.Payee,
+                    Category = newEntity.Category,
                     ProcessedAt = DateTimeOffset.UtcNow,
                     ValidationWarnings = warnings
                 };
@@ -182,53 +154,95 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
     }
 
     /// <summary>
-    /// 削除対象の子エンティティを事前削除（物理削除）
+    /// リクエストから新しい TransactionEntity を作成
     /// </summary>
-    private async Task DeleteRemovedChildEntitiesAsync(
-        TransactionEntity existingEntity,
-        UpdateTransactionRequest request,
-        Guid userId,
-        CancellationToken cancellationToken)
+    private TransactionEntity CreateTransactionEntity(
+    Guid transactionId,
+    UpdateTransactionRequest request,
+    Guid userId,
+    Guid tenantId)
     {
-        // Items の物理削除
-        var requestItemIds = request.Items
-            .Where(i => i.Id.HasValue)
-            .Select(i => i.Id!.Value)
-            .ToHashSet();
+        var now = DateTimeOffset.UtcNow;
 
-        var itemsToDelete = existingEntity.Items
-            .Where(i => !requestItemIds.Contains(i.Id))
-            .ToList();
-
-        foreach (var item in itemsToDelete)
+        // TransactionCreateMapper を流用
+        var entity = new TransactionEntity
         {
-            await _itemWriteRepository.DeleteAsync(item.Id, cancellationToken);
-            _logger.LogDebug("TransactionItem を物理削除しました。ItemId: {ItemId}", item.Id);
+            Id = transactionId, // 既存IDを維持（ここだけ違う）
+            UserId = userId,
+            TenantId = tenantId,
+            TransactionDate = request.TransactionDate.ToUniversalTime(),
+            Currency = request.Currency,
+            Payer = request.Payer,
+            Payee = request.Payee,
+            PaymentMethod = request.PaymentMethod,
+            Category = request.Category,
+            CreatedBy = userId,
+            UpdatedBy = userId,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Items = new List<TransactionItemEntity>(),
+            Taxes = new List<TaxDetailEntity>()
+        };
+
+        // Items: TransactionCreateMapper を使用
+        foreach (var itemReq in request.Items)
+        {
+            entity.Items.Add(TransactionCreateMapper.ToItemEntity(
+                new CreateTransactionItemRequest
+                {
+                    Name = itemReq.Name,
+                    Quantity = itemReq.Quantity,
+                    UnitPrice = itemReq.UnitPrice,
+                    Amount = itemReq.Amount,
+                    Category = itemReq.Category
+                },
+                transactionId,
+                userId,
+                tenantId
+            ));
         }
 
-        // Taxes の物理削除
-        var requestTaxIds = request.Taxes
-            .Where(t => t.Id.HasValue)
-            .Select(t => t.Id!.Value)
-            .ToHashSet();
-
-        var taxesToDelete = existingEntity.Taxes
-            .Where(t => !requestTaxIds.Contains(t.Id))
-            .ToList();
-
-        foreach (var tax in taxesToDelete)
+        // Taxes: TransactionCreateMapper を使用
+        foreach (var taxReq in request.Taxes)
         {
-            await _taxWriteRepository.DeleteAsync(tax.Id, cancellationToken);
-            _logger.LogDebug("TaxDetail を物理削除しました。TaxId: {TaxId}", tax.Id);
+            entity.Taxes.Add(TransactionCreateMapper.ToTaxEntity(
+                new CreateTaxDetailRequest
+                {
+                    TaxRate = taxReq.TaxRate,
+                    TaxAmount = taxReq.TaxAmount,
+                    TaxableAmount = taxReq.TaxableAmount,
+                    TaxType = taxReq.TaxType
+                },
+                transactionId,
+                userId,
+                tenantId
+            ));
         }
 
-        // ShopDetail の物理削除
-        if (request.ShopDetails == null && existingEntity.ShopDetail != null)
+        // ShopDetail: TransactionCreateMapper を使用
+        if (request.ShopDetails != null)
         {
-            await _shopWriteRepository.DeleteAsync(existingEntity.ShopDetail.Id, cancellationToken);
-            _logger.LogDebug("ShopDetail を物理削除しました。ShopDetailId: {ShopDetailId}",
-                existingEntity.ShopDetail.Id);
+            entity.ShopDetail = TransactionCreateMapper.ToShopEntity(
+                new CreateShopDetailRequest
+                {
+                    Name = request.ShopDetails.Name,
+                    Branch = request.ShopDetails.Branch,
+                    PostalCode = request.ShopDetails.PostalCode,
+                    Address = request.ShopDetails.Address,
+                    PhoneNumber = request.ShopDetails.PhoneNumber
+                },
+                transactionId,
+                userId,
+                tenantId
+            );
         }
+
+        // 金額計算
+        var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
+        var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
+        entity.AmountTotal = itemsTotal + taxTotal;
+
+        return entity;
     }
 
     /// <summary>
