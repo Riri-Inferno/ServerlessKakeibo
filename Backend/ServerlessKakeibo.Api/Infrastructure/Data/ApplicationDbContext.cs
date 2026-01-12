@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
@@ -15,6 +16,7 @@ public class ApplicationDbContext : DbContext
 
     // 永続化エンティティを登録
     public DbSet<UserEntity> Users { get; set; } = default!;
+    public DbSet<UserExternalLoginEntity> UserExternalLogins { get; set; } = default!;
     public DbSet<TransactionEntity> Transactions { get; set; } = default!;
     public DbSet<TransactionItemEntity> TransactionItems { get; set; } = default!;
     public DbSet<TaxDetailEntity> TaxDetails { get; set; } = default!;
@@ -93,6 +95,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<UserEntity>()
             .HasIndex(u => u.TenantId);
 
+        // UserExternalLoginEntity
+        // プロバイダ（Googleなど）と、そのプロバイダ内でのユーザーIDの組み合わせでユニークにする
+        modelBuilder.Entity<UserExternalLoginEntity>()
+            .HasIndex(ue => new { ue.ProviderName, ue.ProviderKey })
+            .IsUnique();
+
         // TransactionEntity
         modelBuilder.Entity<TransactionEntity>()
         .HasIndex(t => t.Category);
@@ -133,6 +141,13 @@ public class ApplicationDbContext : DbContext
         #endregion
 
         #region relationships
+        // User - UserExternalLogin のリレーション (1対多)
+        modelBuilder.Entity<UserExternalLoginEntity>()
+            .HasOne(ue => ue.User)
+            .WithMany(u => u.ExternalLogins)
+            .HasForeignKey(ue => ue.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Transaction - User のリレーション
         modelBuilder.Entity<TransactionEntity>()
             .HasOne(t => t.User)
