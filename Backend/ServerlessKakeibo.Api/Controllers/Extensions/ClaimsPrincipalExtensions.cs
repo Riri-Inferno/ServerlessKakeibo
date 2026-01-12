@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace ServerlessKakeibo.Api.Controllers;
+namespace ServerlessKakeibo.Api.Controllers.Extensions;
 
 /// <summary>
 /// ClaimsPrincipal拡張メソッド

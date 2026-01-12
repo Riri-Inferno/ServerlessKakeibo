@@ -5,6 +5,7 @@ using ServerlessKakeibo.Api.Application.Authentication.Dto;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
+using ServerlessKakeibo.Api.Controllers.Extensions;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
