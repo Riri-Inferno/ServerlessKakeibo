@@ -32,7 +32,7 @@ public static class TransactionCreateMapper
 
         // 基本情報
         entity.TransactionDate = request.TransactionDate.ToUniversalTime();
-        entity.AmountTotal = request.AmountTotal; // ★ クライアント指定を優先
+        entity.AmountTotal = request.AmountTotal; // クライアント指定を優先
         entity.Currency = request.Currency;
         entity.Payer = request.Payer;
         entity.Payee = request.Payee;
