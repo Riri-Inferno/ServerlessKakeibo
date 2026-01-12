@@ -14,4 +14,9 @@ public class TransactionDeleteResult
     /// 処理日時
     /// </summary>
     public DateTimeOffset ProcessedAt { get; set; }
+
+    /// <summary>
+    /// 検証時の警告リスト
+    /// </summary>
+    public List<string> ValidationWarnings { get; set; } = new();
 }

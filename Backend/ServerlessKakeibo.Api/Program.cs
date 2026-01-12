@@ -57,6 +57,7 @@ builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInt
 builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>();
 builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteractor>();
 builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();
+builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteractor>();
 #endregion
 
 #region DomainServices
