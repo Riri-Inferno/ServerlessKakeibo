@@ -15,10 +15,6 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
     private readonly ITransactionHelper _transactionHelper;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
-    private readonly IGenericWriteRepository<TransactionEntity> _transactionWriteRepository;
-    private readonly IGenericWriteRepository<TransactionItemEntity> _transactionItemWriteRepository;
-    private readonly IGenericWriteRepository<ShopDetailEntity> _shopDetailWriteRepository;
-    private readonly IGenericWriteRepository<TaxDetailEntity> _taxDetailWriteRepository;
     private readonly TransactionDomainService _transactionDomainService;
     private readonly ILogger<TransactionDeleteInteractor> _logger;
     private readonly IConfiguration _configuration;
@@ -27,10 +23,6 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
         ITransactionHelper transactionHelper,
         ITransactionRepository transactionRepository,
         IGenericReadRepository<UserEntity> userReadRepository,
-        IGenericWriteRepository<TransactionEntity> transactionWriteRepository,
-        IGenericWriteRepository<TransactionItemEntity> transactionItemWriteRepository,
-        IGenericWriteRepository<ShopDetailEntity> shopDetailWriteRepository,
-        IGenericWriteRepository<TaxDetailEntity> taxDetailWriteRepository,
         TransactionDomainService transactionDomainService,
         ILogger<TransactionDeleteInteractor> logger,
         IConfiguration configuration)
@@ -38,10 +30,6 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
-        _transactionWriteRepository = transactionWriteRepository ?? throw new ArgumentNullException(nameof(transactionWriteRepository));
-        _transactionItemWriteRepository = transactionItemWriteRepository ?? throw new ArgumentNullException(nameof(transactionItemWriteRepository));
-        _shopDetailWriteRepository = shopDetailWriteRepository ?? throw new ArgumentNullException(nameof(shopDetailWriteRepository));
-        _taxDetailWriteRepository = taxDetailWriteRepository ?? throw new ArgumentNullException(nameof(taxDetailWriteRepository));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -88,32 +76,8 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
                 }
 
                 // 3. 既存の取引を削除
-                // 取引削除
-                await _transactionWriteRepository.SoftDeleteAsync(transactionId, userId);
-
-                // 取引項目削除
-                if (existingEntity.Items != null)
-                {
-                    foreach (var item in existingEntity.Items)
-                    {
-                        await _transactionItemWriteRepository.SoftDeleteAsync(item.Id, userId);
-                    }
-                }
-
-                // 店舗情報削除
-                if (existingEntity.ShopDetail != null)
-                {
-                    var softDeletedShopDetail = await _shopDetailWriteRepository.SoftDeleteAsync(existingEntity.ShopDetail.Id, userId);
-                }
-
-                // 税情報削除
-                if (existingEntity.Taxes != null)
-                {
-                    foreach (var tax in existingEntity.Taxes)
-                    {
-                        await _taxDetailWriteRepository.SoftDeleteAsync(tax.Id, userId);
-                    }
-                }
+                await _transactionRepository.SoftDeleteWithRelatedDataAsync(
+                transactionId, userId, cancellationToken);
 
                 _logger.LogDebug("既存取引情報を削除しました。TransactionId: {TransactionId}", transactionId);
 

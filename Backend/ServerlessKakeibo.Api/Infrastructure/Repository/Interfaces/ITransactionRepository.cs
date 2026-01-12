@@ -35,4 +35,12 @@ public interface ITransactionRepository
         Guid id,
         Guid userId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// 取引に関連する全データを一括で論理削除
+    /// </summary>
+    Task SoftDeleteWithRelatedDataAsync(
+        Guid transactionId,
+        Guid userId,
+        CancellationToken ct = default);
 }

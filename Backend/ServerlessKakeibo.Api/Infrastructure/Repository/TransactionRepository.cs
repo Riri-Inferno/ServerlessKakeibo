@@ -103,4 +103,59 @@ public class TransactionRepository : ITransactionRepository
                 && !t.IsDeleted)
             .FirstOrDefaultAsync(ct);
     }
+
+    /// <summary>
+    /// 取引に関連する全データを一括で論理削除
+    /// </summary>
+    /// <param name="transactionId"></param>
+    /// <param name="userId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public async Task SoftDeleteWithRelatedDataAsync(
+        Guid transactionId,
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        // 1. 取引項目を一括削除
+        await _context.TransactionItems
+            .Where(ti => ti.TransactionId == transactionId && !ti.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(ti => ti.IsDeleted, true)
+                    .SetProperty(ti => ti.UpdatedAt, now)
+                    .SetProperty(ti => ti.UpdatedBy, userId),
+                ct);
+
+        // 2. 税情報を一括削除
+        await _context.TaxDetails
+            .Where(td => td.TransactionId == transactionId && !td.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(td => td.IsDeleted, true)
+                    .SetProperty(td => td.UpdatedAt, now)
+                    .SetProperty(td => td.UpdatedBy, userId),
+                ct);
+
+        // 3. 店舗情報を削除
+        await _context.ShopDetails
+            .Where(sd => sd.TransactionId == transactionId && !sd.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(sd => sd.IsDeleted, true)
+                    .SetProperty(sd => sd.UpdatedAt, now)
+                    .SetProperty(sd => sd.UpdatedBy, userId),
+                ct);
+
+        // 4. 取引本体を削除
+        await _context.Transactions
+            .Where(t => t.Id == transactionId && t.UserId == userId && !t.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(t => t.IsDeleted, true)
+                    .SetProperty(t => t.UpdatedAt, now)
+                    .SetProperty(t => t.UpdatedBy, userId),
+                ct);
+    }
 }
