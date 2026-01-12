@@ -44,26 +44,10 @@ public class TransactionHelper : ITransactionHelper
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
             }
-            catch (KeyNotFoundException)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
-            }
-            catch (ArgumentException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (InvalidOperationException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Transaction execution failed");
-                throw new InvalidOperationException("トランザクションの実行中にエラーが発生しました。", ex);
             }
         });
     }
@@ -95,26 +79,10 @@ public class TransactionHelper : ITransactionHelper
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
             }
-            catch (KeyNotFoundException)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
-            }
-            catch (ArgumentException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (InvalidOperationException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Transaction execution failed");
-                throw new InvalidOperationException("トランザクションの実行中にエラーが発生しました。", ex);
             }
         });
     }
@@ -158,26 +126,10 @@ public class TransactionHelper : ITransactionHelper
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
             }
-            catch (KeyNotFoundException)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
-            }
-            catch (ArgumentException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (InvalidOperationException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Transaction execution failed");
-                throw new InvalidOperationException("トランザクションの実行中にエラーが発生しました。", ex);
             }
         });
     }
