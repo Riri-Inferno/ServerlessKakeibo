@@ -33,16 +33,36 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Google認証でログイン
     /// </summary>
+    /// <param name="request">Googleログインリクエスト</param>
+    /// <returns>JWT accessTokenとユーザー情報</returns>
     [HttpPost("google")]
     [SwaggerOperation(
         Summary = "Google認証でログイン",
-        Description = "GoogleのIDトークンを使用してログインし、JWTトークンを発行する。")]
+        Description = @"
+## 使い方
+
+1. フロントエンドでGoogleログインを実行し、**Google ID Token**を取得  
+2. 取得した **ID Token** を `idToken` フィールドに設定してリクエスト  
+3. 初回ログイン時は自動でユーザーが作成されます  
+4. レスポンスの `accessToken` を保存し、以降のAPI呼び出しで使用してください  
+
+開発中は以下から **Google ID Token** を発行できます  
+[Google OAuth Playground](https://developers.google.com/oauthplayground/)
+
+## 注意事項
+
+- **Google ID Token** を使用してください（Access Tokenではありません）
+- ID Token は `eyJ` で始まる長い文字列です
+- 取得した `accessToken` は  
+  `Authorization: Bearer {accessToken}`  
+  ヘッダーに設定して他のAPIを呼び出してください
+")]
     [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<LoginResult>>> GoogleLoginAsync(
-        [FromBody] GoogleLoginRequest request)
+            [FromBody] GoogleLoginRequest request)
     {
         try
         {
