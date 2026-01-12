@@ -1,3 +1,4 @@
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Mappers;
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
@@ -75,16 +76,26 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
                         $"指定された取引が見つかりません。TransactionId: {transactionId}");
                 }
 
-                // 3. 既存の取引を削除
+                // 3. ドメイン検証(削除前の情報提供)
+                var domainModel = TransactionMapper.ToDomainModel(existingEntity);
+                var validationResult = _transactionDomainService.ValidateDelete(domainModel);
+
+                // 警告ログ出力
+                var warnings = validationResult.Warnings.Select(w => w.Message).ToList();
+                foreach (var warning in warnings)
+                {
+                    _logger.LogInformation(
+                        "削除情報: {Message} (TransactionId: {TransactionId})",
+                        warning, transactionId);
+                }
+
+                // 4. 既存の取引を削除
                 await _transactionRepository.SoftDeleteWithRelatedDataAsync(
-                transactionId, userId, cancellationToken);
+                    transactionId, userId, cancellationToken);
 
-                _logger.LogDebug("既存取引情報を削除しました。TransactionId: {TransactionId}", transactionId);
-
-                // 4. ドメイン検証
-                /* いらないかも？ */
-                // 必要ならここに検証して突っ込む
-                var warnings = new List<string>();
+                _logger.LogInformation(
+                    "取引を削除しました。TransactionId: {TransactionId}, Amount: {Amount}",
+                    transactionId, existingEntity.AmountTotal);
 
                 // 5. 結果DTOを返す
                 return new TransactionDeleteResult

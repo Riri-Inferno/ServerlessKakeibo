@@ -10,5 +10,10 @@ public enum ErrorSeverity
     /// <summary>
     /// 警告(保存可能だが要確認)
     /// </summary>
-    Warning
+    Warning,
+
+    /// <summary>
+    /// 情報(通知のみ)
+    /// </summary>
+    Info
 }

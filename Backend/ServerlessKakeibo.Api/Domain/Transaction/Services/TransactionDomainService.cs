@@ -87,6 +87,59 @@ public class TransactionDomainService
 
         return new MonthlySummary(year, month, totalAmount, transactionCount);
     }
+
+    /// <summary>
+    /// 削除前の検証
+    /// </summary>
+    public DeleteValidationResult ValidateDelete(Models.Transaction transaction)
+    {
+        var warnings = new List<ValidationError>();
+
+        // 情報: 高額取引の削除
+        if (transaction.AmountTotal > 50000) // 5万円以上
+        {
+            warnings.Add(new ValidationError(
+                $"高額な支出({transaction.AmountTotal:N0}円)を削除します。",
+                ErrorSeverity.Info));
+        }
+
+        // 情報: 古いデータの削除(統計への影響を通知)
+        if (transaction.TransactionDate.HasValue)
+        {
+            var monthsOld = CalculateMonthsOld(transaction.TransactionDate.Value);
+
+            if (monthsOld >= 3) // 3ヶ月以上前
+            {
+                warnings.Add(new ValidationError(
+                    "過去の取引を削除すると、月次統計が変わります。",
+                    ErrorSeverity.Info));
+            }
+        }
+
+        // 情報: 複数明細を持つ取引
+        if (transaction.Items.Count > 5)
+        {
+            warnings.Add(new ValidationError(
+                $"{transaction.Items.Count}件の明細を含む取引を削除します。",
+                ErrorSeverity.Info));
+        }
+
+        return new DeleteValidationResult
+        {
+            CanDelete = true, // 家計簿なので常に削除可能
+            Warnings = warnings
+        };
+    }
+
+    /// <summary>
+    /// 取引日からの経過月数を計算
+    /// </summary>
+    private int CalculateMonthsOld(DateTimeOffset transactionDate)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return (now.Year - transactionDate.Year) * 12
+             + (now.Month - transactionDate.Month);
+    }
 }
 
 /// <summary>
@@ -96,6 +149,15 @@ public class ValidationResult
 {
     public bool IsValid { get; set; }
     public List<ValidationError> Errors { get; set; } = new();
+}
+
+/// <summary>
+/// 削除検証結果
+/// </summary>
+public class DeleteValidationResult
+{
+    public bool CanDelete { get; set; }
+    public List<ValidationError> Warnings { get; set; } = new();
 }
 
 /// <summary>
