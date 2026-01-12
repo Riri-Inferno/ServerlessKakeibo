@@ -77,7 +77,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
 
                 if (existingEntity == null)
                 {
-                    throw new InvalidOperationException(
+                    throw new KeyNotFoundException(
                         $"指定された取引が見つかりません。TransactionId: {transactionId}");
                 }
 

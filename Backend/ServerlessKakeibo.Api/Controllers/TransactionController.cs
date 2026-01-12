@@ -7,6 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using ServerlessKakeibo.Api.Common.Models;
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
@@ -218,7 +219,7 @@ public class TransactionController : ControllerBase
 
             return Ok(ApiResponse<TransactionResult>.Success(result));
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("見つかりません"))
+        catch (KeyNotFoundException ex)
         {
             return NotFound(
                 ApiResponse<TransactionResult>.Fail(
@@ -255,6 +256,79 @@ public class TransactionController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// 取引を削除
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="useCase"></param>
+    /// <param name="environment"></param>
+    /// <returns></returns>
+    [HttpDelete("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "取引を削除",
+        Description = "既存の取引を論理削除する。")]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<TransactionDeleteResult>>> DeleteTransactionAsync(
+        [FromRoute] Guid id,
+        [FromServices] ITransactionDeleteUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            // TODO: 認証実装後はトークンからユーザーIDを取得
+            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+
+            var result = await useCase.ExecuteAsync(id, userId);
+
+            return Ok(ApiResponse<TransactionDeleteResult>.Success(result));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(
+                            ApiResponse<TransactionDeleteResult>.Fail(
+                                ApiStatus.NotFound,
+                                ex.Message
+                            )
+                        );
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<TransactionDeleteResult>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(
+                ApiResponse<TransactionDeleteResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<TransactionDeleteResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<TransactionDeleteResult>.Fail(
                     ApiStatus.InternalError,
                     ex.ToString()
                 )
