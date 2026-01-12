@@ -6,8 +6,7 @@ using ServerlessKakeibo.Api.Contracts.Enums;
 using Swashbuckle.AspNetCore.Annotations;
 using ServerlessKakeibo.Api.Common.Models;
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
-using ServerlessKakeibo.Api.Application.TransactionCreate.Usecases;
-using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
+using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 
 namespace ServerlessKakeibo.Api.Controllers;
 

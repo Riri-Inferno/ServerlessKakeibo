@@ -1,7 +1,7 @@
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Contracts;
 
-namespace ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
+namespace ServerlessKakeibo.Api.Application.Transaction.Usecases;
 
 /// <summary>
 /// 取引更新ユースケース

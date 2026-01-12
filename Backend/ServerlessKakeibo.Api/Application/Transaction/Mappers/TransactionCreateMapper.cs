@@ -1,7 +1,7 @@
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
-namespace ServerlessKakeibo.Api.Application.TransactionCreate.Mappers;
+namespace ServerlessKakeibo.Api.Application.Transaction.Mappers;
 
 /// <summary>
 /// 取引作成マッパー

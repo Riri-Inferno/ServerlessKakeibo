@@ -18,9 +18,8 @@ using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository;
 using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionQuery;
-using ServerlessKakeibo.Api.Application.TransactionCreate.Usecases;
-using ServerlessKakeibo.Api.Application.TransactionCreate;
-using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
+using ServerlessKakeibo.Api.Application.Transaction.Usecases;
+using ServerlessKakeibo.Api.Application.Transaction;
 using ServerlessKakeibo.Api.Application.TransactionUpdate;
 
 var builder = WebApplication.CreateBuilder(args);

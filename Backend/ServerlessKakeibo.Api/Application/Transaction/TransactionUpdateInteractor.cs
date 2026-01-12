@@ -1,12 +1,12 @@
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
-using ServerlessKakeibo.Api.Application.TransactionUpdate.Usecases;
+using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
-using ServerlessKakeibo.Api.Application.TransactionCreate.Mappers;
+using ServerlessKakeibo.Api.Application.Transaction.Mappers;
 
 namespace ServerlessKakeibo.Api.Application.TransactionUpdate;
 
