@@ -44,6 +44,21 @@ public class TransactionHelper : ITransactionHelper
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
             }
+            catch (KeyNotFoundException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (ArgumentException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (InvalidOperationException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
@@ -79,6 +94,21 @@ public class TransactionHelper : ITransactionHelper
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
+            }
+            catch (KeyNotFoundException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (ArgumentException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (InvalidOperationException)
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
             catch (Exception ex)
             {
@@ -127,6 +157,21 @@ public class TransactionHelper : ITransactionHelper
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Concurrency conflict occurred during transaction execution");
                 throw new InvalidOperationException("データが他のユーザーによって更新されています。再度お試しください。", ex);
+            }
+            catch (KeyNotFoundException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (ArgumentException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (InvalidOperationException)
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
             catch (Exception ex)
             {
