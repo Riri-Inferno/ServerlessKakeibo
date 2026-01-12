@@ -21,6 +21,8 @@ using ServerlessKakeibo.Api.Application.TransactionQuery;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Application.Transaction;
 using ServerlessKakeibo.Api.Application.TransactionUpdate;
+using ServerlessKakeibo.Api.Application.Authentication.Usecases;
+using ServerlessKakeibo.Api.Application.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +51,7 @@ builder.Services.Configure<GoogleAiStudioSettings>(
 builder.Services.AddScoped<IGcpAuthService, GcpAuthService>();
 builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 #endregion
 
 #region usecases
@@ -58,6 +61,7 @@ builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>
 builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteractor>();
 builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();
 builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteractor>();
+builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
 #endregion
 
 #region DomainServices
@@ -76,6 +80,7 @@ builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadR
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // トランザクションヘルパーに置き換えて消す。
 builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
+builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
 #endregion
 
 // CORS 設定（開発環境のみ全許可）
