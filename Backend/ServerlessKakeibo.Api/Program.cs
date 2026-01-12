@@ -1,28 +1,31 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
-using ServerlessKakeibo.Api.Infrastructure.Data;
-using ServerlessKakeibo.Api.Service.Interface;
-using ServerlessKakeibo.Api.Service;
-using ServerlessKakeibo.Api.Common.Settings;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using ServerlessKakeibo.Api.Application.Authentication;
+using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
+using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails;
+using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
+using ServerlessKakeibo.Api.Application.Transaction;
+using ServerlessKakeibo.Api.Application.Transaction.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionQuery;
+using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionUpdate;
+using ServerlessKakeibo.Api.Common.Settings;
+using ServerlessKakeibo.Api.Domain.Receipt.Services;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.User.Services;
-using ServerlessKakeibo.Api.Domain.Receipt.Services;
-using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
-using ServerlessKakeibo.Api.Application.RegistReceiptDetails;
+using ServerlessKakeibo.Api.Infrastructure.Data;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
-using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository;
-using ServerlessKakeibo.Api.Application.TransactionQuery.Usecases;
-using ServerlessKakeibo.Api.Application.TransactionQuery;
-using ServerlessKakeibo.Api.Application.Transaction.Usecases;
-using ServerlessKakeibo.Api.Application.Transaction;
-using ServerlessKakeibo.Api.Application.TransactionUpdate;
-using ServerlessKakeibo.Api.Application.Authentication.Usecases;
-using ServerlessKakeibo.Api.Application.Authentication;
+using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
+using ServerlessKakeibo.Api.Service;
+using ServerlessKakeibo.Api.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,15 +49,50 @@ builder.Services.Configure<VertexAiSettings>(
 builder.Services.Configure<GoogleAiStudioSettings>(
     builder.Configuration.GetSection("GoogleAiStudio"));
 
+#region Authentication settings
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("Authentication:Jwt");
+        var secretKey = jwtSettings["SecretKey"];
+
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            throw new InvalidOperationException("JWT SecretKey が設定されていません");
+        }
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(secretKey)
+            ),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+#endregion
+
 // DI 登録
-#region services
+#region Services
 builder.Services.AddScoped<IGcpAuthService, GcpAuthService>();
 builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 #endregion
 
-#region usecases
+#region UseCases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
 builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInteractor>();
 builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>();
@@ -83,6 +121,7 @@ builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
 #endregion
 
+#region CORS settings
 // CORS 設定（開発環境のみ全許可）
 if (builder.Environment.IsDevelopment())
 {
@@ -94,7 +133,9 @@ if (builder.Environment.IsDevelopment())
              .AllowAnyMethod());
     });
 }
+#endregion
 
+#region Swagger settings
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -105,11 +146,37 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
     c.EnableAnnotations();
+
+    // SwaggerでJWT認証を有効化
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
+#endregion
 
 var app = builder.Build();
 
-// ミドルウェア
+#region Middlewares
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -124,13 +191,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+// 認証・認可
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+#endregion
 
+#region Health check
 // HealthCheck
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
    .WithTags("System")
    .ExcludeFromDescription();
+#endregion
 
 app.Run();
 
