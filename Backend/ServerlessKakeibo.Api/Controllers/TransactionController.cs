@@ -7,7 +7,8 @@ using Swashbuckle.AspNetCore.Annotations;
 using ServerlessKakeibo.Api.Common.Models;
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
-using System.Security.Cryptography.X509Certificates;
+using ServerlessKakeibo.Api.Controllers.Extensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
@@ -23,6 +24,7 @@ public class TransactionController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>取引詳細</returns>
     [HttpGet("{id:guid}")]
+    // [Authorize]
     [SwaggerOperation(
         Summary = "取引詳細を取得",
         Description = "指定されたIDの取引詳細を取得する。\n\n取引項目、税情報、店舗詳細を含む完全なデータを返す。")]
@@ -36,8 +38,7 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            var userId = User.GetUserId();
 
             var result = await useCase.GetByIdAsync(id, userId);
 
@@ -98,8 +99,7 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            var userId = User.GetUserId();
 
             var result = await useCase.GetPagedListAsync(request, userId);
 
@@ -131,30 +131,48 @@ public class TransactionController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// 取引を新規作成
-    /// </summary>
     [HttpPost]
+    [Authorize]
     [SwaggerOperation(
-        Summary = "取引を新規作成",
-        Description = "新しい取引を作成する。\n\n" +
-                      "金額はクライアント指定値を優先します。")]
+    Summary = "取引を新規作成",
+    Description = "新しい取引を作成する。\n\n" +
+                  "金額はクライアント指定値を優先します。")]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionResult>>> CreateTransactionAsync(
-        [FromBody] CreateTransactionRequest request,
-        [FromServices] ITransactionCreateUseCase useCase,
-        [FromServices] IHostEnvironment environment)
+    [FromBody] CreateTransactionRequest request,
+    [FromServices] ITransactionCreateUseCase useCase,
+    [FromServices] IHostEnvironment environment)
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            // jwtからユーザーIDを取得
+            var userId = User.GetUserId();
 
             var result = await useCase.ExecuteAsync(request, userId);
 
             return Ok(ApiResponse<TransactionResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.NotFound,
+                    ex.Message
+                )
+            );
         }
         catch (ArgumentException)
         {
@@ -212,8 +230,7 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            var userId = User.GetUserId();
 
             var result = await useCase.ExecuteAsync(id, request, userId);
 
@@ -285,8 +302,7 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            var userId = User.GetUserId();
 
             var result = await useCase.ExecuteAsync(id, userId);
 
@@ -295,11 +311,11 @@ public class TransactionController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(
-                            ApiResponse<TransactionDeleteResult>.Fail(
-                                ApiStatus.NotFound,
-                                ex.Message
-                            )
-                        );
+                ApiResponse<TransactionDeleteResult>.Fail(
+                    ApiStatus.NotFound,
+                    ex.Message
+                )
+            );
         }
         catch (ArgumentException)
         {

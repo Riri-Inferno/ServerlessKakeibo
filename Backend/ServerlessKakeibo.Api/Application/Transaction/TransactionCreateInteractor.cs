@@ -6,6 +6,7 @@ using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
+using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 
 namespace ServerlessKakeibo.Api.Application.Transaction;
 
@@ -14,18 +15,24 @@ namespace ServerlessKakeibo.Api.Application.Transaction;
 /// </summary>
 public class TransactionCreateInteractor : ITransactionCreateUseCase
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly ITransactionHelper _transactionHelper;
+    private readonly IGenericReadRepository<UserEntity> _userReadRepository;
+    private readonly IGenericWriteRepository<TransactionEntity> _transactionWriteRepository;
     private readonly TransactionDomainService _transactionDomainService;
     private readonly ILogger<TransactionCreateInteractor> _logger;
     private readonly IConfiguration _configuration;
 
     public TransactionCreateInteractor(
-        IUnitOfWork unitOfWork,
+        ITransactionHelper transactionHelper,
+        IGenericReadRepository<UserEntity> userReadRepository,
+        IGenericWriteRepository<TransactionEntity> transactionWriteRepository,
         TransactionDomainService transactionDomainService,
         ILogger<TransactionCreateInteractor> logger,
         IConfiguration configuration)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
+        _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
+        _transactionWriteRepository = transactionWriteRepository ?? throw new ArgumentNullException(nameof(transactionWriteRepository));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -48,10 +55,10 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
         try
         {
             _logger.LogInformation(
-                "取引作成処理を開始します。UserId: {UserId}",
+                "取引作成処理を開します。UserId: {UserId}",
                 userId);
 
-            return await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            return await _transactionHelper.ExecuteInTransactionAsync(async () =>
             {
                 // 1. ユーザーのTenantIdを取得
                 var tenantId = await GetUserTenantIdAsync(userId, cancellationToken);
@@ -114,8 +121,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                 }
 
                 // 6. データベースに保存
-                var writeRepo = _unitOfWork.WriteRepository<TransactionEntity>();
-                await writeRepo.AddAsync(transactionEntity, cancellationToken);
+                await _transactionWriteRepository.AddAsync(transactionEntity, cancellationToken);
 
                 _logger.LogInformation(
                     "取引を作成しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}",
@@ -133,8 +139,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     ProcessedAt = DateTimeOffset.UtcNow,
                     ValidationWarnings = warnings
                 };
-
-            }, cancellationToken);
+            });
         }
         catch (Exception ex)
         {
@@ -148,13 +153,12 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
     /// </summary>
     private async Task<Guid> GetUserTenantIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var userRepo = _unitOfWork.ReadRepository<UserEntity>();
-        var user = await userRepo.GetByIdAsync(userId, cancellationToken);
+        var user = await _userReadRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user == null)
         {
-            _logger.LogError("ユーザーが存在しません。UserId: {UserId}", userId);
-            throw new InvalidOperationException($"ユーザーが存在しません。UserId: {userId}");
+            _logger.LogError("ユーザーが存在しません。取引作成を拒否します。UserId: {UserId}", userId);
+            throw new KeyNotFoundException($"ユーザーが存在しません。UserId: {userId}");
         }
 
         if (user.TenantId == Guid.Empty)
