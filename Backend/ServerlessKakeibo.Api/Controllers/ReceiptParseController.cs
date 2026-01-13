@@ -3,6 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
+using ServerlessKakeibo.Api.Controllers.Extensions;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -27,6 +28,19 @@ public class ReceiptParseController : ControllerBase
         [FromServices] IReceiptParsingUseCase useCase,
         [FromServices] IHostEnvironment environment)
     {
+        // ModelState の検証結果を ApiResponse 形式で返す
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(kvp => kvp.Value != null && kvp.Value.Errors.Count > 0)
+                .SelectMany(kvp => kvp.Value!.Errors.Select(err => new { Key = kvp.Key, Error = err.ErrorMessage }))
+                .Select(e => string.IsNullOrWhiteSpace(e.Key) ? e.Error : $"{e.Key}: {e.Error}")
+                .ToList();
+
+            var message = string.Join("; ", errors);
+            return BadRequest(ApiResponse<ReceiptParseResult>.Fail(ApiStatus.InvalidRequest, message));
+        }
+
         // ファイル未指定は400
         if (request.File is null)
         {
@@ -45,8 +59,25 @@ public class ReceiptParseController : ControllerBase
 
         try
         {
-            var result = await useCase.ExcuteParseAsync(request);
+            var userId = User.GetUserId();
+            var result = await useCase.ExcuteParseAsync(request, userId);
             return Ok(ApiResponse<ReceiptParseResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // ユーザーが存在しない等の認可エラーは 403 Forbidden を返す
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    ApiResponse<ReceiptParseResult>.Fail(ApiStatus.Forbidden)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                ApiResponse<ReceiptParseResult>.Fail(ApiStatus.Forbidden, ex.Message)
+            );
         }
         catch (Exception ex)
         {

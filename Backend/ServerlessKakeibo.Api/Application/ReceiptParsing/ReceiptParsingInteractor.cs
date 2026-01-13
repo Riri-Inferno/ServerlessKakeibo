@@ -5,6 +5,8 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Domain.Receipt.Services;
+using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
+using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Service.Interface;
 using ServerlessKakeibo.Api.Service.Models;
 
@@ -16,6 +18,7 @@ namespace ServerlessKakeibo.Api.Application.ReceiptParsing;
 public class ReceiptParsingInteractor : IReceiptParsingUseCase
 {
     private readonly IVertexAiService _vertexAiService;
+    private readonly IGenericReadRepository<UserEntity> _userRepository;
     private readonly IGoogleAiStudioService _googleAiStudioService;
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<ReceiptParsingInteractor> _logger;
@@ -25,11 +28,13 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     /// </summary>
     public ReceiptParsingInteractor(
         IVertexAiService vertexAiService,
+        IGenericReadRepository<UserEntity> userRepository,
         IGoogleAiStudioService googleAiStudioService,
         IWebHostEnvironment environment,
         ILogger<ReceiptParsingInteractor> logger)
     {
         _vertexAiService = vertexAiService ?? throw new ArgumentNullException(nameof(vertexAiService));
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _googleAiStudioService = googleAiStudioService ?? throw new ArgumentNullException(nameof(googleAiStudioService));
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,12 +44,20 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     /// 領収書解析
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<ReceiptParseResult> ExcuteParseAsync(ReceiptParseRequest request)
+    public async Task<ReceiptParseResult> ExcuteParseAsync(ReceiptParseRequest request, Guid userId)
     {
         if (request?.File == null)
         {
             throw new ArgumentNullException(nameof(request), "リクエストまたはファイルが null です");
+        }
+
+        // ユーザーの存在確認
+        var user = await _userRepository.ExistsAsync(userId);
+        if (!user)
+        {
+            throw new UnauthorizedAccessException("指定されたユーザーが存在しません");
         }
 
         try

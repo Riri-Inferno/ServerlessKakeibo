@@ -29,6 +29,13 @@ public enum ApiStatus
     Unauthorized,
 
     /// <summary>
+    /// 失敗: 権限エラー
+    /// 403 Forbidden
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    Forbidden,
+
+    /// <summary>
     /// 失敗：リソースが見つからないエラー
     /// 404 NotFound
     /// </summary>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using ServerlessKakeibo.Api.Application.Authentication;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
@@ -37,6 +38,12 @@ builder.Services
         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         opt.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
+
+// ApiController の自動 ModelState 400 応答を抑制して、コントローラーで独自ハンドリングする
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 
 // HTTP クライアントなど
 builder.Services.AddHttpClient();

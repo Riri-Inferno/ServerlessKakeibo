@@ -12,6 +12,7 @@ public interface IReceiptParsingUseCase
     /// 領収書解析
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="userId"></param>
     /// <returns></returns>
-    Task<ReceiptParseResult> ExcuteParseAsync(ReceiptParseRequest request);
+    Task<ReceiptParseResult> ExcuteParseAsync(ReceiptParseRequest request, Guid userId);
 }
