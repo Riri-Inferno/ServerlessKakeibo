@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
+using ServerlessKakeibo.Api.Controllers.Extensions;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -14,6 +16,7 @@ public class RegistReceiptDetailsController : ControllerBase
     /// 領収書解析結果を保存
     /// </summary>
     [HttpPost("save-receipt-parse-result")]
+    [Authorize]
     [SwaggerOperation(
         Summary = "領収書解析結果を保存",
         Description = "解析済みの領収書データをトランザクションとして保存する。")]
@@ -28,8 +31,8 @@ public class RegistReceiptDetailsController : ControllerBase
     {
         try
         {
-            // TODO: 認証実装後はトークンからユーザーIDを取得
-            var userId = Guid.Parse("a1111111-1111-1111-1111-111111111111");
+            // ユーザーID取得
+            var userId = User.GetUserId();
 
             var result = await useCase.ExecuteSaveAsync(request, userId, cancellationToken);
 
