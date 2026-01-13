@@ -14,6 +14,7 @@ namespace ServerlessKakeibo.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class TransactionController : ControllerBase
 {
     /// <summary>
@@ -24,11 +25,11 @@ public class TransactionController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>取引詳細</returns>
     [HttpGet("{id:guid}")]
-    // [Authorize]
     [SwaggerOperation(
         Summary = "取引詳細を取得",
         Description = "指定されたIDの取引詳細を取得する。\n\n取引項目、税情報、店舗詳細を含む完全なデータを返す。")]
     [ProducesResponseType(typeof(ApiResponse<TransactionDetailResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDetailResult>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<TransactionDetailResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionDetailResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionDetailResult>>> GetTransactionByIdAsync(
@@ -53,6 +54,15 @@ public class TransactionController : ControllerBase
             }
 
             return Ok(ApiResponse<TransactionDetailResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<TransactionDetailResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
         }
         catch (ArgumentException)
         {
@@ -91,6 +101,7 @@ public class TransactionController : ControllerBase
         Description = "取引の一覧をページングして取得する。\n\n日付範囲、カテゴリ、金額などでフィルタ可能。")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<PagedResult<TransactionSummaryResult>>>> GetTransactionsAsync(
         [FromQuery] GetTransactionsRequest request,
@@ -104,6 +115,15 @@ public class TransactionController : ControllerBase
             var result = await useCase.GetPagedListAsync(request, userId);
 
             return Ok(ApiResponse<PagedResult<TransactionSummaryResult>>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<PagedResult<TransactionSummaryResult>>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
         }
         catch (ArgumentException)
         {
@@ -131,21 +151,23 @@ public class TransactionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// 取引を新規作成
+    /// </summary>
     [HttpPost]
-    [Authorize]
     [SwaggerOperation(
-    Summary = "取引を新規作成",
-    Description = "新しい取引を作成する。\n\n" +
-                  "金額はクライアント指定値を優先します。")]
+        Summary = "取引を新規作成",
+        Description = "新しい取引を作成する。\n\n" +
+                      "金額はクライアント指定値を優先します。")]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionResult>>> CreateTransactionAsync(
-    [FromBody] CreateTransactionRequest request,
-    [FromServices] ITransactionCreateUseCase useCase,
-    [FromServices] IHostEnvironment environment)
+        [FromBody] CreateTransactionRequest request,
+        [FromServices] ITransactionCreateUseCase useCase,
+        [FromServices] IHostEnvironment environment)
     {
         try
         {
@@ -220,6 +242,7 @@ public class TransactionController : ControllerBase
                       "子エンティティ（Items, Taxes, ShopDetails）は Full Replace 方式です。")]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionResult>>> UpdateTransactionAsync(
@@ -235,6 +258,15 @@ public class TransactionController : ControllerBase
             var result = await useCase.ExecuteAsync(id, request, userId);
 
             return Ok(ApiResponse<TransactionResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
         }
         catch (KeyNotFoundException ex)
         {
@@ -293,6 +325,7 @@ public class TransactionController : ControllerBase
         Description = "既存の取引を論理削除する。")]
     [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionDeleteResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionDeleteResult>>> DeleteTransactionAsync(
@@ -307,6 +340,15 @@ public class TransactionController : ControllerBase
             var result = await useCase.ExecuteAsync(id, userId);
 
             return Ok(ApiResponse<TransactionDeleteResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<TransactionDeleteResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
         }
         catch (KeyNotFoundException ex)
         {
