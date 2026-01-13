@@ -123,7 +123,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(opts =>
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // トランザクションヘルパーに置き換えて消す。
 builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
 #endregion
