@@ -8,6 +8,7 @@ using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
+using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 
 namespace ServerlessKakeibo.Api.Application.RegistReceiptDetails;
 
@@ -16,18 +17,24 @@ namespace ServerlessKakeibo.Api.Application.RegistReceiptDetails;
 /// </summary>
 public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly ITransactionHelper _transactionHelper;
+    private readonly IGenericReadRepository<UserEntity> _userReadRepository;
+    private readonly IGenericWriteRepository<TransactionEntity> _transactionWriteRepository;
     private readonly TransactionDomainService _transactionDomainService;
     private readonly ILogger<RegistReceiptDetailsInteractor> _logger;
     private readonly IConfiguration _configuration;
 
     public RegistReceiptDetailsInteractor(
-        IUnitOfWork unitOfWork,
+        ITransactionHelper transactionHelper,
+        IGenericReadRepository<UserEntity> userReadRepository,
+        IGenericWriteRepository<TransactionEntity> transactionWriteRepository,
         TransactionDomainService transactionDomainService,
         ILogger<RegistReceiptDetailsInteractor> logger,
         IConfiguration configuration)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
+        _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
+        _transactionWriteRepository = transactionWriteRepository ?? throw new ArgumentNullException(nameof(transactionWriteRepository));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -51,7 +58,7 @@ public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
         {
             _logger.LogInformation("取引保存処理を開始します。UserId: {UserId}", userId);
 
-            return await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            return await _transactionHelper.ExecuteInTransactionAsync(async () =>
             {
                 // 1. TenantId取得
                 var tenantId = await GetUserTenantIdAsync(userId, cancellationToken);
@@ -98,8 +105,7 @@ public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
                 }
 
                 // 6. データベースに保存
-                var writeRepo = _unitOfWork.WriteRepository<TransactionEntity>();
-                await writeRepo.AddAsync(transactionEntity, cancellationToken);
+                await _transactionWriteRepository.AddAsync(transactionEntity, cancellationToken);
 
                 _logger.LogInformation(
                     "取引を保存しました。TransactionId: {TransactionId}, UserId: {UserId}, Amount: {Amount}, Category: {Category}",
@@ -123,8 +129,7 @@ public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
                         .Select(e => e.Message)
                         .ToList()
                 };
-
-            }, cancellationToken);
+            });
         }
         catch (Exception ex)
         {
@@ -189,8 +194,7 @@ public class RegistReceiptDetailsInteractor : IRegistReceiptDetailsUseCase
     /// </summary>
     private async Task<Guid> GetUserTenantIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var userRepo = _unitOfWork.ReadRepository<UserEntity>();
-        var user = await userRepo.GetByIdAsync(userId, cancellationToken);
+        var user = await _userReadRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user == null)
         {
