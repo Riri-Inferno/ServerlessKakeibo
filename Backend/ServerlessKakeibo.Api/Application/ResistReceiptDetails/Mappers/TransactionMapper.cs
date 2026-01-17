@@ -23,6 +23,7 @@ public static class TransactionMapper
             Id = Guid.NewGuid(),
             UserId = userId,
             TenantId = tenantId,
+            Type = TransactionType.Expense,
             TransactionDate = parseResult.Normalized.TransactionDate?.ToUniversalTime(),
             AmountTotal = parseResult.Normalized.AmountTotal,
             Currency = parseResult.Normalized.Currency,
