@@ -10,6 +10,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
     public class TransactionEntity : BaseEntity
     {
         /// <summary>
+        /// 取引種別（収入/支出）
+        /// </summary>
+        public TransactionType Type { get; set; } = TransactionType.Expense;
+
+        /// <summary>
         /// 取引日時
         /// </summary>
         public DateTimeOffset? TransactionDate { get; set; }

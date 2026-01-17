@@ -7,6 +7,7 @@ namespace ServerlessKakeibo.Api.Domain.ValueObjects;
 /// </summary>
 public enum TransactionCategory
 {
+    #region Expense Categories
     /// <summary>
     /// 未分類
     /// </summary>
@@ -77,7 +78,22 @@ public enum TransactionCategory
     /// その他
     /// </summary>
     [Description("その他")]
-    Other = 99
+    Other = 99,
+    #endregion
+
+    #region Income Categories
+    /// <summary>
+    /// 給与
+    /// </summary>
+    [Description("給与")]
+    Salary = 100,
+
+    /// <summary>
+    /// その他収入
+    /// </summary>
+    [Description("その他収入")]
+    OtherIncome = 101
+    #endregion
 }
 
 /// <summary>
@@ -127,6 +143,8 @@ public static class TransactionCategoryExtensions
             "通信費" => TransactionCategory.Communication,
             "その他" => TransactionCategory.Other,
             "未分類" => TransactionCategory.Uncategorized,
+            "給与" => TransactionCategory.Salary,
+            "その他収入" => TransactionCategory.OtherIncome,
             _ => null
         };
     }
