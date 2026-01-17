@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
@@ -17,18 +18,21 @@ public class JwtTokenService : IJwtTokenService
     public JwtTokenService(IConfiguration config) => _config = config;
 
     /// <summary>
-    /// JWTトークンを生成
+    /// リフレッシュトークンの有効期限（日数）
     /// </summary>
-    /// <param name="user"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    public int RefreshTokenExpirationDays =>
+        int.Parse(_config["Authentication:Jwt:RefreshTokenExpirationDays"] ?? "7");
+
+    /// <summary>
+    /// アクセストークンを生成
+    /// </summary>
     public string GenerateToken(UserEntity user)
     {
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-            new Claim(JwtRegisteredClaimNames.Name, user.DisplayName), // ← 追加推奨
+            new Claim(JwtRegisteredClaimNames.Name, user.DisplayName),
             new Claim("tenant_id", user.TenantId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
@@ -41,7 +45,7 @@ public class JwtTokenService : IJwtTokenService
 
         var issuer = _config["Authentication:Jwt:Issuer"];
         var audience = _config["Authentication:Jwt:Audience"];
-        var expirationMinutes = int.Parse(_config["Authentication:Jwt:ExpirationMinutes"] ?? "60");
+        var expirationMinutes = int.Parse(_config["Authentication:Jwt:ExpirationMinutes"] ?? "15");
 
         var token = new JwtSecurityToken(
             issuer: issuer,
@@ -52,5 +56,16 @@ public class JwtTokenService : IJwtTokenService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    /// <summary>
+    /// リフレッシュトークンを生成（ランダムな256ビット文字列）
+    /// </summary>
+    public string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
 }

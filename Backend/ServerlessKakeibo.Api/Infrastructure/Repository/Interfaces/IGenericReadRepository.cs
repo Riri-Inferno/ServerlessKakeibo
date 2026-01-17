@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
@@ -17,6 +18,16 @@ public interface IGenericReadRepository<T> where T : BaseEntity
     /// IDでエンティティを取得（削除済みも含む）
     /// </summary>
     Task<T?> GetByIdIncludingDeletedAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 条件に一致する最初のエンティティを取得
+    /// </summary>
+    /// <param name="predicate">検索条件</param>
+    /// <param name="cancellationToken">キャンセレーショントークン</param>
+    /// <returns>条件に一致するエンティティ、または null</returns>
+    Task<T?> FirstOrDefaultAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// すべてのエンティティを取得

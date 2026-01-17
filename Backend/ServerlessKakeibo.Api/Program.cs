@@ -109,6 +109,7 @@ builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteracto
 builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();
 builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteractor>();
 builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
+builder.Services.AddScoped<IRefreshTokenUseCase, RefreshTokenInteractor>();
 builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
 #endregion
 

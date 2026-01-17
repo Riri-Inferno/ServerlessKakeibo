@@ -30,6 +30,18 @@ public class GenericReadRepository<T> : IGenericReadRepository<T> where T : Base
     }
 
     /// <summary>
+    /// 条件に一致する最初のエンティティを取得
+    /// </summary>
+    public async Task<T?> FirstOrDefaultAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<T>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(predicate, cancellationToken);
+    }
+
+    /// <summary>
     /// IDでエンティティを取得（削除済みも含む）
     /// </summary>
     public async Task<T?> GetByIdIncludingDeletedAsync(Guid id, CancellationToken cancellationToken = default)

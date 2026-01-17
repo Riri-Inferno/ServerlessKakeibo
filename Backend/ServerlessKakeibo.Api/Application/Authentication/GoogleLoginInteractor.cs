@@ -106,14 +106,23 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
                 }
 
                 // 5. JWTトークンを生成
-                var token = _jwtService.GenerateToken(user);
+                var accessToken = _jwtService.GenerateToken(user);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+
+                // RefreshToken を DB に保存
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays);
+                user.UpdatedAt = DateTimeOffset.UtcNow;
+                user.UpdatedBy = user.Id;
+                await _userWriteRepository.UpdateAsync(user, cancellationToken);
 
                 _logger.LogInformation(
-                    "JWTトークンを発行しました。UserId: {UserId}",
-                    user.Id);
+                    "JWTトークンを発行しました。UserId: {UserId}, RefreshTokenExpiry: {Expiry}",
+                    user.Id, user.RefreshTokenExpiry);
 
                 return new LoginResult(
-                    token,
+                    accessToken,
+                    refreshToken,
                     user.Id,
                     user.DisplayName,
                     user.PictureUrl

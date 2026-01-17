@@ -17,15 +17,18 @@ namespace ServerlessKakeibo.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IGoogleLoginUseCase _googleLoginUseCase;
+    private readonly IRefreshTokenUseCase _refreshTokenUseCase;
     private readonly ILogger<AuthController> _logger;
     private readonly IHostEnvironment _environment;
 
     public AuthController(
         IGoogleLoginUseCase googleLoginUseCase,
+        IRefreshTokenUseCase refreshTokenUseCase,
         ILogger<AuthController> logger,
         IHostEnvironment environment)
     {
         _googleLoginUseCase = googleLoginUseCase ?? throw new ArgumentNullException(nameof(googleLoginUseCase));
+        _refreshTokenUseCase = refreshTokenUseCase ?? throw new ArgumentNullException(nameof(refreshTokenUseCase));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
@@ -182,6 +185,92 @@ public class AuthController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 ApiResponse<CurrentUserResponse>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// トークンを更新
+    /// </summary>
+    /// <param name="request">リフレッシュトークンリクエスト</param>
+    /// <returns>新しいアクセストークンとリフレッシュトークン</returns>
+    [HttpPost("refresh")]
+    [SwaggerOperation(
+        Summary = "トークンを更新",
+        Description = @"
+## 使い方
+
+1. ログイン時に取得した `refreshToken` を送信  
+2. 新しい `accessToken` と `refreshToken` を取得  
+3. 古い `refreshToken` は無効になるため、新しいものを保存してください  
+
+## 有効期限
+
+- **AccessToken**: 15分  
+- **RefreshToken**: 7日  
+
+## エラー
+
+- リフレッシュトークンが無効または期限切れの場合は 401 エラー  
+- この場合、再度 Google ログインが必要です
+")]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<LoginResult>>> RefreshTokenAsync(
+        [FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("トークン更新リクエストを受信しました");
+
+            var result = await _refreshTokenUseCase.ExecuteAsync(request.RefreshToken);
+
+            _logger.LogInformation(
+                "トークン更新に成功しました。UserId: {UserId}",
+                result.UserId);
+
+            return Ok(ApiResponse<LoginResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "トークン更新に失敗しました");
+            return Unauthorized(
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    "リフレッシュトークンが無効または期限切れです。再度ログインしてください。"
+                )
+            );
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "不正なリクエストです");
+            return BadRequest(
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "トークン更新中にエラーが発生しました");
+
+            if (!_environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<LoginResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<LoginResult>.Fail(
                     ApiStatus.InternalError,
                     ex.ToString()
                 )
