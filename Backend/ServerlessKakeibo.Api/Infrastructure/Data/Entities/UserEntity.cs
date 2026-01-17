@@ -27,6 +27,17 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? PictureUrl { get; set; }
 
         /// <summary>
+        /// リフレッシュトークン（トークン更新用）
+        /// </summary>
+        [MaxLength(500)]
+        public string? RefreshToken { get; set; }
+
+        /// <summary>
+        /// リフレッシュトークンの有効期限
+        /// </summary>
+        public DateTimeOffset? RefreshTokenExpiry { get; set; }
+
+        /// <summary>
         /// 紐づいている外部認証情報の一覧
         /// </summary>
         public ICollection<UserExternalLoginEntity> ExternalLogins { get; set; }
