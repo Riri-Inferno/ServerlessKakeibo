@@ -81,6 +81,8 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                         $"指定された取引が見つかりません。TransactionId: {transactionId}");
                 }
 
+                var existingType = existingEntity.Type;
+
                 _logger.LogDebug("既存取引を確認しました。TransactionId: {TransactionId}", transactionId);
 
                 // 3. 既存の取引を削除（CASCADE で子も削除される）
@@ -89,9 +91,15 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
 
                 _logger.LogDebug("既存取引を削除しました。TransactionId: {TransactionId}", transactionId);
 
-                // 4. 新しい取引エンティティを作成
+                // 4.新しい取引エンティティを作成
                 var newEntity = CreateTransactionEntity(
-                    transactionId, request, userId, tenantId);
+                    transactionId, request, userId, tenantId, existingType);  // ← existingType を渡す
+
+                // 収入の場合は既存の AmountTotal を維持
+                if (existingType == TransactionType.Income)
+                {
+                    newEntity.AmountTotal = existingEntity.AmountTotal;
+                }
 
                 // 5. ドメイン検証
                 var transactionDomain = Application.RegistReceiptDetails.Mappers.TransactionMapper
@@ -157,19 +165,20 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
     /// リクエストから新しい TransactionEntity を作成
     /// </summary>
     private TransactionEntity CreateTransactionEntity(
-    Guid transactionId,
-    UpdateTransactionRequest request,
-    Guid userId,
-    Guid tenantId)
+        Guid transactionId,
+        UpdateTransactionRequest request,
+        Guid userId,
+        Guid tenantId,
+        TransactionType existingType)
     {
         var now = DateTimeOffset.UtcNow;
 
-        // TransactionCreateMapper を流用
         var entity = new TransactionEntity
         {
-            Id = transactionId, // 既存IDを維持（ここだけ違う）
+            Id = transactionId,
             UserId = userId,
             TenantId = tenantId,
+            Type = existingType,  // ← 既存の Type を引き継ぐ
             TransactionDate = request.TransactionDate.ToUniversalTime(),
             Currency = request.Currency,
             Payer = request.Payer,
@@ -184,42 +193,48 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Taxes = new List<TaxDetailEntity>()
         };
 
-        // Items: TransactionCreateMapper を使用
-        foreach (var itemReq in request.Items)
+        // Items 追加（収入の場合は空でもOK）
+        if (request.Items != null)
         {
-            entity.Items.Add(TransactionCreateMapper.ToItemEntity(
-                new CreateTransactionItemRequest
-                {
-                    Name = itemReq.Name,
-                    Quantity = itemReq.Quantity,
-                    UnitPrice = itemReq.UnitPrice,
-                    Amount = itemReq.Amount,
-                    Category = itemReq.Category
-                },
-                transactionId,
-                userId,
-                tenantId
-            ));
+            foreach (var itemReq in request.Items)
+            {
+                entity.Items.Add(TransactionCreateMapper.ToItemEntity(
+                    new CreateTransactionItemRequest
+                    {
+                        Name = itemReq.Name,
+                        Quantity = itemReq.Quantity,
+                        UnitPrice = itemReq.UnitPrice,
+                        Amount = itemReq.Amount,
+                        Category = itemReq.Category
+                    },
+                    transactionId,
+                    userId,
+                    tenantId
+                ));
+            }
         }
 
-        // Taxes: TransactionCreateMapper を使用
-        foreach (var taxReq in request.Taxes)
+        // Taxes 追加
+        if (request.Taxes != null)
         {
-            entity.Taxes.Add(TransactionCreateMapper.ToTaxEntity(
-                new CreateTaxDetailRequest
-                {
-                    TaxRate = taxReq.TaxRate,
-                    TaxAmount = taxReq.TaxAmount,
-                    TaxableAmount = taxReq.TaxableAmount,
-                    TaxType = taxReq.TaxType
-                },
-                transactionId,
-                userId,
-                tenantId
-            ));
+            foreach (var taxReq in request.Taxes)
+            {
+                entity.Taxes.Add(TransactionCreateMapper.ToTaxEntity(
+                    new CreateTaxDetailRequest
+                    {
+                        TaxRate = taxReq.TaxRate,
+                        TaxAmount = taxReq.TaxAmount,
+                        TaxableAmount = taxReq.TaxableAmount,
+                        TaxType = taxReq.TaxType
+                    },
+                    transactionId,
+                    userId,
+                    tenantId
+                ));
+            }
         }
 
-        // ShopDetail: TransactionCreateMapper を使用
+        // ShopDetail
         if (request.ShopDetails != null)
         {
             entity.ShopDetail = TransactionCreateMapper.ToShopEntity(
@@ -237,10 +252,14 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             );
         }
 
-        // 金額計算
-        var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
-        var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
-        entity.AmountTotal = itemsTotal + taxTotal;
+        // 金額計算：支出の場合は Items + Taxes、収入の場合は既存値を維持
+        if (existingType == TransactionType.Expense)
+        {
+            var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
+            var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
+            entity.AmountTotal = itemsTotal + taxTotal;
+        }
+        // 収入の場合は AmountTotal は変更しない（既存の取引の値を維持する必要があるため、呼び出し元で設定）
 
         return entity;
     }

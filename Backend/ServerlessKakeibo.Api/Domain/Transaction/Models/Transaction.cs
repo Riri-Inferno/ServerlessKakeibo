@@ -9,6 +9,7 @@ namespace ServerlessKakeibo.Api.Domain.Transaction.Models;
 public class Transaction
 {
     public Guid Id { get; set; }
+    public TransactionType Type { get; set; } = TransactionType.Expense;
     public DateTimeOffset? TransactionDate { get; set; }
     public decimal? AmountTotal { get; set; }
     public string Currency { get; set; } = "JPY";
@@ -28,10 +29,10 @@ public class Transaction
         if (AmountTotal == null || AmountTotal <= 0)
             return false;
 
-        // 項目がある場合、項目合計 + 税額 = 取引金額 をチェック
-        var itemsTotal = Items.Sum(i => i.Amount ?? 0);
-        if (itemsTotal > 0)
+        // 支出の場合のみ、項目合計の整合性をチェック
+        if (Type == TransactionType.Expense && Items.Any())
         {
+            var itemsTotal = Items.Sum(i => i.Amount ?? 0);
             var taxTotal = Taxes.Sum(t => t.TaxAmount ?? 0);
             var calculatedTotal = itemsTotal + taxTotal;
 
@@ -39,6 +40,8 @@ public class Transaction
             if (Math.Abs(calculatedTotal - AmountTotal.Value) > 1.0m)
                 return false;
         }
+
+        // 収入の場合は AmountTotal のみで OK（Items は任意）
 
         return true;
     }

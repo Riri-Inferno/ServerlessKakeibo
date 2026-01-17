@@ -68,24 +68,55 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     request, userId, tenantId);
 
                 // 3. 子エンティティの追加
-                foreach (var itemReq in request.Items)
+                // 支出の場合は Items から AmountTotal を再計算、収入の場合はリクエスト値を使用
+                if (request.Type == TransactionType.Expense)
                 {
-                    var itemEntity = TransactionCreateMapper.ToItemEntity(
-                        itemReq, transactionEntity.Id, userId, tenantId);
-                    transactionEntity.Items.Add(itemEntity);
-                }
+                    foreach (var itemReq in request.Items)
+                    {
+                        var itemEntity = TransactionCreateMapper.ToItemEntity(
+                            itemReq, transactionEntity.Id, userId, tenantId);
+                        transactionEntity.Items.Add(itemEntity);
+                    }
 
-                foreach (var taxReq in request.Taxes)
-                {
-                    var taxEntity = TransactionCreateMapper.ToTaxEntity(
-                        taxReq, transactionEntity.Id, userId, tenantId);
-                    transactionEntity.Taxes.Add(taxEntity);
-                }
+                    // 支出の場合は Items 合計 + 税額で AmountTotal を上書き
+                    var itemsTotal = transactionEntity.Items.Sum(i => i.Amount ?? 0);
+                    var taxTotal = 0m;
 
-                if (request.ShopDetails != null)
+                    foreach (var taxReq in request.Taxes)
+                    {
+                        var taxEntity = TransactionCreateMapper.ToTaxEntity(
+                            taxReq, transactionEntity.Id, userId, tenantId);
+                        transactionEntity.Taxes.Add(taxEntity);
+                        taxTotal += taxEntity.TaxAmount ?? 0;
+                    }
+
+                    transactionEntity.AmountTotal = itemsTotal + taxTotal;
+                }
+                else // Income の場合
                 {
-                    transactionEntity.ShopDetail = TransactionCreateMapper.ToShopEntity(
-                        request.ShopDetails, transactionEntity.Id, userId, tenantId);
+                    // 収入の場合は Items は任意（あれば追加）
+                    if (request.Items != null)
+                    {
+                        foreach (var itemReq in request.Items)
+                        {
+                            var itemEntity = TransactionCreateMapper.ToItemEntity(
+                                itemReq, transactionEntity.Id, userId, tenantId);
+                            transactionEntity.Items.Add(itemEntity);
+                        }
+                    }
+
+                    // 税金も任意（源泉徴収など）
+                    if (request.Taxes != null)
+                    {
+                        foreach (var taxReq in request.Taxes)
+                        {
+                            var taxEntity = TransactionCreateMapper.ToTaxEntity(
+                                taxReq, transactionEntity.Id, userId, tenantId);
+                            transactionEntity.Taxes.Add(taxEntity);
+                        }
+                    }
+
+                    // AmountTotal はリクエスト値をそのまま使用
                 }
 
                 // 4. ドメインモデルに変換して検証

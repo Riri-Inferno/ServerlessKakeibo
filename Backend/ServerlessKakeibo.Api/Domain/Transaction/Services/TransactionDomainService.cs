@@ -37,15 +37,32 @@ public class TransactionDomainService
                 ErrorSeverity.Critical));
         }
 
-        // 税額の検証
-        if (!transaction.AreTaxesValid())
+        // Type 別の検証
+        if (transaction.Type == TransactionType.Expense)
         {
-            errors.Add(new ValidationError(
-                "税額の整合性が取れていません",
-                ErrorSeverity.Warning));
+            // 支出の場合は Items が必須
+            if (!transaction.Items.Any())
+            {
+                errors.Add(new ValidationError(
+                    "支出には最低1件の項目が必要です",
+                    ErrorSeverity.Critical));
+            }
+
+            // 税額の検証
+            if (!transaction.AreTaxesValid())
+            {
+                errors.Add(new ValidationError(
+                    "税額の整合性が取れていません",
+                    ErrorSeverity.Warning));
+            }
+        }
+        else if (transaction.Type == TransactionType.Income)
+        {
+            // 収入の場合は Items は任意
+            // AmountTotal があればOK（既にチェック済み）
         }
 
-        // 取引項目の検証
+        // 取引項目の検証（Items がある場合のみ）
         foreach (var item in transaction.Items)
         {
             if (!item.IsAmountValid())

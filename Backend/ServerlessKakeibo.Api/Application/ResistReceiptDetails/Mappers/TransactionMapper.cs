@@ -110,6 +110,7 @@ public static class TransactionMapper
         return new Domain.Transaction.Models.Transaction
         {
             Id = entity.Id,
+            Type = entity.Type,
             TransactionDate = entity.TransactionDate,
             AmountTotal = entity.AmountTotal,
             Currency = entity.Currency,
