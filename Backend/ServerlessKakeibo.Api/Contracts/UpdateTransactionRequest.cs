@@ -55,8 +55,6 @@ public class UpdateTransactionRequest
     /// <summary>
     /// 取引項目一覧（全件送信・Full Replace方式）
     /// </summary>
-    [Required(ErrorMessage = "取引項目は最低1件必要です")]
-    [MinLength(1, ErrorMessage = "取引項目は最低1件必要です")]
     public List<UpdateTransactionItemRequest> Items { get; set; } = new();
 
     /// <summary>

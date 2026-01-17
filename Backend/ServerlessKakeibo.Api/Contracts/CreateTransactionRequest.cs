@@ -7,8 +7,15 @@ namespace ServerlessKakeibo.Api.Contracts;
 /// <summary>
 /// 取引新規作成リクエスト
 /// </summary>
-public class CreateTransactionRequest
+public class CreateTransactionRequest : IValidatableObject
 {
+    /// <summary>
+    /// 取引種別（収入/支出）
+    /// </summary>
+    [Required(ErrorMessage = "取引種別は必須です")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionType Type { get; set; } = TransactionType.Expense;
+
     /// <summary>
     /// 取引日時
     /// </summary>
@@ -62,8 +69,6 @@ public class CreateTransactionRequest
     /// <summary>
     /// 取引項目一覧
     /// </summary>
-    [Required(ErrorMessage = "取引項目は最低1件必要です")]
-    [MinLength(1, ErrorMessage = "取引項目は最低1件必要です")]
     public List<CreateTransactionItemRequest> Items { get; set; } = new();
 
     /// <summary>
@@ -75,6 +80,25 @@ public class CreateTransactionRequest
     /// 店舗詳細情報
     /// </summary>
     public CreateShopDetailRequest? ShopDetails { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        // 支出の場合は Items が必須
+        if (Type == TransactionType.Expense && (Items == null || Items.Count == 0))
+        {
+            yield return new ValidationResult(
+                "支出の場合、取引項目は最低1件必要です",
+                new[] { nameof(Items) });
+        }
+
+        // 収入の場合は AmountTotal が必須（Items は任意）
+        if (Type == TransactionType.Income && AmountTotal <= 0)
+        {
+            yield return new ValidationResult(
+                "収入の場合、取引金額は必須です",
+                new[] { nameof(AmountTotal) });
+        }
+    }
 }
 
 /// <summary>
