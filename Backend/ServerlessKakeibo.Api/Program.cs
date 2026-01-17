@@ -27,6 +27,8 @@ using ServerlessKakeibo.Api.Infrastructure.Repository;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 using ServerlessKakeibo.Api.Service;
 using ServerlessKakeibo.Api.Service.Interface;
+using ServerlessKakeibo.Api.Application.TransactionSummary;
+using ServerlessKakeibo.Api.Application.TransactionSummary.Usecases;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +109,7 @@ builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteracto
 builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();
 builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteractor>();
 builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
+builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
 #endregion
 
 #region DomainServices

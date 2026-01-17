@@ -162,4 +162,50 @@ public class TransactionRepository : ITransactionRepository
                     .SetProperty(t => t.UpdatedBy, userId),
                 ct);
     }
+
+    /// <summary>
+    /// 月次サマリーを取得
+    /// </summary>
+    public async Task<(decimal TotalIncome, decimal TotalExpense, Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
+        GetMonthlySummaryAsync(
+            Guid userId,
+            int year,
+            int month,
+            CancellationToken ct = default)
+    {
+        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        var transactions = await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && !t.IsDeleted
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .Select(t => new
+            {
+                t.Type,
+                t.AmountTotal,
+                t.Category
+            })
+            .ToListAsync(ct);
+
+        var totalIncome = transactions
+            .Where(t => t.Type == TransactionType.Income)
+            .Sum(t => t.AmountTotal ?? 0);
+
+        var totalExpense = transactions
+            .Where(t => t.Type == TransactionType.Expense)
+            .Sum(t => t.AmountTotal ?? 0);
+
+        var expenseByCategory = transactions
+            .Where(t => t.Type == TransactionType.Expense)
+            .GroupBy(t => t.Category)
+            .ToDictionary(
+                g => g.Key,
+                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
+            );
+
+        return (totalIncome, totalExpense, expenseByCategory);
+    }
 }

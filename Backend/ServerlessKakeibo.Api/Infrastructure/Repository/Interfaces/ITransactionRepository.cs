@@ -44,4 +44,19 @@ public interface ITransactionRepository
         Guid transactionId,
         Guid userId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// 月次サマリーを取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="year">対象年</param>
+    /// <param name="month">対象月</param>
+    /// <param name="ct">キャンセレーショントークン</param>
+    /// <returns>収入合計、支出合計、各カテゴリ別集計</returns>
+    Task<(decimal TotalIncome, decimal TotalExpense, Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
+        GetMonthlySummaryAsync(
+            Guid userId,
+            int year,
+            int month,
+            CancellationToken ct = default);
 }
