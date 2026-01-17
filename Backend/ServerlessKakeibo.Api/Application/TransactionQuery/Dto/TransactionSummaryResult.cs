@@ -14,6 +14,11 @@ public class TransactionSummaryResult
     public Guid Id { get; set; }
 
     /// <summary>
+    /// 取引タイプ
+    /// </summary>
+    public TransactionType Type { get; set; }
+
+    /// <summary>
     /// 取引日時
     /// </summary>
     public DateTimeOffset? TransactionDate { get; set; }

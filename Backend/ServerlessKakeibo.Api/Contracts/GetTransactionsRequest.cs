@@ -54,4 +54,10 @@ public class GetTransactionsRequest
     /// </summary>
     [Range(0, double.MaxValue)]
     public decimal? MaxAmount { get; set; }
+
+    /// <summary>
+    /// 取引種別でフィルタ
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionType? Type { get; set; }
 }

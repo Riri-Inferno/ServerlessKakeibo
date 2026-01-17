@@ -26,6 +26,7 @@ public interface ITransactionRepository
         string? payee = null,
         decimal? minAmount = null,
         decimal? maxAmount = null,
+        TransactionType? type = null,
         CancellationToken ct = default);
 
     /// <summary>

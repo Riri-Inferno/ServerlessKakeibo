@@ -37,16 +37,17 @@ public class TransactionRepository : ITransactionRepository
     /// 取引一覧を取得(ページング対応)
     /// </summary>
     public async Task<(List<TransactionEntity> Items, int TotalCount)> GetPagedListAsync(
-        Guid userId,
-        int page,
-        int pageSize,
-        DateTimeOffset? startDate = null,
-        DateTimeOffset? endDate = null,
-        TransactionCategory? category = null,
-        string? payee = null,
-        decimal? minAmount = null,
-        decimal? maxAmount = null,
-        CancellationToken ct = default)
+    Guid userId,
+    int page,
+    int pageSize,
+    DateTimeOffset? startDate = null,
+    DateTimeOffset? endDate = null,
+    TransactionCategory? category = null,
+    string? payee = null,
+    decimal? minAmount = null,
+    decimal? maxAmount = null,
+    TransactionType? type = null,
+    CancellationToken ct = default)
     {
         var query = _context.Transactions
             .AsNoTracking()
@@ -70,6 +71,9 @@ public class TransactionRepository : ITransactionRepository
 
         if (maxAmount.HasValue)
             query = query.Where(t => t.AmountTotal <= maxAmount.Value);
+
+        if (type.HasValue)
+            query = query.Where(t => t.Type == type.Value);
 
         // 総件数取得
         var totalCount = await query.CountAsync(ct);

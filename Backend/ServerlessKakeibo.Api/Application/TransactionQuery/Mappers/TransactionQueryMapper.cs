@@ -20,6 +20,7 @@ public static class TransactionQueryMapper
         return new TransactionDetailResult
         {
             Id = entity.Id,
+            Type = entity.Type,
             TransactionDate = entity.TransactionDate,
             AmountTotal = entity.AmountTotal,
             Currency = entity.Currency,
@@ -117,6 +118,7 @@ public static class TransactionQueryMapper
         return new TransactionSummaryResult
         {
             Id = entity.Id,
+            Type = entity.Type,
             TransactionDate = entity.TransactionDate,
             AmountTotal = entity.AmountTotal,
             Currency = entity.Currency,

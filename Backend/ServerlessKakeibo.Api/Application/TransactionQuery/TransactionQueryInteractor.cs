@@ -98,6 +98,7 @@ public class TransactionQueryInteractor : ITransactionQueryUseCase
                 request.Payee,
                 request.MinAmount,
                 request.MaxAmount,
+                request.Type,
                 cancellationToken);
 
             _logger.LogInformation(
