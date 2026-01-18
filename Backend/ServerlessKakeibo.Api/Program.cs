@@ -138,9 +138,11 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", p =>
-            p.AllowAnyOrigin()
+            p.WithOrigins("http://localhost:5173")
              .AllowAnyHeader()
-             .AllowAnyMethod());
+             .AllowAnyMethod()
+             .AllowCredentials()
+             .WithExposedHeaders("*"));
     });
 }
 #endregion
