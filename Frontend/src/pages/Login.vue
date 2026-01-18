@@ -73,7 +73,7 @@ onMounted(() => {
       text: "signin_with",
       shape: "rectangular",
       locale: "ja",
-      //   width: 400, // ← 明示的に幅を指定
+      width: "400",
     });
 
     console.log("Google ログインボタンをレンダリングしました");
