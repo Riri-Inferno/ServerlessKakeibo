@@ -4,6 +4,8 @@
  * バックエンドの /api/Auth エンドポイントとの通信を担当
  */
 
+import apiClient from "../api/axios";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
@@ -66,11 +68,6 @@ export const authRepository = {
     return result.data;
   },
 
-  /**
-   * リフレッシュトークンで新しいアクセストークンを取得
-   * @param refreshToken リフレッシュトークン
-   * @returns 新しいトークンとユーザー情報
-   */
   async refreshToken(refreshToken: string): Promise<LoginResult> {
     const response = await fetch(`${API_BASE_URL}/api/Auth/refresh`, {
       method: "POST",
@@ -98,25 +95,17 @@ export const authRepository = {
    * @param accessToken アクセストークン
    * @returns 現在のユーザー情報
    */
-  async getCurrentUser(accessToken: string): Promise<CurrentUser> {
-    const response = await fetch(`${API_BASE_URL}/api/Auth/me`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+  async getCurrentUser(): Promise<CurrentUser> {
+    const response = await apiClient.get<ApiResponse<CurrentUser>>(
+      "/api/Auth/me"
+    );
 
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status}`);
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "ユーザー情報の取得に失敗しました"
+      );
     }
 
-    const result: ApiResponse<CurrentUser> = await response.json();
-
-    if (result.status !== "Success") {
-      throw new Error(result.message || "ユーザー情報の取得に失敗しました");
-    }
-
-    return result.data;
+    return response.data.data;
   },
 };

@@ -37,31 +37,7 @@ export function useAuth() {
       throw new Error("認証されていません");
     }
 
-    try {
-      // リポジトリ経由で取得
-      return await authRepository.getCurrentUser(authStore.accessToken);
-    } catch (error) {
-      // 401 ならリフレッシュトークンで再試行
-      if (error instanceof Error && error.message.includes("401")) {
-        await authStore.refreshAccessToken();
-        // 再度リクエスト
-        return await authRepository.getCurrentUser(authStore.accessToken!);
-      }
-      throw error;
-    }
-  };
-
-  /**
-   * トークンをリフレッシュ
-   */
-  const refreshToken = async () => {
-    try {
-      await authStore.refreshAccessToken();
-    } catch (error) {
-      // リフレッシュ失敗 → ログアウト
-      logout();
-      throw error;
-    }
+    return await authRepository.getCurrentUser();
   };
 
   return {
@@ -75,6 +51,5 @@ export function useAuth() {
     // Actions
     logout,
     fetchCurrentUser,
-    refreshToken,
   };
 }
