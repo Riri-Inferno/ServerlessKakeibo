@@ -3,6 +3,7 @@ import { useAuthStore } from "../stores/authStore";
 import ComponentGallery from "../pages/ComponentGallery.vue";
 import Login from "../pages/Login.vue";
 import Dashboard from "../pages/Dashboard.vue";
+import TransactionList from "../pages/TransactionList.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/transactions",
+      name: "transactions",
+      component: TransactionList,
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/component-gallery",
       name: "gallery",
       component: ComponentGallery,
@@ -28,7 +35,6 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  // void from;
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: "login" });
