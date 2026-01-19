@@ -2,11 +2,13 @@
 import { onMounted, ref } from "vue";
 import { useTransactions } from "../composables/useTransactions";
 import { TransactionType, CategoryLabels } from "../types/transaction";
+import type { GetTransactionsRequest } from "../types/transaction";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseButton from "../components/atoms/BaseButton.vue";
 import BaseBadge from "../components/atoms/BaseBadge.vue";
+import TransactionFilter from "../components/molecules/TransactionFilter.vue";
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
 
 const {
@@ -23,6 +25,7 @@ const {
 
 const selectedTransactionId = ref<string | null>(null);
 const isModalOpen = ref(false);
+const currentFilters = ref<GetTransactionsRequest>({});
 
 const openDetail = (id: string) => {
   selectedTransactionId.value = id;
@@ -34,6 +37,16 @@ const closeModal = () => {
   selectedTransactionId.value = null;
 };
 
+const handleSearch = (filters: GetTransactionsRequest) => {
+  currentFilters.value = filters;
+  fetchTransactions(filters);
+};
+
+const handleClearFilters = () => {
+  currentFilters.value = {};
+  fetchTransactions();
+};
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("ja-JP", {
@@ -43,7 +56,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const formatAmount = (amount: number, type: TransactionType) => {
+const formatAmount = (amount: number, type: string) => {
   const sign = type === TransactionType.Income ? "+" : "-";
   return `${sign}${amount.toLocaleString()}円`;
 };
@@ -65,6 +78,8 @@ onMounted(() => {
         </div>
         <BaseButton variant="primary"> 新規登録 </BaseButton>
       </div>
+
+      <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
 
       <div v-if="isLoading" class="text-center py-12">
         <BaseText variant="body" color="gray">読み込み中...</BaseText>
