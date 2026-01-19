@@ -6,6 +6,7 @@ import { useAuthStore } from "../stores/authStore";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import logo from "../assets/icons/logo.svg?url";
+import router from "../router";
 
 type CredentialResponse = CallbackTypes.CredentialPopupResponse;
 
@@ -36,6 +37,9 @@ const handleCredentialResponse = async (response: CredentialResponse) => {
 
     // Pinia ストアに保存
     authStore.setAuthData(userData);
+
+    // ダッシュボードにリダイレクト
+    router.push({ name: "dashboard" });
 
     alert(`ログイン成功！\nようこそ、${userData.displayName}さん`);
 
