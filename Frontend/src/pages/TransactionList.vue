@@ -9,6 +9,8 @@ import BaseText from "../components/atoms/BaseText.vue";
 import BaseButton from "../components/atoms/BaseButton.vue";
 import BaseBadge from "../components/atoms/BaseBadge.vue";
 import TransactionFilter from "../components/molecules/TransactionFilter.vue";
+import TransactionCreateSelectModal from "../components/organisms/TransactionCreateSelectModal.vue";
+import TransactionFormModal from "../components/organisms/TransactionFormModal.vue";
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
 
 const {
@@ -24,17 +26,48 @@ const {
 } = useTransactions();
 
 const selectedTransactionId = ref<string | null>(null);
-const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const isCreateSelectModalOpen = ref(false);
+const isFormModalOpen = ref(false);
+const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
 
 const openDetail = (id: string) => {
   selectedTransactionId.value = id;
-  isModalOpen.value = true;
+  isDetailModalOpen.value = true;
 };
 
-const closeModal = () => {
-  isModalOpen.value = false;
+const closeDetailModal = () => {
+  isDetailModalOpen.value = false;
   selectedTransactionId.value = null;
+};
+
+const openCreateModal = () => {
+  isCreateSelectModalOpen.value = true;
+};
+
+const closeCreateSelectModal = () => {
+  isCreateSelectModalOpen.value = false;
+};
+
+const selectManual = () => {
+  formMode.value = "manual";
+  isCreateSelectModalOpen.value = false;
+  isFormModalOpen.value = true;
+};
+
+const selectReceipt = () => {
+  formMode.value = "receipt";
+  isCreateSelectModalOpen.value = false;
+  isFormModalOpen.value = true;
+};
+
+const closeFormModal = () => {
+  isFormModalOpen.value = false;
+};
+
+const handleCreateSuccess = () => {
+  fetchTransactions(currentFilters.value);
 };
 
 const handleSearch = (filters: GetTransactionsRequest) => {
@@ -76,7 +109,9 @@ onMounted(() => {
             全{{ totalCount }}件
           </BaseText>
         </div>
-        <BaseButton variant="primary"> 新規登録 </BaseButton>
+        <BaseButton variant="primary" @click="openCreateModal">
+          新規登録
+        </BaseButton>
       </div>
 
       <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
@@ -172,11 +207,25 @@ onMounted(() => {
       </div>
     </div>
 
+    <TransactionCreateSelectModal
+      :is-open="isCreateSelectModalOpen"
+      @close="closeCreateSelectModal"
+      @select-manual="selectManual"
+      @select-receipt="selectReceipt"
+    />
+
+    <TransactionFormModal
+      :is-open="isFormModalOpen"
+      :mode="formMode"
+      @close="closeFormModal"
+      @success="handleCreateSuccess"
+    />
+
     <TransactionDetailModal
       v-if="selectedTransactionId"
       :transaction-id="selectedTransactionId"
-      :is-open="isModalOpen"
-      @close="closeModal"
+      :is-open="isDetailModalOpen"
+      @close="closeDetailModal"
     />
   </DefaultLayout>
 </template>
