@@ -4,6 +4,8 @@ import type {
   TransactionDetail,
   PagedResult,
   GetTransactionsRequest,
+  CreateTransactionRequest,
+  TransactionResult,
 } from "../types/transaction";
 
 interface ApiResponse<T> {
@@ -34,6 +36,19 @@ export const transactionRepository = {
 
     if (response.data.status !== "Success") {
       throw new Error(response.data.message || "取引詳細の取得に失敗しました");
+    }
+
+    return response.data.data;
+  },
+
+  async create(request: CreateTransactionRequest): Promise<TransactionResult> {
+    const response = await apiClient.post<ApiResponse<TransactionResult>>(
+      "/Transaction",
+      request
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "取引の登録に失敗しました");
     }
 
     return response.data.data;

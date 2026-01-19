@@ -68,32 +68,6 @@ export interface TransactionSummary {
 }
 
 /**
- * ページング結果
- */
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-/**
- * 取引一覧取得リクエスト
- */
-export interface GetTransactionsRequest {
-  page?: number;
-  pageSize?: number;
-  startDate?: string;
-  endDate?: string;
-  category?: TransactionCategory;
-  payee?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  type?: TransactionType;
-}
-
-/**
  * 取引詳細の明細アイテム
  */
 export interface TransactionItem {
@@ -141,4 +115,94 @@ export interface TransactionDetail {
   shopDetails: any | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * ページング結果
+ */
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+/**
+ * 取引一覧取得リクエスト
+ */
+export interface GetTransactionsRequest {
+  page?: number;
+  pageSize?: number;
+  startDate?: string;
+  endDate?: string;
+  category?: TransactionCategory;
+  payee?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  type?: TransactionType;
+}
+
+/**
+ * 取引作成用の項目
+ */
+export interface CreateTransactionItem {
+  name: string;
+  quantity: number;
+  unitPrice: number | null;
+  amount: number;
+  category: string;
+}
+
+/**
+ * 取引作成用の税情報
+ */
+export interface CreateTaxDetail {
+  taxRate: number | null;
+  taxAmount: number | null;
+  taxableAmount: number | null;
+  taxType?: string;
+}
+
+/**
+ * 店舗詳細
+ */
+export interface ShopDetails {
+  name: string | null;
+  branch: string | null;
+  phoneNumber: string | null;
+  address: string | null;
+  postalCode: string | null;
+}
+
+/**
+ * 取引作成リクエスト
+ */
+export interface CreateTransactionRequest {
+  type: TransactionType;
+  transactionDate: string;
+  amountTotal: number;
+  currency?: string;
+  payer?: string;
+  payee?: string;
+  paymentMethod?: string;
+  category: TransactionCategory;
+  notes?: string;
+  items?: CreateTransactionItem[];
+  taxes?: CreateTaxDetail[];
+  shopDetails?: ShopDetails;
+}
+
+/**
+ * 取引作成結果
+ */
+export interface TransactionResult {
+  transactionId: string;
+  transactionDate: string;
+  amountTotal: number;
+  currency: string;
+  payee: string | null;
+  category: TransactionCategory;
+  processedAt: string;
+  validationWarnings: string[];
 }
