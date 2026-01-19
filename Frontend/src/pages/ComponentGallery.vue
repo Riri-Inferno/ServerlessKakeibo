@@ -15,6 +15,44 @@
     <BaseButton full-width>全幅</BaseButton>
   </div>
 
+  <div class="p-8 space-y-4 max-w-2xl">
+    <h3 class="text-lg font-bold mb-4">バッジ</h3>
+    <div class="flex items-center gap-3 flex-wrap">
+      <BaseBadge color="default">Default</BaseBadge>
+      <BaseBadge color="primary">Primary</BaseBadge>
+      <BaseBadge color="success">Success</BaseBadge>
+      <BaseBadge color="danger">Danger</BaseBadge>
+      <BaseBadge color="warning">Warning</BaseBadge>
+      <BaseBadge color="gray">Gray</BaseBadge>
+
+      <BaseBadge size="sm" class="ml-4">SM</BaseBadge>
+      <BaseBadge size="md">MD</BaseBadge>
+      <BaseBadge size="lg">LG</BaseBadge>
+    </div>
+
+    <div class="mt-6">
+      <BaseButton variant="primary" @click="isModalOpen = true"
+        >モーダルを開く</BaseButton
+      >
+    </div>
+
+    <BaseModal
+      :isOpen="isModalOpen"
+      title="サンプルモーダル"
+      @close="isModalOpen = false"
+    >
+      <div class="space-y-4">
+        <p>これはコンポーネントギャラリーのサンプルモーダルです。</p>
+        <div class="flex gap-2">
+          <BaseButton variant="secondary" @click="isModalOpen = false"
+            >閉じる</BaseButton
+          >
+          <BaseButton variant="primary">承認</BaseButton>
+        </div>
+      </div>
+    </BaseModal>
+  </div>
+
   <div class="p-8 space-y-4 max-w-md">
     <BaseInput v-model="textValue" placeholder="テキスト入力" />
     <BaseInput v-model="emailValue" type="email" placeholder="メールアドレス" />
@@ -329,6 +367,8 @@ import BaseInputNumber from "../components/atoms/BaseInputNumber.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseIcon from "../components/atoms/BaseIcon.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
+import BaseBadge from "../components/atoms/BaseBadge.vue";
+import BaseModal from "../components/atoms/BaseModal.vue";
 
 const textValue = ref("");
 const emailValue = ref("");
@@ -337,6 +377,8 @@ const dateValue = ref("");
 const amount1 = ref<number | null>(null);
 const amount2 = ref<number | null>(1234567);
 const amount3 = ref<number | null>(null);
+
+const isModalOpen = ref(false);
 
 const handleCardClick = () => {
   alert("カードがクリックされました");
