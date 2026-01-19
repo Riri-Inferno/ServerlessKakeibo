@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import AppHeader from "../components/organisms/AppHeader.vue";
 import AppSidebar from "../components/organisms/AppSidebar.vue";
+import AppBottomNav from "../components/organisms/AppBottomNav.vue";
 
 const isSidebarOpen = ref(false);
 
@@ -11,7 +12,7 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 flex flex-col">
     <AppHeader @toggle-sidebar="toggleSidebar" class="flex-shrink-0" />
 
     <div class="flex flex-1 overflow-hidden">
@@ -21,9 +22,11 @@ const toggleSidebar = () => {
         class="flex-shrink-0"
       />
 
-      <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+      <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-4">
         <slot />
       </main>
     </div>
+
+    <AppBottomNav />
   </div>
 </template>
