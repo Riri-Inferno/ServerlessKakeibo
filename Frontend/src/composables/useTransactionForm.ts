@@ -28,7 +28,7 @@ export function useTransactionForm() {
     const itemsSum = items.value.reduce((sum, item) => sum + item.amount, 0);
     const taxesSum = taxes.value.reduce(
       (sum, tax) => sum + (tax.taxAmount || 0),
-      0
+      0,
     );
     return itemsSum + taxesSum;
   });
@@ -42,14 +42,21 @@ export function useTransactionForm() {
         amountTotal.value = calculatedTotal.value;
       }
     },
-    { deep: true }
+    { deep: true },
   );
 
   const setFromOcrResult = (result: ReceiptParseResult) => {
     const normalized = result.normalized;
 
     type.value = TransactionType.Expense;
-    transactionDate.value = normalized.transactionDate || "";
+
+    if (normalized.transactionDate) {
+      const date = new Date(normalized.transactionDate);
+      transactionDate.value = date.toISOString().split("T")[0] || "";
+    } else {
+      transactionDate.value = "";
+    }
+
     amountTotal.value = normalized.amountTotal || null;
     payee.value = normalized.payee || "";
     category.value =
@@ -59,6 +66,8 @@ export function useTransactionForm() {
     items.value = normalized.items || [];
     taxes.value = normalized.taxes || [];
     shopDetails.value = normalized.shopDetails || null;
+
+    isAutoCalculate.value = true;
   };
 
   const resetForm = () => {
@@ -87,10 +96,10 @@ export function useTransactionForm() {
       return false;
     }
 
-    if (items.value.length > 0) {
+    if (items.value.length > 0 && !isAutoCalculate.value) {
       const diff = Math.abs(calculatedTotal.value - amountTotal.value);
       if (diff > 1) {
-        errorMessage.value = `明細と税の合計（${calculatedTotal.value}円）が、入力金額（${amountTotal.value}円）と一致しません`;
+        errorMessage.value = `明細と税の合計（${calculatedTotal.value}円）が、入力金額（${amountTotal.value}円）と一致しません。自動計算をオンにするか、金額を調整してください。`;
         return false;
       }
     }

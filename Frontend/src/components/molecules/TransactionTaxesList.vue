@@ -45,12 +45,16 @@ const taxTotal = computed(() => {
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <BaseText variant="h3">税情報</BaseText>
-      <BaseButton variant="outline" size="sm" @click="emit('add')">
-        <BaseIcon name="plus" size="sm" class="mr-1" />
-        追加
+      <BaseButton
+        variant="outline"
+        size="sm"
+        @click="emit('add')"
+        class="flex items-center gap-1"
+      >
+        <BaseIcon name="plus" size="sm" />
+        <span>追加</span>
       </BaseButton>
     </div>
-
     <div
       v-if="taxes.length === 0"
       class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg"
@@ -95,7 +99,7 @@ const taxTotal = computed(() => {
                   updateTax(
                     index,
                     'taxRate',
-                    $event ? parseInt($event as string) : null
+                    $event ? parseInt($event as string) : null,
                   )
                 "
                 type="text"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { watch, computed, ref } from "vue";
 import { useTransactionForm } from "../../composables/useTransactionForm";
 import { useReceiptOcr } from "../../composables/useReceiptOcr";
 import BaseModal from "../atoms/BaseModal.vue";
@@ -54,6 +54,7 @@ const {
 
 const isOcrMode = computed(() => props.mode === "receipt");
 const isOcrCompleted = ref(false);
+const isTypeReadonly = computed(() => isOcrMode.value);
 
 const handleReceiptUpload = async (file: File) => {
   const result = await parseReceipt(file);
@@ -86,7 +87,7 @@ watch(
       resetOcr();
       isOcrCompleted.value = false;
     }
-  }
+  },
 );
 </script>
 
@@ -123,6 +124,7 @@ watch(
           :notes="notes"
           :calculated-total="calculatedTotal"
           :is-auto-calculate="isAutoCalculate"
+          :is-type-readonly="isTypeReadonly"
           @update:type="type = $event"
           @update:transaction-date="transactionDate = $event"
           @update:amount-total="amountTotal = $event"

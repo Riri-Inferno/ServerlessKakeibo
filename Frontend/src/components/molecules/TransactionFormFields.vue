@@ -21,9 +21,12 @@ interface Props {
   notes: string;
   calculatedTotal: number;
   isAutoCalculate: boolean;
+  isTypeReadonly?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  isTypeReadonly: false,
+});
 
 const emit = defineEmits<{
   "update:type": [value: TransactionType];
@@ -50,7 +53,7 @@ const paymentMethodOptions = Object.entries(PaymentMethodLabels).map(
   ([key, label]) => ({
     value: key,
     label,
-  })
+  }),
 );
 
 const totalDifference = computed(() => {
@@ -71,6 +74,7 @@ const hasCalculationError = computed(() => {
         :model-value="type"
         @update:model-value="emit('update:type', $event as TransactionType)"
         :options="typeOptions"
+        :disabled="isTypeReadonly"
         size="md"
       />
     </div>
@@ -95,7 +99,7 @@ const hasCalculationError = computed(() => {
             @change="
               emit(
                 'update:isAutoCalculate',
-                ($event.target as HTMLInputElement).checked
+                ($event.target as HTMLInputElement).checked,
               )
             "
             class="rounded"

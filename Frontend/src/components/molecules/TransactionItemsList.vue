@@ -26,13 +26,13 @@ const itemCategoryOptions = Object.entries(ItemCategoryLabels).map(
   ([key, label]) => ({
     value: key,
     label,
-  })
+  }),
 );
 
 const updateItem = (
   index: number,
   field: keyof CreateTransactionItem,
-  value: any
+  value: any,
 ) => {
   const newItems = [...props.items];
   const currentItem = newItems[index];
@@ -68,9 +68,14 @@ const itemTotal = computed(() => {
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <BaseText variant="h3">明細</BaseText>
-      <BaseButton variant="outline" size="sm" @click="emit('add')">
-        <BaseIcon name="plus" size="sm" class="mr-1" />
-        追加
+      <BaseButton
+        variant="outline"
+        size="sm"
+        @click="emit('add')"
+        class="flex items-center gap-1"
+      >
+        <BaseIcon name="plus" size="sm" />
+        <span>追加</span>
       </BaseButton>
     </div>
 
@@ -120,7 +125,7 @@ const itemTotal = computed(() => {
                   updateItem(
                     index,
                     'quantity',
-                    parseFloat($event as string) || 1
+                    parseFloat($event as string) || 1,
                   )
                 "
                 type="text"
