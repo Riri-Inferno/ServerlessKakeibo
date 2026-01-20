@@ -41,7 +41,7 @@ const selectClass = computed(() => {
     : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200";
 
   const disabled = props.disabled
-    ? "bg-gray-100 cursor-not-allowed"
+    ? "bg-gray-100 cursor-not-allowed opacity-60"
     : "bg-white";
 
   return `${base} ${size} ${state} ${disabled} focus:outline-none`;
