@@ -20,6 +20,12 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public TaxInclusionType? TaxInclusionType { get; set; }
 
         /// <summary>
+        /// メモ・備考
+        /// </summary>
+        [MaxLength(1000)]
+        public string? Notes { get; set; }
+
+        /// <summary>
         /// 取引日時
         /// </summary>
         public DateTimeOffset? TransactionDate { get; set; }
