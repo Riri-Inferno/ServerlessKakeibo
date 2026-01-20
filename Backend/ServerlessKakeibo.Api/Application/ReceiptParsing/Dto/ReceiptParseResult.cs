@@ -105,6 +105,11 @@ public class NormalizedTransaction
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public TransactionCategory? Category { get; set; }
+
+    /// <summary>
+    /// 金額整合性の観測結果
+    /// </summary>
+    public AmountValidationResult? AmountValidation { get; set; }
 }
 
 /// <summary>
@@ -158,4 +163,32 @@ public class TaxInfo
     /// 課税対象額（税抜金額）
     /// </summary>
     public decimal? TaxableAmount { get; set; }
+}
+
+/// <summary>
+/// バリデーション
+/// </summary>
+public class AmountValidationResult
+{
+    /// <summary>
+    /// 明細合計（items.amount の合計）
+    /// </summary>
+    public decimal? ItemsTotal { get; set; }
+
+    /// <summary>
+    /// 税額合計
+    /// </summary>
+    public decimal? TaxTotal { get; set; }
+
+    /// <summary>
+    /// 外税として合計が一致するか
+    /// items + taxes == amountTotal
+    /// </summary>
+    public bool? MatchesAsExclusiveTax { get; set; }
+
+    /// <summary>
+    /// 内税として合計が一致するか
+    /// items == amountTotal
+    /// </summary>
+    public bool? MatchesAsInclusiveTax { get; set; }
 }

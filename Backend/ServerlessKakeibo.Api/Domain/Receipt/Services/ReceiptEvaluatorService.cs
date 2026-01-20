@@ -71,7 +71,62 @@ public class ReceiptEvaluatorService
             }
         }
 
+        // 金額整合性チェック
+        result.Normalized.AmountValidation = BuildAmountValidation(result.Normalized);
+
+        if (result.Normalized.AmountValidation != null &&
+            !IsAmountConsistent(result.Normalized.AmountValidation))
+        {
+            result.Warnings.Add(
+                "明細・税額と合計金額の整合性が取れていません（内税・外税いずれでも一致しません）"
+            );
+        }
+
         return result;
+    }
+
+    /// <summary>
+    /// AmountValidation オブジェクトを構築
+    /// </summary>
+    private static AmountValidationResult? BuildAmountValidation(NormalizedTransaction tx)
+    {
+        if (tx.AmountTotal == null)
+            return null;
+
+        var itemTotal = tx.Items?
+            .Where(i => i.Amount != null)
+            .Sum(i => i.Amount!.Value) ?? 0m;
+
+        var taxTotal = tx.Taxes?
+            .Where(t => t.TaxAmount != null)
+            .Sum(t => t.TaxAmount!.Value) ?? 0m;
+
+        var amountTotal = tx.AmountTotal.Value;
+
+        const decimal TOLERANCE = 0.01m; // 1円未満の誤差を許容
+
+        // 外税：小計 + 税 = 合計
+        bool matchesExternalTax = Math.Abs((itemTotal + taxTotal) - amountTotal) < TOLERANCE;
+
+        // 内税：小計 = 合計（税は内包）
+        bool matchesInternalTax = Math.Abs(itemTotal - amountTotal) < TOLERANCE;
+
+        return new AmountValidationResult
+        {
+            ItemsTotal = itemTotal,
+            TaxTotal = taxTotal,
+            MatchesAsExclusiveTax = matchesExternalTax,  // 外税として一致
+            MatchesAsInclusiveTax = matchesInternalTax   // 内税として一致
+        };
+    }
+
+    /// <summary>
+    /// 金額が整合しているかチェック
+    /// </summary>
+    private static bool IsAmountConsistent(AmountValidationResult validation)
+    {
+        return validation.MatchesAsExclusiveTax == true ||
+               validation.MatchesAsInclusiveTax == true;
     }
 
     /// <summary>
@@ -89,5 +144,21 @@ public class ReceiptEvaluatorService
             cleanedNumber,
             @"^T\d{13}$"
         );
+    }
+
+    /// <summary>
+    /// 金額の整合性チェック
+    /// </summary>
+    /// <param name="MatchesInternalTax"></param>
+    /// <param name="MatchesExternalTax"></param>
+    private readonly record struct AmountConsistencyResult(
+        bool MatchesInternalTax,
+        bool MatchesExternalTax
+    )
+    {
+        public bool IsConsistent => MatchesInternalTax || MatchesExternalTax;
+
+        public static AmountConsistencyResult NotEvaluatable =>
+            new(false, false);
     }
 }
