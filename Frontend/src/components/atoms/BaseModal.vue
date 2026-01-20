@@ -5,9 +5,12 @@ import BaseIcon from "./BaseIcon.vue";
 interface Props {
   isOpen: boolean;
   title?: string;
+  closeOnClickOutside?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  closeOnClickOutside: false,
+});
 
 const emit = defineEmits<{
   close: [];
@@ -21,8 +24,14 @@ watch(
     } else {
       document.body.style.overflow = "";
     }
-  }
+  },
 );
+
+const handleBackgroundClick = () => {
+  if (props.closeOnClickOutside) {
+    emit("close");
+  }
+};
 </script>
 
 <template>
@@ -31,11 +40,10 @@ watch(
       <div
         v-if="isOpen"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        @click.self="emit('close')"
       >
         <div
           class="fixed inset-0 bg-black bg-opacity-50"
-          @click="emit('close')"
+          @click="handleBackgroundClick"
         ></div>
 
         <div
