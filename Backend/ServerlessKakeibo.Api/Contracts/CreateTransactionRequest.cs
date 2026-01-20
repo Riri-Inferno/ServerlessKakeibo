@@ -67,6 +67,12 @@ public class CreateTransactionRequest : IValidatableObject
     public string? Notes { get; set; }
 
     /// <summary>
+    /// 税の扱い（外税・内税・不明）※フロントエンドが指定
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaxInclusionType? TaxInclusionType { get; set; }
+
+    /// <summary>
     /// 取引項目一覧
     /// </summary>
     public List<CreateTransactionItemRequest> Items { get; set; } = new();

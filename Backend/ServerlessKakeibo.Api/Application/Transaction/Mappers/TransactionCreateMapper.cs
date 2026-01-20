@@ -39,7 +39,8 @@ public static class TransactionCreateMapper
         entity.Payee = request.Payee;
         entity.PaymentMethod = request.PaymentMethod;
         entity.Category = request.Category;
-        // entity.Notes = request.Notes;
+        entity.TaxInclusionType = request.TaxInclusionType;
+        entity.Notes = request.Notes;
 
         // 手動入力なので解析関連フィールドはnull
         entity.ReceiptType = null;

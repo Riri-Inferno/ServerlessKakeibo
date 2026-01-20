@@ -167,6 +167,8 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
                     Category = transactionEntity.Category,
+                    TaxInclusionType = transactionEntity.TaxInclusionType,
+                    Notes = transactionEntity.Notes,
                     ProcessedAt = DateTimeOffset.UtcNow,
                     ValidationWarnings = warnings
                 };

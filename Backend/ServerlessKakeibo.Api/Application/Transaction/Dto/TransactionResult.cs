@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.Transaction.Dto;
@@ -35,7 +36,19 @@ public class TransactionResult
     /// <summary>
     /// カテゴリ
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public TransactionCategory Category { get; set; }
+
+    /// <summary>
+    /// 税の扱い（外税・内税・不明）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaxInclusionType? TaxInclusionType { get; set; }
+
+    /// <summary>
+    /// メモ・備考
+    /// </summary>
+    public string? Notes { get; set; }
 
     /// <summary>
     /// 処理日時
