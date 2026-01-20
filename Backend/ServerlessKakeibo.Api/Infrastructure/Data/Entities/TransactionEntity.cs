@@ -15,6 +15,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public TransactionType Type { get; set; } = TransactionType.Expense;
 
         /// <summary>
+        /// 税の扱い（外税・内税・不明）
+        /// </summary>
+        public TaxInclusionType? TaxInclusionType { get; set; }
+
+        /// <summary>
         /// 取引日時
         /// </summary>
         public DateTimeOffset? TransactionDate { get; set; }
