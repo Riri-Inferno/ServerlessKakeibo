@@ -62,12 +62,10 @@ export function useTransactionForm() {
     category.value =
       (normalized.category as TransactionCategory) ||
       TransactionCategory.Uncategorized;
-    paymentMethod.value = normalized.paymentMethod || "";
+    paymentMethod.value = (normalized.paymentMethod as string) || "";
     items.value = normalized.items || [];
     taxes.value = normalized.taxes || [];
     shopDetails.value = normalized.shopDetails || null;
-
-    isAutoCalculate.value = true;
   };
 
   const resetForm = () => {
