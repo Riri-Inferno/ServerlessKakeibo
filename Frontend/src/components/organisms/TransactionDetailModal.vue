@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { watch } from "vue";
 import { useTransactionDetail } from "../../composables/useTransactionDetail";
-import { TransactionType, CategoryLabels } from "../../types/transaction";
+import {
+  TransactionType,
+  CategoryLabels,
+  TaxInclusionTypeLabels,
+} from "../../types/transaction";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseBadge from "../atoms/BaseBadge.vue";
@@ -28,7 +32,7 @@ watch(
       fetchDetail(props.transactionId);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const formatDate = (dateString: string) => {
@@ -57,6 +61,7 @@ const formatDateTime = (dateString: string) => {
     </div>
 
     <div v-else-if="transaction" class="space-y-6">
+      <!-- バッジ -->
       <div class="flex items-center gap-2">
         <BaseBadge
           :color="
@@ -68,8 +73,13 @@ const formatDateTime = (dateString: string) => {
         <BaseBadge color="gray">
           {{ CategoryLabels[transaction.category] || transaction.category }}
         </BaseBadge>
+        <!-- 税区分バッジ -->
+        <BaseBadge v-if="transaction.taxInclusionType" color="info">
+          {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
+        </BaseBadge>
       </div>
 
+      <!-- 合計金額 -->
       <div>
         <BaseText variant="caption" color="gray" class="mb-1"
           >合計金額</BaseText
@@ -85,6 +95,7 @@ const formatDateTime = (dateString: string) => {
         </BaseText>
       </div>
 
+      <!-- 支払先 -->
       <div>
         <BaseText variant="caption" color="gray" class="mb-1">
           {{
@@ -96,6 +107,7 @@ const formatDateTime = (dateString: string) => {
         }}</BaseText>
       </div>
 
+      <!-- 取引日 -->
       <div>
         <BaseText variant="caption" color="gray" class="mb-1">取引日</BaseText>
         <BaseText variant="body">{{
@@ -103,6 +115,7 @@ const formatDateTime = (dateString: string) => {
         }}</BaseText>
       </div>
 
+      <!-- 支払方法 -->
       <div v-if="transaction.paymentMethod">
         <BaseText variant="caption" color="gray" class="mb-1"
           >支払方法</BaseText
@@ -110,6 +123,15 @@ const formatDateTime = (dateString: string) => {
         <BaseText variant="body">{{ transaction.paymentMethod }}</BaseText>
       </div>
 
+      <!-- メモ -->
+      <div v-if="transaction.notes">
+        <BaseText variant="caption" color="gray" class="mb-1">メモ</BaseText>
+        <BaseText variant="body" class="whitespace-pre-wrap">{{
+          transaction.notes
+        }}</BaseText>
+      </div>
+
+      <!-- 明細 -->
       <div v-if="transaction.items && transaction.items.length > 0">
         <BaseText variant="h3" class="mb-3">明細</BaseText>
         <div class="space-y-2">
@@ -136,6 +158,7 @@ const formatDateTime = (dateString: string) => {
         </div>
       </div>
 
+      <!-- 税・控除 -->
       <div v-if="transaction.taxes && transaction.taxes.length > 0">
         <BaseText variant="h3" class="mb-3">税・控除</BaseText>
         <div class="space-y-2">
@@ -157,6 +180,7 @@ const formatDateTime = (dateString: string) => {
         </div>
       </div>
 
+      <!-- 作成・更新日時 -->
       <div class="pt-4 border-t border-gray-200">
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>

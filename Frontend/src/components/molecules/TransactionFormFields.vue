@@ -4,6 +4,8 @@ import {
   TransactionType,
   TransactionCategory,
   CategoryLabels,
+  TaxInclusionType,
+  TaxInclusionTypeLabels,
 } from "../../types/transaction";
 import { PaymentMethodLabels } from "../../types/receipt";
 import BaseText from "../atoms/BaseText.vue";
@@ -19,6 +21,7 @@ interface Props {
   category: TransactionCategory;
   paymentMethod: string;
   notes: string;
+  taxInclusionType?: TaxInclusionType;
   calculatedTotal: number;
   isAutoCalculate: boolean;
   isTypeReadonly?: boolean;
@@ -26,6 +29,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   isTypeReadonly: false,
+  taxInclusionType: undefined,
 });
 
 const emit = defineEmits<{
@@ -36,6 +40,7 @@ const emit = defineEmits<{
   "update:category": [value: TransactionCategory];
   "update:paymentMethod": [value: string];
   "update:notes": [value: string];
+  "update:taxInclusionType": [value: TaxInclusionType | undefined];
   "update:isAutoCalculate": [value: boolean];
 }>();
 
@@ -56,6 +61,13 @@ const paymentMethodOptions = Object.entries(PaymentMethodLabels).map(
   }),
 );
 
+const taxInclusionTypeOptions = Object.entries(TaxInclusionTypeLabels).map(
+  ([key, label]) => ({
+    value: key,
+    label,
+  }),
+);
+
 const totalDifference = computed(() => {
   if (!props.amountTotal) return 0;
   return Math.abs(props.calculatedTotal - props.amountTotal);
@@ -68,6 +80,7 @@ const hasCalculationError = computed(() => {
 
 <template>
   <div class="space-y-4">
+    <!-- 取引種別 -->
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">取引種別</BaseText>
       <BaseSelect
@@ -79,6 +92,7 @@ const hasCalculationError = computed(() => {
       />
     </div>
 
+    <!-- 取引日 -->
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">取引日</BaseText>
       <BaseInput
@@ -89,6 +103,7 @@ const hasCalculationError = computed(() => {
       />
     </div>
 
+    <!-- 合計金額 -->
     <div>
       <div class="flex items-center justify-between mb-1">
         <BaseText variant="caption" color="gray">合計金額</BaseText>
@@ -132,6 +147,7 @@ const hasCalculationError = computed(() => {
       </div>
     </div>
 
+    <!-- 支払先 -->
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">支払先</BaseText>
       <BaseInput
@@ -143,6 +159,7 @@ const hasCalculationError = computed(() => {
       />
     </div>
 
+    <!-- カテゴリ -->
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">カテゴリ</BaseText>
       <BaseSelect
@@ -155,12 +172,33 @@ const hasCalculationError = computed(() => {
       />
     </div>
 
+    <!-- 支払方法 -->
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">支払方法</BaseText>
       <BaseSelect
         :model-value="paymentMethod"
         @update:model-value="emit('update:paymentMethod', $event as string)"
         :options="paymentMethodOptions"
+        placeholder="選択してください"
+        size="md"
+      />
+    </div>
+
+    <!-- 税区分 -->
+    <div>
+      <BaseText variant="caption" color="gray" class="mb-1">
+        税区分
+        <span class="text-xs text-gray-400">（任意）</span>
+      </BaseText>
+      <BaseSelect
+        :model-value="taxInclusionType || ''"
+        @update:model-value="
+          emit(
+            'update:taxInclusionType',
+            $event ? ($event as TaxInclusionType) : undefined,
+          )
+        "
+        :options="taxInclusionTypeOptions"
         placeholder="選択してください"
         size="md"
       />

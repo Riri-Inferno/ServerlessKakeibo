@@ -30,6 +30,7 @@ const {
   category,
   paymentMethod,
   notes,
+  taxInclusionType,
   items,
   taxes,
   isLoading: isSubmitting,
@@ -122,6 +123,7 @@ watch(
           :category="category"
           :payment-method="paymentMethod"
           :notes="notes"
+          :tax-inclusion-type="taxInclusionType"
           :calculated-total="calculatedTotal"
           :is-auto-calculate="isAutoCalculate"
           :is-type-readonly="isTypeReadonly"
@@ -132,6 +134,7 @@ watch(
           @update:category="category = $event"
           @update:payment-method="paymentMethod = $event"
           @update:notes="notes = $event"
+          @update:tax-inclusion-type="taxInclusionType = $event"
           @update:is-auto-calculate="isAutoCalculate = $event"
         />
 

@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-type Color = "default" | "primary" | "success" | "danger" | "warning" | "gray";
+type Color =
+  | "default"
+  | "primary"
+  | "success"
+  | "danger"
+  | "warning"
+  | "info"
+  | "gray";
+
 type Size = "sm" | "md" | "lg";
 
 interface Props {
@@ -20,6 +28,7 @@ const colorClasses: Record<Color, string> = {
   success: "bg-green-100 text-green-800",
   danger: "bg-red-100 text-red-800",
   warning: "bg-yellow-100 text-yellow-800",
+  info: "bg-cyan-100 text-cyan-800",
   gray: "bg-gray-100 text-gray-600",
 };
 

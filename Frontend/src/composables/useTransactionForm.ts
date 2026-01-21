@@ -29,19 +29,33 @@ export function useTransactionForm() {
   const taxes = ref<CreateTaxDetail[]>([]);
   const shopDetails = ref<ShopDetails | null>(null);
 
+  /**
+   * 税区分に応じた合計金額を計算
+   */
   const calculatedTotal = computed(() => {
     const itemsSum = items.value.reduce((sum, item) => sum + item.amount, 0);
     const taxesSum = taxes.value.reduce(
       (sum, tax) => sum + (tax.taxAmount || 0),
       0,
     );
-    return itemsSum + taxesSum;
+
+    // 税区分に応じて計算方法を変える
+    if (
+      taxInclusionType.value === "Inclusive" ||
+      taxInclusionType.value === "NoTax"
+    ) {
+      // 内税または非課税: items のみ
+      return itemsSum;
+    } else {
+      // 外税または不明: items + taxes（従来の計算）
+      return itemsSum + taxesSum;
+    }
   });
 
   const isAutoCalculate = ref(false);
 
   watch(
-    [items, taxes],
+    [items, taxes, taxInclusionType],
     () => {
       if (isAutoCalculate.value) {
         amountTotal.value = calculatedTotal.value;
@@ -68,6 +82,8 @@ export function useTransactionForm() {
       (normalized.category as TransactionCategory) ||
       TransactionCategory.Uncategorized;
     paymentMethod.value = (normalized.paymentMethod as string) || "";
+
+    // 先に税区分を設定
     if (normalized.amountValidation) {
       taxInclusionType.value = determineTaxInclusionType(
         normalized.amountValidation,
@@ -75,6 +91,7 @@ export function useTransactionForm() {
     } else {
       taxInclusionType.value = undefined;
     }
+
     items.value = normalized.items || [];
     taxes.value = normalized.taxes || [];
     shopDetails.value = normalized.shopDetails || null;
@@ -134,8 +151,22 @@ export function useTransactionForm() {
 
     if (items.value.length > 0 && !isAutoCalculate.value) {
       const diff = Math.abs(calculatedTotal.value - amountTotal.value);
+
       if (diff > 1) {
-        errorMessage.value = `明細と税の合計（${calculatedTotal.value}円）が、入力金額（${amountTotal.value}円）と一致しません。自動計算をオンにするか、金額を調整してください。`;
+        // 税区分に応じたメッセージ
+        const taxTypeLabel =
+          taxInclusionType.value === "Inclusive"
+            ? "内税"
+            : taxInclusionType.value === "Exclusive"
+              ? "外税"
+              : taxInclusionType.value === "NoTax"
+                ? "非課税"
+                : "不明";
+
+        errorMessage.value =
+          `明細合計（${calculatedTotal.value}円）が入力金額（${amountTotal.value}円）と一致しません。` +
+          `\n税区分: ${taxTypeLabel}\n` +
+          `自動計算をオンにするか、税区分を確認してください。`;
         return false;
       }
     }

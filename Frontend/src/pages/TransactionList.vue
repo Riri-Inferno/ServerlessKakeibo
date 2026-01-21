@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useTransactions } from "../composables/useTransactions";
-import { TransactionType, CategoryLabels } from "../types/transaction";
+import {
+  TransactionType,
+  CategoryLabels,
+  TaxInclusionTypeLabels,
+} from "../types/transaction";
 import type { GetTransactionsRequest } from "../types/transaction";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
@@ -138,7 +142,7 @@ onMounted(() => {
         >
           <div class="flex items-center justify-between gap-4">
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-2">
+              <div class="flex items-center gap-2 mb-2 flex-wrap">
                 <BaseBadge
                   :color="
                     transaction.type === TransactionType.Income
@@ -157,6 +161,14 @@ onMounted(() => {
                   {{
                     CategoryLabels[transaction.category] || transaction.category
                   }}
+                </BaseBadge>
+                <!-- 税区分バッジ -->
+                <BaseBadge
+                  v-if="transaction.taxInclusionType"
+                  color="info"
+                  size="sm"
+                >
+                  {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
                 </BaseBadge>
               </div>
               <BaseText variant="body" weight="bold" class="mb-1">
