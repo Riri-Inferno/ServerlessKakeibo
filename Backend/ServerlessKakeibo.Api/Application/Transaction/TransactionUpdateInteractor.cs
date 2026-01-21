@@ -148,6 +148,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     Currency = newEntity.Currency,
                     Payee = newEntity.Payee,
                     Category = newEntity.Category,
+                    Notes = newEntity.Notes,
                     TaxInclusionType = newEntity.TaxInclusionType,
                     ProcessedAt = DateTimeOffset.UtcNow,
                     ValidationWarnings = warnings
