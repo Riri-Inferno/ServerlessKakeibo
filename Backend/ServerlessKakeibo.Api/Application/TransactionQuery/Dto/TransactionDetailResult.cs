@@ -55,6 +55,17 @@ public class TransactionDetailResult
     public TransactionCategory Category { get; set; }
 
     /// <summary>
+    /// メモ・備考
+    /// </summary>
+    public string? Notes { get; set; }
+
+    /// <summary>
+    /// 税の扱い（外税・内税・不明）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaxInclusionType? TaxInclusionType { get; set; }
+
+    /// <summary>
     /// 領収書種別
     /// </summary>
     public string? ReceiptType { get; set; }

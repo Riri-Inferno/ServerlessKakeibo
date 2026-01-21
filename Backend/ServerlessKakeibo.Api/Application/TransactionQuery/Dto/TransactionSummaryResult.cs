@@ -50,6 +50,12 @@ public class TransactionSummaryResult
     public string? PaymentMethod { get; set; }
 
     /// <summary>
+    /// 税の扱い（外税・内税・不明）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaxInclusionType? TaxInclusionType { get; set; }
+
+    /// <summary>
     /// 取引項目数
     /// </summary>
     public int ItemCount { get; set; }

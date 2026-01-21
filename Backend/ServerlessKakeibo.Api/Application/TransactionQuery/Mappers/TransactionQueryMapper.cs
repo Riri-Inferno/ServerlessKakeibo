@@ -28,6 +28,8 @@ public static class TransactionQueryMapper
             Payee = entity.Payee,
             PaymentMethod = entity.PaymentMethod,
             Category = entity.Category,
+            Notes = entity.Notes,
+            TaxInclusionType = entity.TaxInclusionType,
             ReceiptType = entity.ReceiptType,
             Confidence = entity.Confidence,
             ParseStatus = entity.ParseStatus,
@@ -125,6 +127,7 @@ public static class TransactionQueryMapper
             Payee = entity.Payee,
             Category = entity.Category,
             PaymentMethod = entity.PaymentMethod,
+            TaxInclusionType = entity.TaxInclusionType,
             ItemCount = entity.Items?.Count ?? 0
         };
     }
