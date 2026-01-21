@@ -47,11 +47,23 @@ const measureHeights = () => {
 
   const screenHeight = window.innerHeight;
   const containerTop = listContainerRef.value.getBoundingClientRect().top;
-  const PAGINATION_HEIGHT = 80;
-  const BOTTOM_PADDING = 48;
+
+  const paginationElement = document.querySelector("[data-pagination]");
+  const paginationHeight = paginationElement
+    ? paginationElement.getBoundingClientRect().height + 16
+    : 76;
+
+  const isMobile = window.innerWidth < 768;
+  const bottomNavHeight = isMobile ? 80 : 0;
+
+  const BOTTOM_PADDING = 16;
 
   const availableHeight =
-    screenHeight - containerTop - PAGINATION_HEIGHT - BOTTOM_PADDING;
+    screenHeight -
+    containerTop -
+    paginationHeight -
+    bottomNavHeight -
+    BOTTOM_PADDING;
 
   setContainerHeight(availableHeight);
 
@@ -178,118 +190,141 @@ onUnmounted(() => {
 
 <template>
   <DefaultLayout>
-    <div class="max-w-7xl mx-auto space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <BaseText variant="h1" class="mb-2">取引一覧</BaseText>
-          <BaseText variant="caption" color="gray">
-            全{{ totalCount }}件
-          </BaseText>
-        </div>
-        <BaseButton variant="primary" @click="openCreateModal">
-          新規登録
-        </BaseButton>
-      </div>
-
-      <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
-
-      <div v-if="isLoading" class="text-center py-12">
-        <BaseText variant="body" color="gray">読み込み中...</BaseText>
-      </div>
-
-      <div v-else-if="errorMessage" class="text-center py-12">
-        <BaseText variant="body" color="danger">{{ errorMessage }}</BaseText>
-      </div>
-
-      <div v-else-if="transactions.length === 0" class="text-center py-12">
-        <BaseText variant="body" color="gray">取引がありません</BaseText>
-      </div>
-
-      <div v-else ref="listContainerRef" class="space-y-4">
-        <BaseCard
-          v-for="transaction in transactions"
-          :key="transaction.id"
-          data-transaction-card
-          clickable
-          @click="openDetail(transaction.id)"
-          class="hover:shadow-lg transition-shadow"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-2 flex-wrap">
-                <BaseBadge
-                  :color="
-                    transaction.type === TransactionType.Income
-                      ? 'success'
-                      : 'danger'
-                  "
-                  size="sm"
-                >
-                  {{
-                    transaction.type === TransactionType.Income
-                      ? "収入"
-                      : "支出"
-                  }}
-                </BaseBadge>
-                <BaseBadge color="gray" size="sm">
-                  {{
-                    CategoryLabels[transaction.category] || transaction.category
-                  }}
-                </BaseBadge>
-                <!-- 税区分バッジ -->
-                <BaseBadge
-                  v-if="transaction.taxInclusionType"
-                  color="info"
-                  size="sm"
-                >
-                  {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
-                </BaseBadge>
-              </div>
-              <BaseText variant="body" weight="bold" class="mb-1">
-                {{ transaction.payee }}
-              </BaseText>
-              <BaseText variant="caption" color="gray">
-                {{ formatDate(transaction.transactionDate) }}
-              </BaseText>
-            </div>
-
-            <div class="text-right flex-shrink-0">
-              <BaseText
-                variant="h3"
-                :color="
-                  transaction.type === TransactionType.Income
-                    ? 'success'
-                    : 'danger'
-                "
-                weight="bold"
-              >
-                {{ formatAmount(transaction.amountTotal, transaction.type) }}
-              </BaseText>
-            </div>
+    <div class="max-w-7xl mx-auto h-full flex flex-col">
+      <!-- ヘッダー部分 -->
+      <div class="flex-shrink-0 space-y-6 mb-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <BaseText variant="h1" class="mb-2">取引一覧</BaseText>
+            <BaseText variant="caption" color="gray">
+              全{{ totalCount }}件
+            </BaseText>
           </div>
-        </BaseCard>
-
-        <div class="flex items-center justify-between pt-4">
-          <BaseButton
-            variant="outline"
-            :disabled="currentPage === 1"
-            @click="prevPage"
-          >
-            前へ
-          </BaseButton>
-
-          <BaseText variant="body" color="gray">
-            {{ currentPage }} / {{ totalPages }}
-          </BaseText>
-
-          <BaseButton
-            variant="outline"
-            :disabled="currentPage === totalPages"
-            @click="nextPage"
-          >
-            次へ
+          <BaseButton variant="primary" @click="openCreateModal">
+            新規登録
           </BaseButton>
         </div>
+
+        <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
+      </div>
+
+      <!-- メインコンテンツ -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <div v-if="isLoading" class="flex-1 flex items-center justify-center">
+          <BaseText variant="body" color="gray">読み込み中...</BaseText>
+        </div>
+
+        <div
+          v-else-if="errorMessage"
+          class="flex-1 flex items-center justify-center"
+        >
+          <BaseText variant="body" color="danger">{{ errorMessage }}</BaseText>
+        </div>
+
+        <div
+          v-else-if="transactions.length === 0"
+          class="flex-1 flex items-center justify-center"
+        >
+          <BaseText variant="body" color="gray">取引がありません</BaseText>
+        </div>
+
+        <template v-else>
+          <div
+            ref="listContainerRef"
+            class="flex-1 space-y-4 overflow-y-auto pr-2"
+          >
+            <BaseCard
+              v-for="transaction in transactions"
+              :key="transaction.id"
+              data-transaction-card
+              clickable
+              @click="openDetail(transaction.id)"
+              class="hover:shadow-lg transition-shadow"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <BaseBadge
+                      :color="
+                        transaction.type === TransactionType.Income
+                          ? 'success'
+                          : 'danger'
+                      "
+                      size="sm"
+                    >
+                      {{
+                        transaction.type === TransactionType.Income
+                          ? "収入"
+                          : "支出"
+                      }}
+                    </BaseBadge>
+                    <BaseBadge color="gray" size="sm">
+                      {{
+                        CategoryLabels[transaction.category] ||
+                        transaction.category
+                      }}
+                    </BaseBadge>
+                    <!-- 税区分バッジ -->
+                    <BaseBadge
+                      v-if="transaction.taxInclusionType"
+                      color="info"
+                      size="sm"
+                    >
+                      {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
+                    </BaseBadge>
+                  </div>
+                  <BaseText variant="body" weight="bold" class="mb-1">
+                    {{ transaction.payee }}
+                  </BaseText>
+                  <BaseText variant="caption" color="gray">
+                    {{ formatDate(transaction.transactionDate) }}
+                  </BaseText>
+                </div>
+
+                <div class="text-right flex-shrink-0">
+                  <BaseText
+                    variant="h3"
+                    :color="
+                      transaction.type === TransactionType.Income
+                        ? 'success'
+                        : 'danger'
+                    "
+                    weight="bold"
+                  >
+                    {{
+                      formatAmount(transaction.amountTotal, transaction.type)
+                    }}
+                  </BaseText>
+                </div>
+              </div>
+            </BaseCard>
+          </div>
+
+          <div
+            class="flex items-center justify-between pt-4 flex-shrink-0 border-t border-gray-200 mt-4"
+            data-pagination
+          >
+            <BaseButton
+              variant="outline"
+              :disabled="currentPage === 1"
+              @click="prevPage"
+            >
+              前へ
+            </BaseButton>
+
+            <BaseText variant="body" color="gray">
+              {{ currentPage }} / {{ totalPages }}
+            </BaseText>
+
+            <BaseButton
+              variant="outline"
+              :disabled="currentPage === totalPages"
+              @click="nextPage"
+            >
+              次へ
+            </BaseButton>
+          </div>
+        </template>
       </div>
     </div>
 
