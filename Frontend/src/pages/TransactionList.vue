@@ -35,6 +35,7 @@ const selectedTransactionId = ref<string | null>(null);
 const isDetailModalOpen = ref(false);
 const isCreateSelectModalOpen = ref(false);
 const isFormModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
 
@@ -124,6 +125,34 @@ const formatDate = (dateString: string) => {
 const formatAmount = (amount: number, type: string) => {
   const sign = type === TransactionType.Income ? "+" : "-";
   return `${sign}${amount.toLocaleString()}円`;
+};
+
+const handleEdit = () => {
+  isDetailModalOpen.value = false;
+  isEditModalOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!selectedTransactionId.value) return;
+
+  if (confirm("この取引を削除してもよろしいですか？")) {
+    const { deleteTransaction } = useTransactions();
+    const success = await deleteTransaction(selectedTransactionId.value);
+
+    if (success) {
+      isDetailModalOpen.value = false;
+      selectedTransactionId.value = null;
+      await fetchTransactions(currentFilters.value);
+    }
+  }
+};
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false;
+};
+
+const handleEditSuccess = () => {
+  fetchTransactions(currentFilters.value);
 };
 
 onMounted(async () => {
@@ -283,6 +312,17 @@ onUnmounted(() => {
       :transaction-id="selectedTransactionId"
       :is-open="isDetailModalOpen"
       @close="closeDetailModal"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
+
+    <TransactionFormModal
+      v-if="selectedTransactionId"
+      :is-open="isEditModalOpen"
+      :mode="'manual'"
+      :transaction-id="selectedTransactionId"
+      @close="closeEditModal"
+      @success="handleEditSuccess"
     />
   </DefaultLayout>
 </template>

@@ -6,6 +6,8 @@ import type {
   CreateTaxDetail,
   TaxInclusionType,
   ShopDetails,
+  TransactionDetail,
+  UpdateTransactionRequest,
 } from "../types/transaction";
 import type {
   ReceiptParseResult,
@@ -120,6 +122,82 @@ export function useTransactionForm() {
 
     // どちらでもない → 不明
     return "Unknown";
+  };
+
+  /**
+   * 既存の取引データからフォームに値を設定
+   */
+  const setFromExistingTransaction = (transaction: TransactionDetail) => {
+    type.value = transaction.type;
+
+    const date = new Date(transaction.transactionDate);
+    transactionDate.value = date.toISOString().split("T")[0] ?? "";
+
+    amountTotal.value = transaction.amountTotal;
+    payee.value = transaction.payee || "";
+    category.value = transaction.category;
+    paymentMethod.value = transaction.paymentMethod || "";
+    notes.value = transaction.notes || "";
+    taxInclusionType.value = transaction.taxInclusionType;
+
+    // 明細を復元（idを保持）
+    items.value = transaction.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      amount: item.amount,
+      category: item.category,
+    }));
+
+    // 税情報を復元（idを保持）
+    taxes.value = transaction.taxes.map((tax) => ({
+      id: tax.id,
+      taxRate: tax.taxRate,
+      taxAmount: tax.taxAmount,
+      taxableAmount: tax.taxableAmount,
+      taxType: tax.taxType,
+    }));
+
+    // 店舗詳細を復元
+    shopDetails.value = transaction.shopDetails;
+  };
+
+  /**
+   * 取引を更新
+   */
+  const updateTransaction = async (id: string): Promise<boolean> => {
+    if (!validateForm()) {
+      return false;
+    }
+
+    isLoading.value = true;
+    errorMessage.value = "";
+
+    try {
+      const request: UpdateTransactionRequest = {
+        transactionDate: transactionDate.value,
+        currency: "JPY",
+        payee: payee.value || undefined,
+        paymentMethod: paymentMethod.value || undefined,
+        category: category.value,
+        notes: notes.value || undefined,
+        taxInclusionType: taxInclusionType.value,
+        items: items.value.length > 0 ? items.value : undefined,
+        taxes: taxes.value.length > 0 ? taxes.value : undefined,
+        shopDetails: shopDetails.value || undefined,
+      };
+
+      await transactionRepository.update(id, request);
+      return true;
+    } catch (error) {
+      console.error("取引更新エラー:", error);
+      errorMessage.value =
+        error instanceof Error ? error.message : "取引の更新に失敗しました";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const resetForm = () => {
@@ -262,5 +340,7 @@ export function useTransactionForm() {
     removeItem,
     addTax,
     removeTax,
+    setFromExistingTransaction,
+    updateTransaction,
   };
 }

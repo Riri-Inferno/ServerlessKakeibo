@@ -10,6 +10,7 @@ import BaseModal from "../atoms/BaseModal.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseBadge from "../atoms/BaseBadge.vue";
 import BaseCard from "../atoms/BaseCard.vue";
+import BaseButton from "../atoms/BaseButton.vue";
 
 interface Props {
   transactionId: string;
@@ -20,6 +21,8 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   close: [];
+  edit: [];
+  delete: [];
 }>();
 
 const { transaction, isLoading, errorMessage, fetchDetail } =
@@ -47,6 +50,14 @@ const formatDate = (dateString: string) => {
 const formatDateTime = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString("ja-JP");
+};
+
+const handleEdit = () => {
+  emit("edit");
+};
+
+const handleDelete = () => {
+  emit("delete");
 };
 </script>
 
@@ -206,5 +217,15 @@ const formatDateTime = (dateString: string) => {
         </div>
       </div>
     </div>
+    <template #footer>
+      <div class="flex gap-3">
+        <BaseButton variant="outline" @click="handleDelete" class="flex-1">
+          削除
+        </BaseButton>
+        <BaseButton variant="primary" @click="handleEdit" class="flex-1">
+          編集
+        </BaseButton>
+      </div>
+    </template>
   </BaseModal>
 </template>

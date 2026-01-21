@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch, computed, ref } from "vue";
 import { useTransactionForm } from "../../composables/useTransactionForm";
+import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import { useReceiptOcr } from "../../composables/useReceiptOcr";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
@@ -13,6 +14,7 @@ import ReceiptUploadArea from "../molecules/ReceiptUploadArea.vue";
 interface Props {
   isOpen: boolean;
   mode: "manual" | "receipt";
+  transactionId?: string;
 }
 
 const props = defineProps<Props>();
@@ -38,8 +40,10 @@ const {
   calculatedTotal,
   isAutoCalculate,
   setFromOcrResult,
+  setFromExistingTransaction,
   resetForm,
   submitTransaction,
+  updateTransaction,
   addItem,
   removeItem,
   addTax,
@@ -53,9 +57,35 @@ const {
   reset: resetOcr,
 } = useReceiptOcr();
 
-const isOcrMode = computed(() => props.mode === "receipt");
+const { transaction: existingTransaction, fetchDetail } =
+  useTransactionDetail();
+
+const isEditMode = computed(() => !!props.transactionId);
+const modalTitle = computed(() => {
+  if (isEditMode.value) return "取引を編集";
+  return props.mode === "receipt" ? "レシート読み取り" : "手動入力";
+});
+
+// 編集モード時に既存データを読み込む
+watch(
+  () => props.isOpen,
+  async (newValue) => {
+    if (newValue && props.transactionId) {
+      await fetchDetail(props.transactionId);
+      if (existingTransaction.value) {
+        setFromExistingTransaction(existingTransaction.value);
+      }
+    } else if (!newValue) {
+      resetForm();
+      resetOcr();
+      isOcrCompleted.value = false;
+    }
+  },
+);
+
+const isOcrMode = computed(() => props.mode === "receipt" && !isEditMode.value);
 const isOcrCompleted = ref(false);
-const isTypeReadonly = computed(() => isOcrMode.value);
+const isTypeReadonly = computed(() => isOcrMode.value || isEditMode.value); // 編集時も種別は変更不可
 
 const handleReceiptUpload = async (file: File) => {
   const result = await parseReceipt(file);
@@ -66,7 +96,14 @@ const handleReceiptUpload = async (file: File) => {
 };
 
 const handleSubmit = async () => {
-  const success = await submitTransaction();
+  let success = false;
+
+  if (isEditMode.value && props.transactionId) {
+    success = await updateTransaction(props.transactionId);
+  } else {
+    success = await submitTransaction();
+  }
+
   if (success) {
     emit("success");
     handleClose();
@@ -79,26 +116,12 @@ const handleClose = () => {
   isOcrCompleted.value = false;
   emit("close");
 };
-
-watch(
-  () => props.isOpen,
-  (newValue) => {
-    if (!newValue) {
-      resetForm();
-      resetOcr();
-      isOcrCompleted.value = false;
-    }
-  },
-);
 </script>
 
 <template>
-  <BaseModal
-    :is-open="isOpen"
-    :title="isOcrMode ? 'レシート読み取り' : '手動入力'"
-    @close="handleClose"
-  >
+  <BaseModal :is-open="isOpen" :title="modalTitle" @close="handleClose">
     <div class="space-y-6">
+      <!-- OCRアップロード（編集モードでは非表示） -->
       <div v-if="isOcrMode && !isOcrCompleted">
         <ReceiptUploadArea @upload="handleReceiptUpload" />
 
@@ -114,7 +137,8 @@ watch(
         </div>
       </div>
 
-      <div v-if="!isOcrMode || isOcrCompleted" class="space-y-6">
+      <!-- フォーム（手動入力 or OCR完了後 or 編集モード） -->
+      <div v-if="!isOcrMode || isOcrCompleted || isEditMode" class="space-y-6">
         <TransactionFormFields
           :type="type"
           :transaction-date="transactionDate"
@@ -169,8 +193,12 @@ watch(
             @click="handleSubmit"
             class="flex-1"
           >
-            <span v-if="isSubmitting">登録中...</span>
-            <span v-else>登録</span>
+            <span v-if="isSubmitting">
+              {{ isEditMode ? "更新中..." : "登録中..." }}
+            </span>
+            <span v-else>
+              {{ isEditMode ? "更新" : "登録" }}
+            </span>
           </BaseButton>
         </div>
       </div>
