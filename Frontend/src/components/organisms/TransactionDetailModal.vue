@@ -73,7 +73,6 @@ const formatDateTime = (dateString: string) => {
         <BaseBadge color="gray">
           {{ CategoryLabels[transaction.category] || transaction.category }}
         </BaseBadge>
-        <!-- 税区分バッジ -->
         <BaseBadge v-if="transaction.taxInclusionType" color="info">
           {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
         </BaseBadge>
@@ -146,8 +145,10 @@ const formatDateTime = (dateString: string) => {
                   item.name
                 }}</BaseText>
                 <BaseText variant="caption" color="gray">
-                  {{ item.quantity }}個 ×
-                  {{ item.unitPrice.toLocaleString() }}円
+                  {{ item.quantity }}個
+                  <span v-if="item.unitPrice !== null">
+                    × {{ item.unitPrice.toLocaleString() }}円
+                  </span>
                 </BaseText>
               </div>
               <BaseText variant="body" weight="bold">
@@ -169,11 +170,14 @@ const formatDateTime = (dateString: string) => {
                   tax.taxType
                 }}</BaseText>
                 <BaseText variant="caption" color="gray">
-                  対象額: {{ tax.taxableAmount.toLocaleString() }}円
+                  <span v-if="tax.taxableAmount !== null">
+                    対象額: {{ tax.taxableAmount.toLocaleString() }}円 ・
+                  </span>
+                  税率: {{ tax.taxRate }}%
                 </BaseText>
               </div>
               <BaseText variant="body" weight="bold" color="danger">
-                -{{ tax.taxAmount.toLocaleString() }}円
+                {{ tax.taxAmount.toLocaleString() }}円
               </BaseText>
             </div>
           </BaseCard>
