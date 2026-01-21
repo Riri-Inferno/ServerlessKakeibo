@@ -1,20 +1,36 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { watch, onMounted, onUnmounted } from "vue";
 import BaseIcon from "./BaseIcon.vue";
 
 interface Props {
   isOpen: boolean;
   title?: string;
   closeOnClickOutside?: boolean;
+  closeOnEscape?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   closeOnClickOutside: false,
+  closeOnEscape: true,
 });
 
 const emit = defineEmits<{
   close: [];
 }>();
+
+const handleEscapeKey = (event: KeyboardEvent) => {
+  if (props.isOpen && props.closeOnEscape && event.key === "Escape") {
+    emit("close");
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("keydown", handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleEscapeKey);
+});
 
 watch(
   () => props.isOpen,
