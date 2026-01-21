@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { useTransactions } from "../composables/useTransactions";
 import {
   TransactionType,
@@ -27,6 +27,8 @@ const {
   fetchTransactions,
   nextPage,
   prevPage,
+  setContainerHeight,
+  setItemHeight,
 } = useTransactions();
 
 const selectedTransactionId = ref<string | null>(null);
@@ -35,6 +37,32 @@ const isCreateSelectModalOpen = ref(false);
 const isFormModalOpen = ref(false);
 const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
+
+const listContainerRef = ref<HTMLElement>();
+let resizeObserver: ResizeObserver | null = null;
+
+const measureHeights = () => {
+  if (!listContainerRef.value) return;
+
+  const screenHeight = window.innerHeight;
+  const containerTop = listContainerRef.value.getBoundingClientRect().top;
+  const PAGINATION_HEIGHT = 80;
+  const BOTTOM_PADDING = 48;
+
+  const availableHeight =
+    screenHeight - containerTop - PAGINATION_HEIGHT - BOTTOM_PADDING;
+
+  setContainerHeight(availableHeight);
+
+  const firstCard = listContainerRef.value.querySelector(
+    "[data-transaction-card]",
+  );
+  if (firstCard) {
+    const itemRect = firstCard.getBoundingClientRect();
+    const gap = 16;
+    setItemHeight(itemRect.height + gap);
+  }
+};
 
 const openDetail = (id: string) => {
   selectedTransactionId.value = id;
@@ -98,8 +126,24 @@ const formatAmount = (amount: number, type: string) => {
   return `${sign}${amount.toLocaleString()}円`;
 };
 
-onMounted(() => {
-  fetchTransactions();
+onMounted(async () => {
+  await fetchTransactions();
+  await nextTick();
+  measureHeights();
+
+  if (listContainerRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      measureHeights();
+    });
+    resizeObserver.observe(listContainerRef.value);
+  }
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
 });
 </script>
 
@@ -132,10 +176,11 @@ onMounted(() => {
         <BaseText variant="body" color="gray">取引がありません</BaseText>
       </div>
 
-      <div v-else class="space-y-4">
+      <div v-else ref="listContainerRef" class="space-y-4">
         <BaseCard
           v-for="transaction in transactions"
           :key="transaction.id"
+          data-transaction-card
           clickable
           @click="openDetail(transaction.id)"
           class="hover:shadow-lg transition-shadow"
