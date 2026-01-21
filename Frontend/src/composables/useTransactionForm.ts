@@ -4,9 +4,13 @@ import type {
   CreateTransactionRequest,
   CreateTransactionItem,
   CreateTaxDetail,
+  TaxInclusionType,
   ShopDetails,
 } from "../types/transaction";
-import type { ReceiptParseResult } from "../types/receipt";
+import type {
+  ReceiptParseResult,
+  AmountValidationResult,
+} from "../types/receipt";
 import { TransactionType, TransactionCategory } from "../types/transaction";
 
 export function useTransactionForm() {
@@ -20,6 +24,7 @@ export function useTransactionForm() {
   const category = ref<TransactionCategory>(TransactionCategory.Uncategorized);
   const paymentMethod = ref("");
   const notes = ref("");
+  const taxInclusionType = ref<TaxInclusionType | undefined>(undefined);
   const items = ref<CreateTransactionItem[]>([]);
   const taxes = ref<CreateTaxDetail[]>([]);
   const shopDetails = ref<ShopDetails | null>(null);
@@ -63,9 +68,41 @@ export function useTransactionForm() {
       (normalized.category as TransactionCategory) ||
       TransactionCategory.Uncategorized;
     paymentMethod.value = (normalized.paymentMethod as string) || "";
+    if (normalized.amountValidation) {
+      taxInclusionType.value = determineTaxInclusionType(
+        normalized.amountValidation,
+      );
+    } else {
+      taxInclusionType.value = undefined;
+    }
     items.value = normalized.items || [];
     taxes.value = normalized.taxes || [];
     shopDetails.value = normalized.shopDetails || null;
+  };
+
+  /**
+   * 金額整合性から税区分を判定
+   */
+  const determineTaxInclusionType = (
+    validation: AmountValidationResult,
+  ): TaxInclusionType | undefined => {
+    // 税額がゼロまたはnull → 非課税
+    if (!validation.taxTotal || validation.taxTotal === 0) {
+      return "NoTax";
+    }
+
+    // 外税として一致（items + tax = total）
+    if (validation.matchesAsExclusiveTax && !validation.matchesAsInclusiveTax) {
+      return "Exclusive";
+    }
+
+    // 内税として一致（items = total）
+    if (validation.matchesAsInclusiveTax && !validation.matchesAsExclusiveTax) {
+      return "Inclusive";
+    }
+
+    // どちらでもない → 不明
+    return "Unknown";
   };
 
   const resetForm = () => {
@@ -76,6 +113,7 @@ export function useTransactionForm() {
     category.value = TransactionCategory.Uncategorized;
     paymentMethod.value = "";
     notes.value = "";
+    taxInclusionType.value = undefined;
     items.value = [];
     taxes.value = [];
     shopDetails.value = null;
@@ -124,6 +162,7 @@ export function useTransactionForm() {
         paymentMethod: paymentMethod.value || undefined,
         category: category.value,
         notes: notes.value || undefined,
+        taxInclusionType: taxInclusionType.value,
         items: items.value.length > 0 ? items.value : undefined,
         taxes: taxes.value.length > 0 ? taxes.value : undefined,
         shopDetails: shopDetails.value || undefined,
@@ -176,6 +215,7 @@ export function useTransactionForm() {
     category,
     paymentMethod,
     notes,
+    taxInclusionType,
     items,
     taxes,
     shopDetails,

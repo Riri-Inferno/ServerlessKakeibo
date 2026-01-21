@@ -29,6 +29,16 @@ export const ParseStatus = {
 export type ParseStatus = (typeof ParseStatus)[keyof typeof ParseStatus];
 
 /**
+ * 金額整合性の検証結果
+ */
+export interface AmountValidationResult {
+  itemsTotal: number | null;
+  taxTotal: number | null;
+  matchesAsExclusiveTax: boolean | null;
+  matchesAsInclusiveTax: boolean | null;
+}
+
+/**
  * 支払方法
  */
 export const PaymentMethod = {
@@ -72,6 +82,7 @@ export interface NormalizedTransaction {
   items: CreateTransactionItem[];
   shopDetails: ShopDetails | null;
   category: string | null;
+  amountValidation?: AmountValidationResult;
 }
 
 /**

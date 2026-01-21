@@ -53,6 +53,29 @@ export const CategoryLabels: Record<string, string> = {
 };
 
 /**
+ * 税の扱い（内税・外税）
+ */
+export const TaxInclusionType = {
+  Unknown: "Unknown",
+  Exclusive: "Exclusive", // 外税
+  Inclusive: "Inclusive", // 内税
+  NoTax: "NoTax", // 非課税
+} as const;
+
+export type TaxInclusionType =
+  (typeof TaxInclusionType)[keyof typeof TaxInclusionType];
+
+/**
+ * 税区分の日本語ラベル
+ */
+export const TaxInclusionTypeLabels: Record<TaxInclusionType, string> = {
+  Unknown: "不明",
+  Exclusive: "外税",
+  Inclusive: "内税",
+  NoTax: "非課税",
+};
+
+/**
  * 取引一覧のサマリー
  */
 export interface TransactionSummary {
@@ -64,6 +87,7 @@ export interface TransactionSummary {
   payee: string;
   category: TransactionCategory;
   paymentMethod: string | null;
+  taxInclusionType?: TaxInclusionType;
   itemCount: number;
 }
 
@@ -105,6 +129,8 @@ export interface TransactionDetail {
   payee: string;
   paymentMethod: string | null;
   category: TransactionCategory;
+  notes?: string;
+  taxInclusionType?: TaxInclusionType;
   receiptType: string | null;
   confidence: number | null;
   parseStatus: string | null;
@@ -188,6 +214,7 @@ export interface CreateTransactionRequest {
   paymentMethod?: string;
   category: TransactionCategory;
   notes?: string;
+  taxInclusionType?: TaxInclusionType;
   items?: CreateTransactionItem[];
   taxes?: CreateTaxDetail[];
   shopDetails?: ShopDetails;
@@ -205,4 +232,56 @@ export interface TransactionResult {
   category: TransactionCategory;
   processedAt: string;
   validationWarnings: string[];
+}
+
+/**
+ * 取引更新用の項目
+ */
+export interface UpdateTransactionItem {
+  id?: string; // 既存項目の場合は指定
+  name: string;
+  quantity: number;
+  unitPrice: number | null;
+  amount: number;
+  category: string;
+}
+
+/**
+ * 取引更新用の税情報
+ */
+export interface UpdateTaxDetail {
+  id?: string; // 既存の場合は指定
+  taxRate: number | null;
+  taxAmount: number | null;
+  taxableAmount: number | null;
+  taxType?: string;
+}
+
+/**
+ * 取引更新用の店舗詳細
+ */
+export interface UpdateShopDetails {
+  id?: string; // 既存の場合は指定
+  name: string | null;
+  branch: string | null;
+  phoneNumber: string | null;
+  address: string | null;
+  postalCode: string | null;
+}
+
+/**
+ * 取引更新リクエスト
+ */
+export interface UpdateTransactionRequest {
+  transactionDate: string;
+  currency?: string;
+  payer?: string;
+  payee?: string;
+  paymentMethod?: string;
+  category: TransactionCategory;
+  notes?: string;
+  taxInclusionType?: TaxInclusionType;
+  items?: UpdateTransactionItem[];
+  taxes?: UpdateTaxDetail[];
+  shopDetails?: UpdateShopDetails;
 }

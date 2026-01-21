@@ -14,7 +14,7 @@ export function useTransactions() {
   const errorMessage = ref("");
 
   const totalPages = computed(() =>
-    Math.ceil(totalCount.value / pageSize.value)
+    Math.ceil(totalCount.value / pageSize.value),
   );
 
   const fetchTransactions = async (params?: GetTransactionsRequest) => {
@@ -35,6 +35,28 @@ export function useTransactions() {
       console.error("取引一覧取得エラー:", error);
       errorMessage.value =
         error instanceof Error ? error.message : "取引一覧の取得に失敗しました";
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  /**
+   * 取引を削除して一覧を再取得
+   */
+  const deleteTransaction = async (id: string): Promise<boolean> => {
+    isLoading.value = true;
+    errorMessage.value = "";
+
+    try {
+      await transactionRepository.delete(id);
+      // 削除後に一覧を再取得
+      await fetchTransactions();
+      return true;
+    } catch (error) {
+      console.error("取引削除エラー:", error);
+      errorMessage.value =
+        error instanceof Error ? error.message : "取引の削除に失敗しました";
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -70,6 +92,7 @@ export function useTransactions() {
     isLoading,
     errorMessage,
     fetchTransactions,
+    deleteTransaction,
     nextPage,
     prevPage,
     goToPage,

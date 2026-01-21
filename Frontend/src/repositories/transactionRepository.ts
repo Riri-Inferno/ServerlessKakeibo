@@ -5,6 +5,7 @@ import type {
   PagedResult,
   GetTransactionsRequest,
   CreateTransactionRequest,
+  UpdateTransactionRequest,
   TransactionResult,
 } from "../types/transaction";
 
@@ -16,7 +17,7 @@ interface ApiResponse<T> {
 
 export const transactionRepository = {
   async getList(
-    params: GetTransactionsRequest
+    params: GetTransactionsRequest,
   ): Promise<PagedResult<TransactionSummary>> {
     const response = await apiClient.get<
       ApiResponse<PagedResult<TransactionSummary>>
@@ -31,7 +32,7 @@ export const transactionRepository = {
 
   async getDetail(id: string): Promise<TransactionDetail> {
     const response = await apiClient.get<ApiResponse<TransactionDetail>>(
-      `/Transaction/${id}`
+      `/Transaction/${id}`,
     );
 
     if (response.data.status !== "Success") {
@@ -44,7 +45,7 @@ export const transactionRepository = {
   async create(request: CreateTransactionRequest): Promise<TransactionResult> {
     const response = await apiClient.post<ApiResponse<TransactionResult>>(
       "/Transaction",
-      request
+      request,
     );
 
     if (response.data.status !== "Success") {
@@ -52,5 +53,37 @@ export const transactionRepository = {
     }
 
     return response.data.data;
+  },
+
+  /**
+   * 取引を更新
+   */
+  async update(
+    id: string,
+    request: UpdateTransactionRequest,
+  ): Promise<TransactionResult> {
+    const response = await apiClient.put<ApiResponse<TransactionResult>>(
+      `/Transaction/${id}`,
+      request,
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "取引の更新に失敗しました");
+    }
+
+    return response.data.data;
+  },
+
+  /**
+   * 取引を削除
+   */
+  async delete(id: string): Promise<void> {
+    const response = await apiClient.delete<
+      ApiResponse<{ transactionId: string }>
+    >(`/Transaction/${id}`);
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "取引の削除に失敗しました");
+    }
   },
 };
