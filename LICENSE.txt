@@ -1,0 +1,18 @@
+Copyright (c) 2026 u.takayo
+
+This software is provided for personal, educational, and non-commercial use only.
+
+[YOU MAY]
+- View the source code
+- Fork the repository
+- Submit pull requests
+
+[YOU MAY NOT]
+- Use this software for commercial purposes
+- Provide it as a service (SaaS)
+- Redistribute modified or unmodified versions
+
+Any commercial use requires explicit permission from the author (u.takayo).
+
+[DISCLAIMER]
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY.
