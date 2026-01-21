@@ -93,7 +93,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
 
                 // 4.新しい取引エンティティを作成
                 var newEntity = CreateTransactionEntity(
-                    transactionId, request, userId, tenantId, existingType);  // ← existingType を渡す
+                    transactionId, request, userId, tenantId, existingType);  // existingType を渡す
 
                 // 収入の場合は既存の AmountTotal を維持
                 if (existingType == TransactionType.Income)
@@ -148,6 +148,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     Currency = newEntity.Currency,
                     Payee = newEntity.Payee,
                     Category = newEntity.Category,
+                    TaxInclusionType = newEntity.TaxInclusionType,
                     ProcessedAt = DateTimeOffset.UtcNow,
                     ValidationWarnings = warnings
                 };
@@ -178,13 +179,15 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Id = transactionId,
             UserId = userId,
             TenantId = tenantId,
-            Type = existingType,  // ← 既存の Type を引き継ぐ
+            Type = existingType,  // 既存の Type を引き継ぐ
             TransactionDate = request.TransactionDate.ToUniversalTime(),
             Currency = request.Currency,
             Payer = request.Payer,
             Payee = request.Payee,
             PaymentMethod = request.PaymentMethod,
             Category = request.Category,
+            Notes = request.Notes,
+            TaxInclusionType = request.TaxInclusionType,
             CreatedBy = userId,
             UpdatedBy = userId,
             CreatedAt = now,

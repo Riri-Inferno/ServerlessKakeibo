@@ -53,6 +53,12 @@ public class UpdateTransactionRequest
     public string? Notes { get; set; }
 
     /// <summary>
+    /// 税の扱い（外税・内税・不明）※フロントエンドが指定
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaxInclusionType? TaxInclusionType { get; set; }
+
+    /// <summary>
     /// 取引項目一覧（全件送信・Full Replace方式）
     /// </summary>
     public List<UpdateTransactionItemRequest> Items { get; set; } = new();
