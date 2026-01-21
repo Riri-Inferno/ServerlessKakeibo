@@ -47,7 +47,8 @@ type IconName =
   | "trash"
   | "check"
   | "warning"
-  | "info";
+  | "info"
+  | "currency-yen";
 
 type Size = "sm" | "md" | "lg" | "xl";
 
@@ -82,6 +83,7 @@ const iconMap: Record<IconName, Component> = {
   check: CheckIcon,
   warning: ExclamationTriangleIcon,
   info: InformationCircleIcon,
+  "currency-yen": CurrencyYenIcon,
 };
 
 const sizeClasses: Record<Size, string> = {

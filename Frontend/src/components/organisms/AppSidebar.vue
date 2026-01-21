@@ -18,7 +18,7 @@ const route = useRoute();
 
 const menuItems = [
   { name: "dashboard", label: "ダッシュボード", icon: "home" },
-  { name: "transactions", label: "取引一覧", icon: "cart" },
+  { name: "transactions", label: "取引一覧", icon: "currency-yen" },
   { name: "stats", label: "統計", icon: "chart" },
   { name: "settings", label: "設定", icon: "settings" },
 ];
