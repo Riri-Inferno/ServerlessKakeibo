@@ -30,7 +30,7 @@ export function useTransactions() {
 
       transactions.value = result.items;
       totalCount.value = result.totalCount;
-      currentPage.value = result.page;
+      currentPage.value = result.currentPage;
     } catch (error) {
       console.error("取引一覧取得エラー:", error);
       errorMessage.value =
