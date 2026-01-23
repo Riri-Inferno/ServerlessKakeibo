@@ -393,4 +393,90 @@ public class TransactionController : ControllerBase
             );
         }
     }
+
+    /// <summary>
+    /// 取引にレシート画像を添付する
+    /// </summary>
+    [HttpPatch("{id:guid}/receipt")]
+    [Consumes("multipart/form-data")]
+    [SwaggerOperation(
+        Summary = "取引にレシート画像を添付",
+        Description = "既存の取引にレシート画像をアップロードして添付する。\n\n" +
+                      "【制約】\n" +
+                      "- 取引作成から7日以内のみ添付可能\n" +
+                      "- 既に画像が添付されている場合は変更不可\n" +
+                      "- 改ざん防止のため、一度添付した画像は削除・変更できません")]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<TransactionResult>>> AttachReceiptAsync(
+        [FromRoute] Guid id,
+        [FromForm] AttachReceiptRequest request,
+        [FromServices] ITransactionAttachReceiptUseCase useCase,
+        [FromServices] IHostEnvironment environment,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+
+            var result = await useCase.ExecuteAsync(id, request, userId, cancellationToken);
+
+            return Ok(ApiResponse<TransactionResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.NotFound,
+                    ex.Message
+                )
+            );
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<TransactionResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
 }

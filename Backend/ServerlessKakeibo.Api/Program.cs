@@ -57,6 +57,8 @@ builder.Services.Configure<VertexAiSettings>(
     builder.Configuration.GetSection("VertexAi"));
 builder.Services.Configure<GoogleAiStudioSettings>(
     builder.Configuration.GetSection("GoogleAiStudio"));
+builder.Services.Configure<GcpStorageSettings>(
+    builder.Configuration.GetSection("GcpStorage"));
 
 #region Authentication settings
 builder.Services
@@ -99,6 +101,8 @@ builder.Services.AddScoped<IGcpAuthService, GcpAuthService>();
 builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
+builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 #endregion
 
 #region UseCases
@@ -111,6 +115,7 @@ builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteracto
 builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
 builder.Services.AddScoped<IRefreshTokenUseCase, RefreshTokenInteractor>();
 builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
+builder.Services.AddScoped<ITransactionAttachReceiptUseCase, TransactionAttachReceiptInteractor>();
 #endregion
 
 #region DomainServices
