@@ -141,6 +141,8 @@ public class TransactionAttachReceiptInteractor : ITransactionAttachReceiptUseCa
                     TransactionId = transaction.Id,
                     TransactionDate = transaction.TransactionDate ?? DateTimeOffset.UtcNow,
                     AmountTotal = transaction.AmountTotal ?? 0,
+                    SourceUrl = transaction.SourceUrl,
+                    ReceiptAttachedAt = transaction.ReceiptAttachedAt,
                     Currency = transaction.Currency,
                     Payee = transaction.Payee,
                     Category = transaction.Category,
