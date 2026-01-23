@@ -59,4 +59,9 @@ public class TransactionResult
     /// 検証時の警告リスト
     /// </summary>
     public List<string> ValidationWarnings { get; set; } = new();
+
+    /// <summary>
+    /// 保存された帳票画像のストレージパス
+    /// </summary>
+    public string? SourceUrl { get; set; }
 }

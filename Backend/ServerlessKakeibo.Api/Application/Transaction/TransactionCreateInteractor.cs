@@ -7,6 +7,7 @@ using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
+using ServerlessKakeibo.Api.Service.Interface;
 
 namespace ServerlessKakeibo.Api.Application.Transaction;
 
@@ -19,6 +20,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
     private readonly IGenericWriteRepository<TransactionEntity> _transactionWriteRepository;
     private readonly TransactionDomainService _transactionDomainService;
+    private readonly IGcpStorageService _storageService;
     private readonly ILogger<TransactionCreateInteractor> _logger;
     private readonly IConfiguration _configuration;
 
@@ -27,6 +29,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
         IGenericReadRepository<UserEntity> userReadRepository,
         IGenericWriteRepository<TransactionEntity> transactionWriteRepository,
         TransactionDomainService transactionDomainService,
+        IGcpStorageService storageService,
         ILogger<TransactionCreateInteractor> logger,
         IConfiguration configuration)
     {
@@ -34,6 +37,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
         _transactionWriteRepository = transactionWriteRepository ?? throw new ArgumentNullException(nameof(transactionWriteRepository));
         _transactionDomainService = transactionDomainService ?? throw new ArgumentNullException(nameof(transactionDomainService));
+        _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
@@ -52,11 +56,29 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
+        // 帳票ソース画像のGCSパス
+        string? storagePath = null;
+
         try
         {
             _logger.LogInformation(
                 "取引作成処理を開します。UserId: {UserId}",
                 userId);
+
+            if (request.File != null)
+            {
+                var now = DateTime.UtcNow;
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(request.File.FileName)}";
+                var destinationPath = $"receipts/{userId}/{now:yyyyMM}/{fileName}";
+
+                using var stream = request.File.OpenReadStream();
+                storagePath = await _storageService.UploadFileAsync(
+                    stream, 
+                    destinationPath, 
+                    request.File.ContentType);
+                
+                _logger.LogInformation("GCSにファイルをアップロードしました。Path: {Path}", storagePath);
+            }
 
             return await _transactionHelper.ExecuteInTransactionAsync(async () =>
             {
@@ -66,6 +88,8 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                 // 2. リクエスト → エンティティ変換
                 var transactionEntity = TransactionCreateMapper.ToEntity(
                     request, userId, tenantId);
+
+                transactionEntity.SourceUrl = storagePath;
 
                 // 3. 子エンティティの追加
                 // 支出の場合は Items から AmountTotal を再計算、収入の場合はリクエスト値を使用
@@ -170,6 +194,7 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     TaxInclusionType = transactionEntity.TaxInclusionType,
                     Notes = transactionEntity.Notes,
                     ProcessedAt = DateTimeOffset.UtcNow,
+                    SourceUrl = transactionEntity.SourceUrl,
                     ValidationWarnings = warnings
                 };
             });
@@ -177,6 +202,22 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
         catch (Exception ex)
         {
             _logger.LogError(ex, "取引作成中にエラーが発生しました。UserId: {UserId}", userId);
+
+            if (!string.IsNullOrEmpty(storagePath))
+            {
+                try
+                {
+                    // 非同期で削除を実行
+                    await _storageService.DeleteFileAsync(storagePath);
+                    _logger.LogInformation("エラーのため、アップロード済みのファイルを削除しました。Path: {Path}", storagePath);
+                }
+                catch (Exception deleteEx)
+                {
+                    // 削除自体の失敗はログに留め、元の業務例外の throw を優先する
+                    _logger.LogWarning(deleteEx, "ファイルのロールバック削除に失敗しました。Path: {Path}", storagePath);
+                }
+            }
+
             throw;
         }
     }

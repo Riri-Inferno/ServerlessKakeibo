@@ -155,6 +155,7 @@ public class TransactionController : ControllerBase
     /// 取引を新規作成
     /// </summary>
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [SwaggerOperation(
         Summary = "取引を新規作成",
         Description = "新しい取引を作成する。\n\n" +
@@ -165,7 +166,7 @@ public class TransactionController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<TransactionResult>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponse<TransactionResult>>> CreateTransactionAsync(
-        [FromBody] CreateTransactionRequest request,
+        [FromForm] CreateTransactionRequest request,
         [FromServices] ITransactionCreateUseCase useCase,
         [FromServices] IHostEnvironment environment)
     {

@@ -109,6 +109,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public UserEntity User { get; set; } = default!;
 
         /// <summary>
+        /// 元帳票画像のストレージパス（GCS上のフルパス）
+        /// </summary>
+        public string? SourceUrl { get; set; }
+
+        /// <summary>
         /// 税情報一覧
         /// </summary>
         public ICollection<TaxDetailEntity> Taxes { get; set; }
