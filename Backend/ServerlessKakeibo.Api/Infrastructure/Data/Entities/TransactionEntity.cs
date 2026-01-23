@@ -114,6 +114,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? SourceUrl { get; set; }
 
         /// <summary>
+        /// 画像添付日時（null = 未添付）
+        /// </summary>
+        public DateTimeOffset? ReceiptAttachedAt { get; set; }
+
+        /// <summary>
         /// 税情報一覧
         /// </summary>
         public ICollection<TaxDetailEntity> Taxes { get; set; }
