@@ -102,6 +102,7 @@ builder.Services.AddScoped<IVertexAiService, VertexAiService>();
 builder.Services.AddScoped<IGoogleAiStudioService, GoogleAiStudioService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
+builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 #endregion
 
 #region UseCases
