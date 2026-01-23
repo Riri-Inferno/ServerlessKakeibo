@@ -115,6 +115,7 @@ builder.Services.AddScoped<ITransactionDeleteUseCase, TransactionDeleteInteracto
 builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
 builder.Services.AddScoped<IRefreshTokenUseCase, RefreshTokenInteractor>();
 builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
+builder.Services.AddScoped<ITransactionAttachReceiptUseCase, TransactionAttachReceiptInteractor>();
 #endregion
 
 #region DomainServices
