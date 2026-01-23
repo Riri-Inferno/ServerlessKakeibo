@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Mvc;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Contracts;
@@ -68,11 +67,6 @@ public class CreateTransactionRequest : IValidatableObject
     public string? Notes { get; set; }
 
     /// <summary>
-    /// 保存帳票対象ファイル（画像）
-    /// </summary>
-    public IFormFile? File { get; set; } = default!;
-
-    /// <summary>
     /// 税の扱い（外税・内税・不明）※フロントエンドが指定
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -81,7 +75,6 @@ public class CreateTransactionRequest : IValidatableObject
     /// <summary>
     /// 取引項目一覧
     /// </summary>
-    // [FromForm]
     public List<CreateTransactionItemRequest> Items { get; set; } = new();
 
     /// <summary>
