@@ -193,10 +193,12 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
                     Category = transactionEntity.Category,
-                    TaxInclusionType = transactionEntity.TaxInclusionType,
+                    TaxInclusionType = transactionEntity.TaxInclusionType ?? TaxInclusionType.Unknown,
                     Notes = transactionEntity.Notes,
                     ProcessedAt = DateTimeOffset.UtcNow,
-                    ValidationWarnings = warnings
+                    ValidationWarnings = warnings,
+                    SourceUrl = transactionEntity.SourceUrl, // 登録時は未登録なのでnullになる
+                    ReceiptAttachedAt = transactionEntity.ReceiptAttachedAt // 登録時は未登録なのでnullになる
                 };
             });
         }
