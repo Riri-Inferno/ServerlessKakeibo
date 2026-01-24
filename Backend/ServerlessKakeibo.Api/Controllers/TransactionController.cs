@@ -9,6 +9,7 @@ using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Controllers.Extensions;
 using Microsoft.AspNetCore.Authorization;
+using ServerlessKakeibo.Api.Service.Interface;
 
 namespace ServerlessKakeibo.Api.Controllers;
 
@@ -473,6 +474,83 @@ public class TransactionController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 ApiResponse<TransactionResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// レシート画像の署名付きURLを取得
+    /// </summary>
+    /// <param name="id">取引ID</param>
+    /// <param name="useCase">画像URL取得ユースケース</param>
+    /// <param name="environment">ホスト環境</param>
+    /// <returns>署名付きURL（1時間有効）</returns>
+    [HttpGet("{id:guid}/receipt-image-url")]
+    [SwaggerOperation(
+        Summary = "レシート画像の署名付きURLを取得",
+        Description = "取引に添付されたレシート画像にアクセスするための署名付きURLを返す。\n\n" +
+                      "【重要】\n" +
+                      "- URLは1時間有効です\n" +
+                      "- 非公開バケットのため、このURLを経由しないとアクセスできません\n" +
+                      "- 画像が添付されていない取引では404を返します")]
+    [ProducesResponseType(typeof(ApiResponse<ReceiptImageUrlResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ReceiptImageUrlResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<ReceiptImageUrlResult>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<ReceiptImageUrlResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<ReceiptImageUrlResult>>> GetReceiptImageUrlAsync(
+        [FromRoute] Guid id,
+        [FromServices] IGetReceiptImageUrlUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+
+            var result = await useCase.ExecuteAsync(id, userId);
+
+            if (result == null)
+            {
+                return NotFound(
+                    ApiResponse<ReceiptImageUrlResult>.Fail(
+                        ApiStatus.NotFound,
+                        "指定された取引に画像が添付されていません"
+                    )
+                );
+            }
+
+            return Ok(ApiResponse<ReceiptImageUrlResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<ReceiptImageUrlResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest(
+                ApiResponse<ReceiptImageUrlResult>.Fail(ApiStatus.InvalidRequest)
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<ReceiptImageUrlResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<ReceiptImageUrlResult>.Fail(
                     ApiStatus.InternalError,
                     ex.ToString()
                 )

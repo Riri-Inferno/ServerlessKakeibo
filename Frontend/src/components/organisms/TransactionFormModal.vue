@@ -6,6 +6,7 @@ import { useReceiptOcr } from "../../composables/useReceiptOcr";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
+import BaseCheckbox from "../atoms/BaseCheckbox.vue";
 import TransactionFormFields from "../molecules/TransactionFormFields.vue";
 import TransactionItemsList from "../molecules/TransactionItemsList.vue";
 import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
@@ -53,12 +54,17 @@ const {
 const {
   isLoading: isOcrLoading,
   errorMessage: ocrError,
+  shouldSaveImage,
+  uploadedFile,
   parseReceipt,
   reset: resetOcr,
 } = useReceiptOcr();
 
-const { transaction: existingTransaction, fetchDetail } =
-  useTransactionDetail();
+const {
+  transaction: existingTransaction,
+  fetchDetail,
+  attachReceipt,
+} = useTransactionDetail();
 
 const isEditMode = computed(() => !!props.transactionId);
 const modalTitle = computed(() => {
@@ -85,7 +91,7 @@ watch(
 
 const isOcrMode = computed(() => props.mode === "receipt" && !isEditMode.value);
 const isOcrCompleted = ref(false);
-const isTypeReadonly = computed(() => isOcrMode.value || isEditMode.value); // 編集時も種別は変更不可
+const isTypeReadonly = computed(() => isOcrMode.value || isEditMode.value);
 
 const handleReceiptUpload = async (file: File) => {
   const result = await parseReceipt(file);
@@ -97,11 +103,34 @@ const handleReceiptUpload = async (file: File) => {
 
 const handleSubmit = async () => {
   let success = false;
+  let createdTransactionId: string | undefined;
 
   if (isEditMode.value && props.transactionId) {
-    success = await updateTransaction(props.transactionId);
+    // 更新の場合
+    const result = await updateTransaction(props.transactionId);
+    success = result !== null;
   } else {
-    success = await submitTransaction();
+    // 新規作成の場合
+    const result = await submitTransaction();
+    success = result.success;
+    createdTransactionId = result.transactionId;
+
+    // レシートモード & 画像保存ON & ファイルあり
+    if (
+      success &&
+      createdTransactionId &&
+      isOcrMode.value &&
+      shouldSaveImage.value &&
+      uploadedFile.value
+    ) {
+      try {
+        await attachReceipt(createdTransactionId, uploadedFile.value);
+        console.log("レシート画像を添付しました");
+      } catch (error) {
+        console.error("レシート画像の添付に失敗しました:", error);
+        // 画像添付失敗でも取引は作成済みなので、エラーは表示するが処理は続行
+      }
+    }
   }
 
   if (success) {
@@ -175,6 +204,18 @@ const handleClose = () => {
           @add="addTax"
           @remove="removeTax"
         />
+
+        <!-- 画像保存オプション（レシートモード & 新規作成のみ） -->
+        <div
+          v-if="isOcrMode && !isEditMode"
+          class="pt-4 border-t border-gray-200"
+        >
+          <BaseCheckbox
+            v-model="shouldSaveImage"
+            label="レシート画像をサーバーに保存する"
+            description="後から取引詳細で画像を確認できます（作成後7日以内であれば後から添付も可能）"
+          />
+        </div>
 
         <div
           v-if="submitError"

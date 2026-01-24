@@ -253,9 +253,12 @@ export function useTransactionForm() {
     return true;
   };
 
-  const submitTransaction = async (): Promise<boolean> => {
+  const submitTransaction = async (): Promise<{
+    success: boolean;
+    transactionId?: string;
+  }> => {
     if (!validateForm()) {
-      return false;
+      return { success: false };
     }
 
     isLoading.value = true;
@@ -277,13 +280,15 @@ export function useTransactionForm() {
         shopDetails: shopDetails.value || undefined,
       };
 
-      await transactionRepository.create(request);
-      return true;
+      const result = await transactionRepository.create(request);
+
+      // 成功時に transactionId を返す
+      return { success: true, transactionId: result.transactionId };
     } catch (error) {
       console.error("取引登録エラー:", error);
       errorMessage.value =
         error instanceof Error ? error.message : "取引の登録に失敗しました";
-      return false;
+      return { success: false };
     } finally {
       isLoading.value = false;
     }
