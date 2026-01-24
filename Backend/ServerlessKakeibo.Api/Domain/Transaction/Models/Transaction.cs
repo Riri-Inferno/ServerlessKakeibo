@@ -16,6 +16,7 @@ public class Transaction
     public string? Payer { get; set; }
     public string? Payee { get; set; }
     public PaymentMethod? PaymentMethod { get; set; }
+    public TaxInclusionType TaxInclusionType { get; set; } = TaxInclusionType.Unknown;
     public List<TransactionItem> Items { get; set; } = new();
     public List<TaxDetail> Taxes { get; set; } = new();
     public ShopDetails? ShopDetails { get; set; }
@@ -34,7 +35,21 @@ public class Transaction
         {
             var itemsTotal = Items.Sum(i => i.Amount ?? 0);
             var taxTotal = Taxes.Sum(t => t.TaxAmount ?? 0);
-            var calculatedTotal = itemsTotal + taxTotal;
+
+            decimal calculatedTotal;
+
+            // 税の扱いに応じて期待される合計額を計算
+            if (TaxInclusionType == TaxInclusionType.Inclusive ||
+                TaxInclusionType == TaxInclusionType.NoTax)
+            {
+                // 内税または非課税：itemsTotal がそのまま合計
+                calculatedTotal = itemsTotal;
+            }
+            else // Exclusive または Unknown
+            {
+                // 外税：itemsTotal + 税額
+                calculatedTotal = itemsTotal + taxTotal;
+            }
 
             // 1円以内の誤差を許容(丸め誤差対策)
             if (Math.Abs(calculatedTotal - AmountTotal.Value) > 1.0m)
