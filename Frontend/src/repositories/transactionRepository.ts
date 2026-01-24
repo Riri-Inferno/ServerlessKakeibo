@@ -98,7 +98,7 @@ export const transactionRepository = {
    */
   async attachReceipt(id: string, file: File): Promise<TransactionResult> {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("File", file);
 
     const response = await apiClient.patch<ApiResponse<TransactionResult>>(
       `/Transaction/${id}/receipt`,

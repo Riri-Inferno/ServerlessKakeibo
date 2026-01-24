@@ -68,15 +68,20 @@ export function useTransactionDetail() {
   /**
    * レシート画像を添付
    */
-  const attachReceipt = async (id: string, _: File): Promise<boolean> => {
+  const attachReceipt = async (id: string, file: File): Promise<boolean> => {
     isLoading.value = true;
     errorMessage.value = "";
 
     try {
-      // const result = await transactionRepository.attachReceipt(id, file);
+      await transactionRepository.attachReceipt(id, file);
 
-      // 添付成功後、取引詳細を再取得（sourceUrlとreceiptAttachedAtが更新される）
+      // 添付成功後、取引詳細を再取得
       await fetchDetail(id);
+
+      // 画像URL取得
+      if (transaction.value?.sourceUrl) {
+        await fetchReceiptImageUrl(id);
+      }
 
       return true;
     } catch (error) {

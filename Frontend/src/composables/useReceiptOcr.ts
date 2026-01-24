@@ -7,8 +7,14 @@ export function useReceiptOcr() {
   const errorMessage = ref("");
   const result = ref<ReceiptParseResult | null>(null);
 
+  // 画像保存フラグ（デフォルトはtrue）
+  const shouldSaveImage = ref(true);
+
+  // アップロードしたファイルを保持
+  const uploadedFile = ref<File | null>(null);
+
   const parseReceipt = async (
-    file: File
+    file: File,
   ): Promise<ReceiptParseResult | null> => {
     isLoading.value = true;
     errorMessage.value = "";
@@ -17,6 +23,10 @@ export function useReceiptOcr() {
     try {
       const parseResult = await receiptRepository.parseReceipt(file);
       result.value = parseResult;
+
+      // ファイルを保持（後で添付する可能性があるため）
+      uploadedFile.value = file;
+
       return parseResult;
     } catch (error) {
       console.error("OCR解析エラー:", error);
@@ -31,12 +41,16 @@ export function useReceiptOcr() {
   const reset = () => {
     result.value = null;
     errorMessage.value = "";
+    shouldSaveImage.value = true;
+    uploadedFile.value = null;
   };
 
   return {
     isLoading,
     errorMessage,
     result,
+    shouldSaveImage,
+    uploadedFile,
     parseReceipt,
     reset,
   };
