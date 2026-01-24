@@ -102,8 +102,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                 }
 
                 // 5. ドメイン検証
-                var transactionDomain = Application.RegistReceiptDetails.Mappers.TransactionMapper
-                    .ToDomainModel(newEntity);
+                var transactionDomain = TransactionCreateMapper.ToDomainModel(newEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
 
                 var warnings = new List<string>();
@@ -151,7 +150,9 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     Notes = newEntity.Notes,
                     TaxInclusionType = newEntity.TaxInclusionType,
                     ProcessedAt = DateTimeOffset.UtcNow,
-                    ValidationWarnings = warnings
+                    ValidationWarnings = warnings,
+                    SourceUrl = newEntity.SourceUrl,
+                    ReceiptAttachedAt = newEntity.ReceiptAttachedAt
                 };
             });
         }
@@ -256,12 +257,24 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             );
         }
 
-        // 金額計算：支出の場合は Items + Taxes、収入の場合は既存値を維持
+        // 金額計算：支出の場合は Items + Taxes（税の扱いに応じて）、収入の場合は既存値を維持
         if (existingType == TransactionType.Expense)
         {
             var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
             var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
-            entity.AmountTotal = itemsTotal + taxTotal;
+
+            // 税の扱いに応じて AmountTotal を設定
+            if (request.TaxInclusionType == TaxInclusionType.Inclusive ||
+                request.TaxInclusionType == TaxInclusionType.NoTax)
+            {
+                // 内税または非課税：itemsTotal がそのまま合計
+                entity.AmountTotal = itemsTotal;
+            }
+            else // Exclusive または Unknown
+            {
+                // 外税：itemsTotal + 税額
+                entity.AmountTotal = itemsTotal + taxTotal;
+            }
         }
         // 収入の場合は AmountTotal は変更しない（既存の取引の値を維持する必要があるため、呼び出し元で設定）
 
