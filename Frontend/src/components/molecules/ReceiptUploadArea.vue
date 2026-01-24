@@ -36,6 +36,10 @@ const handleFile = async (file: File) => {
   });
   isCompressing.value = false;
 
+  // console.log("圧縮後のファイル:", compressedFile);
+  // console.log("圧縮後のサイズ:", compressedFile.size, "bytes");
+  // console.log("圧縮後の型:", compressedFile.constructor.name);
+
   // プレビュー表示
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -43,7 +47,7 @@ const handleFile = async (file: File) => {
   };
   reader.readAsDataURL(compressedFile);
 
-  emit("upload", compressedFile); // 圧縮後のファイルを送信
+  emit("upload", compressedFile);
 };
 
 const handleDrop = async (event: DragEvent) => {

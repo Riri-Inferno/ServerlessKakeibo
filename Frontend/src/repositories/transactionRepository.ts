@@ -100,6 +100,13 @@ export const transactionRepository = {
     const formData = new FormData();
     formData.append("File", file);
 
+    // デバッグ：FormData の中身を確認
+    // console.log("FormData に追加するファイル:", file);
+    // console.log("ファイル名:", file.name);
+    // console.log("ファイルサイズ:", file.size);
+    // console.log("ファイルタイプ:", file.type);
+    // console.log("File オブジェクトか?:", file instanceof File); // ← true になるべき
+
     const response = await apiClient.patch<ApiResponse<TransactionResult>>(
       `/Transaction/${id}/receipt`,
       formData,

@@ -12,6 +12,7 @@ import BaseBadge from "../atoms/BaseBadge.vue";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
+import { compressImage } from "../../utils/imageCompression";
 
 interface Props {
   transactionId: string;
@@ -40,6 +41,7 @@ const {
 const isAttaching = ref(false);
 const showFullImage = ref(false);
 const fileInput = ref<HTMLInputElement>();
+const isCompressing = ref(false);
 
 watch(
   () => props.isOpen,
@@ -97,11 +99,18 @@ const openFileDialog = () => {
 /**
  * ファイル選択時の処理
  */
-const handleFileSelect = (event: Event) => {
+const handleFileSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (file) {
-    handleAttachReceipt(file);
+    isCompressing.value = true;
+    const compressedFile = await compressImage(file, {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1920,
+    });
+    isCompressing.value = false;
+
+    handleAttachReceipt(compressedFile);
   }
 };
 
@@ -118,7 +127,6 @@ const formatDateTime = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleString("ja-JP");
 };
-
 const handleEdit = () => {
   emit("edit");
 };
@@ -232,6 +240,25 @@ const handleDelete = () => {
           </BaseCard>
         </div>
 
+        <!-- 圧縮中の表示 -->
+        <div v-else-if="isCompressing || isAttaching">
+          <BaseCard padding="sm">
+            <div class="text-center py-8">
+              <BaseIcon
+                name="plus"
+                size="xl"
+                class="mx-auto mb-2 text-gray-400"
+              />
+              <BaseText variant="body" color="gray" class="mb-2">
+                {{ isCompressing ? "画像を圧縮中..." : "アップロード中..." }}
+              </BaseText>
+              <BaseText variant="caption" color="gray">
+                しばらくお待ちください
+              </BaseText>
+            </div>
+          </BaseCard>
+        </div>
+
         <!-- 画像がない & 添付可能 -->
         <div v-else-if="canAttachReceipt">
           <BaseCard padding="sm">
@@ -248,7 +275,7 @@ const handleDelete = () => {
                 レシート画像を添付
               </BaseText>
               <BaseText variant="caption" color="gray">
-                クリックして画像を選択
+                クリックして画像を選択（自動で圧縮されます）
               </BaseText>
             </div>
             <BaseText
