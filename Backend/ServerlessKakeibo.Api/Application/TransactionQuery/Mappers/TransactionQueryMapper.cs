@@ -30,6 +30,8 @@ public static class TransactionQueryMapper
             Category = entity.Category,
             Notes = entity.Notes,
             TaxInclusionType = entity.TaxInclusionType,
+            SourceUrl = entity.SourceUrl,
+            ReceiptAttachedAt = entity.ReceiptAttachedAt,
             ReceiptType = entity.ReceiptType,
             Confidence = entity.Confidence,
             ParseStatus = entity.ParseStatus,
