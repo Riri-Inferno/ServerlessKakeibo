@@ -123,6 +123,8 @@ export interface TransactionDetail {
   id: string;
   type: TransactionType;
   transactionDate: string;
+  sourceUrl?: string | null;
+  receiptAttachedAt?: string | null;
   amountTotal: number;
   currency: string;
   payer: string | null;
@@ -141,6 +143,21 @@ export interface TransactionDetail {
   shopDetails: any | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * レシート画像URL取得結果
+ */
+export interface ReceiptImageUrlResult {
+  signedUrl: string;
+  expiresAt: string;
+}
+
+/**
+ * レシート添付リクエスト
+ */
+export interface AttachReceiptRequest {
+  file: File;
 }
 
 /**
@@ -223,15 +240,19 @@ export interface CreateTransactionRequest {
 }
 
 /**
- * 取引作成結果
+ * 取引作成/更新結果
  */
 export interface TransactionResult {
   transactionId: string;
   transactionDate: string;
+  sourceUrl?: string | null;
+  receiptAttachedAt?: string | null;
   amountTotal: number;
   currency: string;
   payee: string | null;
   category: TransactionCategory;
+  taxInclusionType?: TaxInclusionType;
+  notes?: string | null;
   processedAt: string;
   validationWarnings: string[];
 }

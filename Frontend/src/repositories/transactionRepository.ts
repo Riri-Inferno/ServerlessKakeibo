@@ -7,6 +7,8 @@ import type {
   CreateTransactionRequest,
   UpdateTransactionRequest,
   TransactionResult,
+  ReceiptImageUrlResult,
+  // AttachReceiptRequest,
 } from "../types/transaction";
 
 interface ApiResponse<T> {
@@ -85,5 +87,55 @@ export const transactionRepository = {
     if (response.data.status !== "Success") {
       throw new Error(response.data.message || "取引の削除に失敗しました");
     }
+  },
+
+  /**
+   * レシート画像を添付
+   *
+   * @param id 取引ID
+   * @param file アップロードするファイル
+   * @returns 更新された取引情報（SourceUrlとReceiptAttachedAtを含む）
+   */
+  async attachReceipt(id: string, file: File): Promise<TransactionResult> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiClient.patch<ApiResponse<TransactionResult>>(
+      `/Transaction/${id}/receipt`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "レシート画像の添付に失敗しました",
+      );
+    }
+
+    return response.data.data;
+  },
+
+  /**
+   * レシート画像の署名付きURLを取得
+   *
+   * @param id 取引ID
+   * @returns 署名付きURL（1時間有効）
+   */
+  async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
+    const response = await apiClient.get<ApiResponse<ReceiptImageUrlResult>>(
+      `/Transaction/${id}/receipt-image-url`,
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "レシート画像URLの取得に失敗しました",
+      );
+    }
+
+    return response.data.data;
   },
 };
