@@ -116,6 +116,7 @@ builder.Services.AddScoped<IGoogleLoginUseCase, GoogleLoginInteractor>();
 builder.Services.AddScoped<IRefreshTokenUseCase, RefreshTokenInteractor>();
 builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
 builder.Services.AddScoped<ITransactionAttachReceiptUseCase, TransactionAttachReceiptInteractor>();
+builder.Services.AddScoped<IGetReceiptImageUrlUseCase, GetReceiptImageUrlInteractor>();
 #endregion
 
 #region DomainServices
