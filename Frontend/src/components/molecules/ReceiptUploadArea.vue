@@ -3,6 +3,7 @@ import { ref } from "vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
+import { compressImage } from "../../utils/imageCompression";
 
 const emit = defineEmits<{
   upload: [file: File];
@@ -11,35 +12,45 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement>();
 const isDragging = ref(false);
 const previewUrl = ref<string | null>(null);
+const isCompressing = ref(false);
 
-const handleFileSelect = (event: Event) => {
+const handleFileSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (file) {
-    handleFile(file);
+    await handleFile(file);
   }
 };
 
-const handleFile = (file: File) => {
+const handleFile = async (file: File) => {
   if (!file.type.startsWith("image/")) {
     alert("画像ファイルを選択してください");
     return;
   }
 
+  // 圧縮処理
+  isCompressing.value = true;
+  const compressedFile = await compressImage(file, {
+    maxSizeMB: 0.5, // 500KB以下
+    maxWidthOrHeight: 1920, // フルHD
+  });
+  isCompressing.value = false;
+
+  // プレビュー表示
   const reader = new FileReader();
   reader.onload = (e) => {
     previewUrl.value = e.target?.result as string;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(compressedFile);
 
-  emit("upload", file);
+  emit("upload", compressedFile); // 圧縮後のファイルを送信
 };
 
-const handleDrop = (event: DragEvent) => {
+const handleDrop = async (event: DragEvent) => {
   isDragging.value = false;
   const file = event.dataTransfer?.files[0];
   if (file) {
-    handleFile(file);
+    await handleFile(file);
   }
 };
 
@@ -84,7 +95,14 @@ const clearPreview = () => {
         <BaseText variant="body" color="gray" class="mb-2">
           クリックまたはドラッグ＆ドロップで画像をアップロード
         </BaseText>
-        <BaseText variant="caption" color="gray"> JPG、PNG形式に対応 </BaseText>
+        <BaseText variant="caption" color="gray">
+          JPG、PNG形式に対応（自動で圧縮されます）
+        </BaseText>
+      </div>
+
+      <!-- 圧縮中の表示 -->
+      <div v-if="isCompressing" class="text-center mt-4">
+        <BaseText variant="body" color="gray">画像を圧縮中...</BaseText>
       </div>
 
       <input
