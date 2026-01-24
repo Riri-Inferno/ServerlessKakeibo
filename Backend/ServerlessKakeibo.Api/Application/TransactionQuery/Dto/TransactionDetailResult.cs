@@ -66,6 +66,16 @@ public class TransactionDetailResult
     public TaxInclusionType? TaxInclusionType { get; set; }
 
     /// <summary>
+    /// 元帳票画像のストレージパス（GCS上のフルパス）
+    /// </summary>
+    public string? SourceUrl { get; set; }
+
+    /// <summary>
+    /// 画像添付日時（null = 未添付）
+    /// </summary>
+    public DateTimeOffset? ReceiptAttachedAt { get; set; }
+
+    /// <summary>
     /// 領収書種別
     /// </summary>
     public string? ReceiptType { get; set; }

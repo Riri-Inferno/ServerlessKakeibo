@@ -69,19 +69,21 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
 
                 // 3. 子エンティティの追加
                 // 支出の場合は Items から AmountTotal を再計算、収入の場合はリクエスト値を使用
+                var itemsTotal = transactionEntity.Items.Sum(i => i.Amount ?? 0);
+                var taxTotal = 0m;
+
                 if (request.Type == TransactionType.Expense)
                 {
+                    // Items を追加
                     foreach (var itemReq in request.Items)
                     {
                         var itemEntity = TransactionCreateMapper.ToItemEntity(
                             itemReq, transactionEntity.Id, userId, tenantId);
                         transactionEntity.Items.Add(itemEntity);
                     }
+                    itemsTotal = transactionEntity.Items.Sum(i => i.Amount ?? 0);
 
-                    // 支出の場合は Items 合計 + 税額で AmountTotal を上書き
-                    var itemsTotal = transactionEntity.Items.Sum(i => i.Amount ?? 0);
-                    var taxTotal = 0m;
-
+                    // Taxes を追加
                     foreach (var taxReq in request.Taxes)
                     {
                         var taxEntity = TransactionCreateMapper.ToTaxEntity(
@@ -90,7 +92,18 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                         taxTotal += taxEntity.TaxAmount ?? 0;
                     }
 
-                    transactionEntity.AmountTotal = itemsTotal + taxTotal;
+                    // 税の扱いに応じて AmountTotal を設定
+                    if (request.TaxInclusionType == TaxInclusionType.Inclusive ||
+                        request.TaxInclusionType == TaxInclusionType.NoTax)
+                    {
+                        // 内税または非課税：itemsTotal がそのまま合計
+                        transactionEntity.AmountTotal = itemsTotal;
+                    }
+                    else // Exclusive または Unknown
+                    {
+                        // 外税：itemsTotal + 税額
+                        transactionEntity.AmountTotal = itemsTotal + taxTotal;
+                    }
                 }
                 else // Income の場合
                 {
@@ -113,15 +126,28 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                             var taxEntity = TransactionCreateMapper.ToTaxEntity(
                                 taxReq, transactionEntity.Id, userId, tenantId);
                             transactionEntity.Taxes.Add(taxEntity);
+                            taxTotal += taxEntity.TaxAmount ?? 0;
                         }
                     }
 
-                    // AmountTotal はリクエスト値をそのまま使用
+                    // 収入の場合も税の扱いに応じて AmountTotal を調整
+                    if (itemsTotal > 0) // Items が存在する場合のみ再計算
+                    {
+                        if (request.TaxInclusionType == TaxInclusionType.Inclusive ||
+                            request.TaxInclusionType == TaxInclusionType.NoTax)
+                        {
+                            transactionEntity.AmountTotal = itemsTotal;
+                        }
+                        else // Exclusive または Unknown
+                        {
+                            transactionEntity.AmountTotal = itemsTotal + taxTotal;
+                        }
+                    }
+                    // itemsTotal が 0 の場合は request.AmountTotal をそのまま使用（既存の動作を維持）
                 }
 
                 // 4. ドメインモデルに変換して検証
-                var transactionDomain = Application.RegistReceiptDetails.Mappers.TransactionMapper
-                    .ToDomainModel(transactionEntity);
+                var transactionDomain = TransactionCreateMapper.ToDomainModel(transactionEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
 
                 // 5. 検証結果の処理
@@ -167,10 +193,12 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
                     Category = transactionEntity.Category,
-                    TaxInclusionType = transactionEntity.TaxInclusionType,
+                    TaxInclusionType = transactionEntity.TaxInclusionType ?? TaxInclusionType.Unknown,
                     Notes = transactionEntity.Notes,
                     ProcessedAt = DateTimeOffset.UtcNow,
-                    ValidationWarnings = warnings
+                    ValidationWarnings = warnings,
+                    SourceUrl = transactionEntity.SourceUrl, // 登録時は未登録なのでnullになる
+                    ReceiptAttachedAt = transactionEntity.ReceiptAttachedAt // 登録時は未登録なのでnullになる
                 };
             });
         }

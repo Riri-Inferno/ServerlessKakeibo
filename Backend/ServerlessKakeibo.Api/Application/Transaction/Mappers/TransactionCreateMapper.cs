@@ -126,4 +126,54 @@ public static class TransactionCreateMapper
             PhoneNumber = request.PhoneNumber
         };
     }
+
+    /// <summary>
+    /// TransactionEntity → Transaction (ドメインモデル) 変換
+    /// </summary>
+    public static Domain.Transaction.Models.Transaction ToDomainModel(TransactionEntity entity)
+    {
+        return new Domain.Transaction.Models.Transaction
+        {
+            Id = entity.Id,
+            Type = entity.Type,
+            TransactionDate = entity.TransactionDate,
+            AmountTotal = entity.AmountTotal,
+            Currency = entity.Currency,
+            Payer = entity.Payer,
+            Payee = entity.Payee,
+            PaymentMethod = entity.PaymentMethod != null
+                ? Domain.ValueObjects.PaymentMethod.FromString(entity.PaymentMethod)
+                : null,
+            TaxInclusionType = entity.TaxInclusionType ?? Domain.ValueObjects.TaxInclusionType.Unknown,
+            Items = entity.Items.Select(i => new Domain.Transaction.Models.TransactionItem
+            {
+                Name = i.Name,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                Amount = i.Amount,
+                Category = i.Category
+            }).ToList(),
+            Taxes = entity.Taxes.Select(t => new Domain.Receipt.Models.TaxDetail
+            {
+                TaxType = t.TaxType ?? "消費税",
+                TaxRate = t.TaxRate,
+                TaxAmount = t.TaxAmount,
+                TaxableAmount = t.TaxableAmount,
+                IsFixedAmount = t.IsFixedAmount,
+                ApplicableCategory = t.ApplicableCategory
+            }).ToList(),
+            ShopDetails = entity.ShopDetail != null
+                ? new Domain.Receipt.Models.ShopDetails
+                {
+                    Name = entity.ShopDetail.Name,
+                    Branch = entity.ShopDetail.Branch,
+                    PhoneNumber = entity.ShopDetail.PhoneNumber,
+                    Address = entity.ShopDetail.Address,
+                    PostalCode = entity.ShopDetail.PostalCode,
+                    InvoiceRegistrationNumber = entity.ShopDetail.InvoiceRegistrationNumber,
+                    RegisteredBusinessName = entity.ShopDetail.RegisteredBusinessName
+                }
+                : null
+        };
+    }
 }

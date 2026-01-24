@@ -1,5 +1,5 @@
-using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Mappers;
 using ServerlessKakeibo.Api.Application.Transaction.Dto;
+using ServerlessKakeibo.Api.Application.Transaction.Mappers;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Domain.Transaction.Services;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
@@ -77,7 +77,7 @@ public class TransactionDeleteInteractor : ITransactionDeleteUseCase
                 }
 
                 // 3. ドメイン検証(削除前の情報提供)
-                var domainModel = TransactionMapper.ToDomainModel(existingEntity);
+                var domainModel = TransactionCreateMapper.ToDomainModel(existingEntity);
                 var validationResult = _transactionDomainService.ValidateDelete(domainModel);
 
                 // 警告ログ出力
