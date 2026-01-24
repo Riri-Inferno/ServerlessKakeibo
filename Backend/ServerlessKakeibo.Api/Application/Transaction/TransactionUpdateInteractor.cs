@@ -93,7 +93,11 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
 
                 // 4.新しい取引エンティティを作成
                 var newEntity = CreateTransactionEntity(
-                    transactionId, request, userId, tenantId, existingType);  // existingType を渡す
+                    transactionId, request, userId, tenantId, existingType);
+
+                // 既存の添付情報を引き継ぐ
+                newEntity.SourceUrl = existingEntity.SourceUrl;
+                newEntity.ReceiptAttachedAt = existingEntity.ReceiptAttachedAt;
 
                 // 収入の場合は既存の AmountTotal を維持
                 if (existingType == TransactionType.Income)
