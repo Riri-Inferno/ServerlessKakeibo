@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { watch, ref, computed } from "vue";
 import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import {
   TransactionType,
@@ -11,6 +11,7 @@ import BaseText from "../atoms/BaseText.vue";
 import BaseBadge from "../atoms/BaseBadge.vue";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseButton from "../atoms/BaseButton.vue";
+import BaseIcon from "../atoms/BaseIcon.vue";
 
 interface Props {
   transactionId: string;
@@ -25,18 +26,84 @@ const emit = defineEmits<{
   delete: [];
 }>();
 
-const { transaction, isLoading, errorMessage, fetchDetail } =
-  useTransactionDetail();
+const {
+  transaction,
+  receiptImageUrl,
+  isLoading,
+  isLoadingImage,
+  errorMessage,
+  fetchDetail,
+  fetchReceiptImageUrl,
+  attachReceipt,
+} = useTransactionDetail();
+
+const isAttaching = ref(false);
+const showFullImage = ref(false);
+const fileInput = ref<HTMLInputElement>();
 
 watch(
   () => props.isOpen,
-  (newValue) => {
+  async (newValue) => {
     if (newValue && props.transactionId) {
-      fetchDetail(props.transactionId);
+      await fetchDetail(props.transactionId);
+
+      // 画像がある場合は署名付きURLを取得
+      if (transaction.value?.sourceUrl) {
+        await fetchReceiptImageUrl(props.transactionId);
+      }
     }
   },
   { immediate: true },
 );
+
+/**
+ * 添付可能かどうか（作成から7日以内 & 画像未添付）
+ */
+const canAttachReceipt = computed(() => {
+  if (!transaction.value) return false;
+  if (transaction.value.sourceUrl) return false;
+
+  const createdAt = new Date(transaction.value.createdAt);
+  const now = new Date();
+  const diffDays =
+    (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffDays <= 7;
+});
+
+/**
+ * レシート画像を添付
+ */
+const handleAttachReceipt = async (file: File) => {
+  if (!props.transactionId) return;
+
+  isAttaching.value = true;
+  const success = await attachReceipt(props.transactionId, file);
+  isAttaching.value = false;
+
+  if (success) {
+    // 添付成功後、署名付きURLを取得
+    await fetchReceiptImageUrl(props.transactionId);
+  }
+};
+
+/**
+ * ファイル選択ダイアログを開く
+ */
+const openFileDialog = () => {
+  fileInput.value?.click();
+};
+
+/**
+ * ファイル選択時の処理
+ */
+const handleFileSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    handleAttachReceipt(file);
+  }
+};
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -141,6 +208,79 @@ const handleDelete = () => {
         }}</BaseText>
       </div>
 
+      <!-- レシート画像セクション -->
+      <div v-if="transaction.sourceUrl || canAttachReceipt">
+        <BaseText variant="h3" class="mb-3">レシート画像</BaseText>
+
+        <!-- 画像がある場合 -->
+        <div v-if="receiptImageUrl">
+          <BaseCard padding="sm" class="relative">
+            <div v-if="isLoadingImage" class="text-center py-8">
+              <BaseText variant="caption" color="gray">読み込み中...</BaseText>
+            </div>
+            <div v-else>
+              <img
+                :src="receiptImageUrl"
+                alt="レシート画像"
+                class="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                @click="showFullImage = true"
+              />
+              <BaseText variant="caption" color="gray" class="mt-2 block">
+                添付日: {{ formatDate(transaction.receiptAttachedAt!) }}
+              </BaseText>
+            </div>
+          </BaseCard>
+        </div>
+
+        <!-- 画像がない & 添付可能 -->
+        <div v-else-if="canAttachReceipt">
+          <BaseCard padding="sm">
+            <div
+              class="text-center py-8 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
+              @click="openFileDialog"
+            >
+              <BaseIcon
+                name="plus"
+                size="xl"
+                class="mx-auto mb-2 text-gray-400"
+              />
+              <BaseText variant="body" color="gray" class="mb-2">
+                レシート画像を添付
+              </BaseText>
+              <BaseText variant="caption" color="gray">
+                クリックして画像を選択
+              </BaseText>
+            </div>
+            <BaseText
+              variant="caption"
+              color="gray"
+              class="mt-2 block text-center"
+            >
+              ⚠️ 一度添付すると変更できません（作成から7日以内のみ可能）
+            </BaseText>
+          </BaseCard>
+
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="handleFileSelect"
+          />
+        </div>
+
+        <!-- 期限切れ -->
+        <div v-else>
+          <BaseCard padding="sm">
+            <div class="text-center py-4">
+              <BaseText variant="body" color="gray">
+                添付期限が過ぎています（作成から7日以内のみ添付可能）
+              </BaseText>
+            </div>
+          </BaseCard>
+        </div>
+      </div>
+
       <!-- 明細 -->
       <div v-if="transaction.items && transaction.items.length > 0">
         <BaseText variant="h3" class="mb-3">明細</BaseText>
@@ -227,5 +367,19 @@ const handleDelete = () => {
         </BaseButton>
       </div>
     </template>
+
+    <!-- 画像フルスクリーン表示モーダル -->
+    <BaseModal
+      :is-open="showFullImage"
+      title="レシート画像"
+      @close="showFullImage = false"
+    >
+      <img
+        v-if="receiptImageUrl"
+        :src="receiptImageUrl"
+        alt="レシート画像（拡大）"
+        class="w-full"
+      />
+    </BaseModal>
   </BaseModal>
 </template>
