@@ -17,6 +17,7 @@ import TransactionCreateSelectModal from "../components/organisms/TransactionCre
 import TransactionFormModal from "../components/organisms/TransactionFormModal.vue";
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
+import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 
 const {
   transactions,
@@ -228,10 +229,18 @@ onUnmounted(() => {
         <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
       </div>
 
-      <!-- メインコンテンツ -->
       <div class="flex-1 flex flex-col min-h-0">
         <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-          <BaseText variant="body" color="gray">読み込み中...</BaseText>
+          <div class="text-center">
+            <BaseSpinner
+              icon="refresh"
+              size="lg"
+              color="primary"
+              label="取引一覧を読み込み中"
+              class="mb-2"
+            />
+            <BaseText variant="body" color="gray">読み込み中...</BaseText>
+          </div>
         </div>
 
         <div

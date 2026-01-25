@@ -12,6 +12,7 @@ import BaseBadge from "../atoms/BaseBadge.vue";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
+import BaseSpinner from "../atoms/BaseSpinner.vue";
 import { compressImage } from "../../utils/imageCompression";
 
 interface Props {
@@ -139,6 +140,13 @@ const handleDelete = () => {
 <template>
   <BaseModal :is-open="isOpen" title="取引詳細" @close="emit('close')">
     <div v-if="isLoading" class="text-center py-8">
+      <BaseSpinner
+        icon="refresh"
+        size="lg"
+        color="primary"
+        label="取引詳細を読み込み中"
+        class="mb-2"
+      />
       <BaseText variant="body" color="gray">読み込み中...</BaseText>
     </div>
 
