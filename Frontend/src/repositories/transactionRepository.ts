@@ -9,6 +9,8 @@ import type {
   TransactionResult,
   ReceiptImageUrlResult,
   // AttachReceiptRequest,
+  ExportTransactionsRequest,
+  TransactionExportResult,
 } from "../types/transaction";
 
 interface ApiResponse<T> {
@@ -141,6 +143,27 @@ export const transactionRepository = {
       throw new Error(
         response.data.message || "レシート画像URLの取得に失敗しました",
       );
+    }
+
+    return response.data.data;
+  },
+
+  /**
+   * 取引をエクスポート（CSV + 画像）
+   *
+   * @param request エクスポート条件
+   * @returns エクスポート結果（Base64エンコードされたZip）
+   */
+  async export(
+    request: ExportTransactionsRequest,
+  ): Promise<TransactionExportResult> {
+    const response = await apiClient.post<ApiResponse<TransactionExportResult>>(
+      "/TransactionExport",
+      request,
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "エクスポートに失敗しました");
     }
 
     return response.data.data;

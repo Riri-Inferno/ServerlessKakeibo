@@ -15,12 +15,12 @@ namespace ServerlessKakeibo.Api.Application.TransactionExport;
 /// </summary>
 public class TransactionExportInteractor : ITransactionExportUseCase
 {
-    private readonly ITransactionRepository _transactionRepository; // ← 変更
+    private readonly ITransactionRepository _transactionRepository;
     private readonly IGcpStorageService _storageService;
     private readonly ILogger<TransactionExportInteractor> _logger;
 
     public TransactionExportInteractor(
-        ITransactionRepository transactionRepository, // ← 変更
+        ITransactionRepository transactionRepository,
         IGcpStorageService storageService,
         ILogger<TransactionExportInteractor> logger)
     {
@@ -47,7 +47,7 @@ public class TransactionExportInteractor : ITransactionExportUseCase
             "取引エクスポート開始: UserId={UserId}, IncludeImages={IncludeImages}",
             userId, request.IncludeReceiptImages);
 
-        // 1. 取引データ取得（リポジトリ経由）
+        // 1. 取引データ取得
         var transactions = await _transactionRepository.GetAllForExportAsync(
             userId,
             request.StartDate,

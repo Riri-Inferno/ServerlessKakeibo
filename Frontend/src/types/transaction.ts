@@ -308,3 +308,44 @@ export interface UpdateTransactionRequest {
   taxes?: UpdateTaxDetail[];
   shopDetails?: UpdateShopDetails;
 }
+
+/**
+ * 取引エクスポートリクエスト
+ * GetTransactionsRequest を継承
+ */
+export interface ExportTransactionsRequest extends GetTransactionsRequest {
+  /**
+   * 添付画像を含めるか（true = Zip with images, false = CSV only in Zip）
+   */
+  includeReceiptImages: boolean;
+}
+
+/**
+ * エクスポート結果
+ */
+export interface TransactionExportResult {
+  /**
+   * ファイル名
+   */
+  fileName: string;
+
+  /**
+   * ZIPファイルバイナリ（Base64エンコード済み）
+   */
+  zipDataBase64: string;
+
+  /**
+   * エクスポートされた取引件数
+   */
+  totalCount: number;
+
+  /**
+   * 添付画像を含めた件数
+   */
+  imagesIncludedCount: number;
+
+  /**
+   * 画像取得に失敗した件数
+   */
+  imagesFailedCount: number;
+}
