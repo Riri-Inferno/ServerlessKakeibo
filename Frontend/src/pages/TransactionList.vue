@@ -16,6 +16,7 @@ import TransactionFilter from "../components/molecules/TransactionFilter.vue";
 import TransactionCreateSelectModal from "../components/organisms/TransactionCreateSelectModal.vue";
 import TransactionFormModal from "../components/organisms/TransactionFormModal.vue";
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
+import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 
 const {
   transactions,
@@ -38,6 +39,7 @@ const isFormModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
+const isExportModalOpen = ref(false);
 
 const listContainerRef = ref<HTMLElement>();
 let resizeObserver: ResizeObserver | null = null;
@@ -93,6 +95,14 @@ const openCreateModal = () => {
 
 const closeCreateSelectModal = () => {
   isCreateSelectModalOpen.value = false;
+};
+
+const openExportModal = () => {
+  isExportModalOpen.value = true;
+};
+
+const closeExportModal = () => {
+  isExportModalOpen.value = false;
 };
 
 const selectManual = () => {
@@ -200,9 +210,19 @@ onUnmounted(() => {
               全{{ totalCount }}件
             </BaseText>
           </div>
-          <BaseButton variant="primary" @click="openCreateModal">
-            新規登録
-          </BaseButton>
+          <div class="flex gap-2">
+            <!-- エクスポートボタン -->
+            <BaseButton variant="outline" @click="openExportModal">
+              <span class="flex items-center gap-1">
+                <BaseIcon name="download" size="sm" />
+                <span>エクスポート</span>
+              </span>
+            </BaseButton>
+            <!-- 新規登録ボタン -->
+            <BaseButton variant="primary" @click="openCreateModal">
+              新規登録
+            </BaseButton>
+          </div>
         </div>
 
         <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
@@ -358,6 +378,12 @@ onUnmounted(() => {
       :transaction-id="selectedTransactionId"
       @close="closeEditModal"
       @success="handleEditSuccess"
+    />
+    <TransactionExportModal
+      :is-open="isExportModalOpen"
+      :filters="currentFilters"
+      :total-count="totalCount"
+      @close="closeExportModal"
     />
   </DefaultLayout>
 </template>
