@@ -208,4 +208,54 @@ public class TransactionRepository : ITransactionRepository
 
         return (totalIncome, totalExpense, expenseByCategory);
     }
+
+    /// <summary>
+    /// エクスポート用に取引一覧を取得（ページング無視、全件取得）
+    /// </summary>
+    public async Task<List<TransactionEntity>> GetAllForExportAsync(
+        Guid userId,
+        DateTimeOffset? startDate = null,
+        DateTimeOffset? endDate = null,
+        TransactionCategory? category = null,
+        string? payee = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null,
+        TransactionType? type = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.Transactions
+            .AsNoTracking()
+            .Include(t => t.Items)        // CSV出力用
+            .Include(t => t.Taxes)        // CSV出力用
+            .Include(t => t.ShopDetail)   // CSV出力用
+            .Where(t => t.UserId == userId && !t.IsDeleted);
+
+        // フィルタ適用（GetPagedListAsyncと同じロジック）
+        if (startDate.HasValue)
+            query = query.Where(t => t.TransactionDate >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(t => t.TransactionDate <= endDate.Value);
+
+        if (category.HasValue)
+            query = query.Where(t => t.Category == category.Value);
+
+        if (!string.IsNullOrWhiteSpace(payee))
+            query = query.Where(t => t.Payee != null && t.Payee.Contains(payee));
+
+        if (minAmount.HasValue)
+            query = query.Where(t => t.AmountTotal >= minAmount.Value);
+
+        if (maxAmount.HasValue)
+            query = query.Where(t => t.AmountTotal <= maxAmount.Value);
+
+        if (type.HasValue)
+            query = query.Where(t => t.Type == type.Value);
+
+        // 取引日時の降順でソート
+        return await query
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenByDescending(t => t.CreatedAt)
+            .ToListAsync(ct);
+    }
 }
