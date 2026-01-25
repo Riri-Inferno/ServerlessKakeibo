@@ -19,6 +19,16 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
+  FolderIcon,
+  PhotoIcon,
+  DocumentTextIcon,
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  CalendarIcon,
+  TagIcon,
+  BanknotesIcon,
+  ClipboardDocumentListIcon,
+  CheckCircleIcon,
 } from "@heroicons/vue/24/outline";
 
 /**
@@ -48,7 +58,17 @@ type IconName =
   | "check"
   | "warning"
   | "info"
-  | "currency-yen";
+  | "currency-yen"
+  | "folder"
+  | "photo"
+  | "document"
+  | "download"
+  | "refresh"
+  | "calendar"
+  | "tag"
+  | "banknotes"
+  | "clipboard-list"
+  | "check-circle";
 
 type Size = "sm" | "md" | "lg" | "xl";
 
@@ -84,6 +104,16 @@ const iconMap: Record<IconName, Component> = {
   warning: ExclamationTriangleIcon,
   info: InformationCircleIcon,
   "currency-yen": CurrencyYenIcon,
+  folder: FolderIcon,
+  photo: PhotoIcon,
+  document: DocumentTextIcon,
+  download: ArrowDownTrayIcon,
+  refresh: ArrowPathIcon,
+  calendar: CalendarIcon,
+  tag: TagIcon,
+  banknotes: BanknotesIcon,
+  "clipboard-list": ClipboardDocumentListIcon,
+  "check-circle": CheckCircleIcon,
 };
 
 const sizeClasses: Record<Size, string> = {
