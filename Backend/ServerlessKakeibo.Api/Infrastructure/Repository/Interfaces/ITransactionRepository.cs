@@ -59,4 +59,28 @@ public interface ITransactionRepository
             int year,
             int month,
             CancellationToken ct = default);
+
+    /// <summary>
+    /// エクスポート用に取引一覧を取得（ページング無視、全件取得）
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="startDate">開始日</param>
+    /// <param name="endDate">終了日</param>
+    /// <param name="category">カテゴリフィルタ</param>
+    /// <param name="payee">受取者フィルタ</param>
+    /// <param name="minAmount">最小金額</param>
+    /// <param name="maxAmount">最大金額</param>
+    /// <param name="type">取引種別フィルタ</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>フィルタ条件に一致する全取引（Items, Taxes, ShopDetail含む）</returns>
+    Task<List<TransactionEntity>> GetAllForExportAsync(
+        Guid userId,
+        DateTimeOffset? startDate = null,
+        DateTimeOffset? endDate = null,
+        TransactionCategory? category = null,
+        string? payee = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null,
+        TransactionType? type = null,
+        CancellationToken ct = default);
 }
