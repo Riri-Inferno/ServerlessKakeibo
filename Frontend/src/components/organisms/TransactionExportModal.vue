@@ -9,6 +9,7 @@ import BaseText from "../atoms/BaseText.vue";
 import BaseCheckbox from "../atoms/BaseCheckbox.vue";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
+import BaseSpinner from "../atoms/BaseSpinner.vue";
 
 interface Props {
   isOpen: boolean;
@@ -203,10 +204,12 @@ watch(
 
     <!-- ローディング画面 -->
     <div v-else-if="modalState === 'loading'" class="text-center py-12">
-      <BaseIcon
-        name="refresh"
+      <BaseSpinner
+        icon="settings"
         size="xl"
-        class="mx-auto mb-4 text-blue-500 animate-spin"
+        color="primary"
+        label="エクスポート処理中"
+        class="mb-4"
       />
       <BaseText variant="body" weight="bold" class="mb-2">
         処理中です...
