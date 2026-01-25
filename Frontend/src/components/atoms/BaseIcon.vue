@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, type Component } from "vue";
+
+// ===== Outline (24x24) =====
 import {
   PlusIcon,
   MinusIcon,
@@ -31,12 +33,31 @@ import {
   CheckCircleIcon,
 } from "@heroicons/vue/24/outline";
 
+// ===== Solid (24x24) =====
+import {
+  ExclamationTriangleIcon as ExclamationTriangleIconSolid,
+  CheckCircleIcon as CheckCircleIconSolid,
+  InformationCircleIcon as InformationCircleIconSolid,
+  PhotoIcon as PhotoIconSolid,
+  FolderIcon as FolderIconSolid,
+} from "@heroicons/vue/24/solid";
+
+// ===== Mini (20x20) =====
+import {
+  ExclamationTriangleIcon as ExclamationTriangleIconMini,
+  CheckCircleIcon as CheckCircleIconMini,
+  InformationCircleIcon as InformationCircleIconMini,
+} from "@heroicons/vue/20/solid";
+
 /**
  * BaseIcon - heroicons アイコン表示専用
  *
  * heroicons のアイコンを統一的に扱うためのラッパーコンポーネント
  *
- * TODO: 必要に応じてアイコンを追加
+ * バリアント:
+ * - outline: 線のみ（デフォルト）
+ * - solid: 塗りつぶし（24x24）
+ * - mini: 小さい塗りつぶし（20x20）
  */
 
 type IconName =
@@ -71,20 +92,24 @@ type IconName =
   | "check-circle";
 
 type Size = "sm" | "md" | "lg" | "xl";
+type Variant = "outline" | "solid" | "mini";
 
 interface Props {
   /** アイコン名 */
   name: IconName;
   /** サイズ */
   size?: Size;
+  /** バリアント（outline: 線のみ, solid: 塗りつぶし, mini: 小さい塗りつぶし） */
+  variant?: Variant;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: "md",
+  variant: "outline",
 });
 
-// アイコン名とコンポーネントのマッピング
-const iconMap: Record<IconName, Component> = {
+// Outline (24x24)
+const iconMapOutline: Record<IconName, Component> = {
   plus: PlusIcon,
   minus: MinusIcon,
   x: XMarkIcon,
@@ -116,6 +141,84 @@ const iconMap: Record<IconName, Component> = {
   "check-circle": CheckCircleIcon,
 };
 
+// Solid (24x24) - 必要に応じて追加
+const iconMapSolid: Record<IconName, Component> = {
+  warning: ExclamationTriangleIconSolid,
+  "check-circle": CheckCircleIconSolid,
+  info: InformationCircleIconSolid,
+  photo: PhotoIconSolid,
+  folder: FolderIconSolid,
+  plus: PlusIcon,
+  minus: MinusIcon,
+  x: XMarkIcon,
+  user: UserIcon,
+  home: HomeIcon,
+  cart: ShoppingCartIcon,
+  yen: CurrencyYenIcon,
+  chart: ChartBarIcon,
+  settings: Cog6ToothIcon,
+  "arrow-right": ArrowRightIcon,
+  "arrow-left": ArrowLeftIcon,
+  "chevron-down": ChevronDownIcon,
+  "chevron-up": ChevronUpIcon,
+  pencil: PencilIcon,
+  trash: TrashIcon,
+  check: CheckIcon,
+  "currency-yen": CurrencyYenIcon,
+  document: DocumentTextIcon,
+  download: ArrowDownTrayIcon,
+  refresh: ArrowPathIcon,
+  calendar: CalendarIcon,
+  tag: TagIcon,
+  banknotes: BanknotesIcon,
+  "clipboard-list": ClipboardDocumentListIcon,
+};
+
+// Mini (20x20) - よく使うものだけ
+const iconMapMini: Record<IconName, Component> = {
+  warning: ExclamationTriangleIconMini,
+  "check-circle": CheckCircleIconMini,
+  info: InformationCircleIconMini,
+  plus: PlusIcon,
+  minus: MinusIcon,
+  x: XMarkIcon,
+  user: UserIcon,
+  home: HomeIcon,
+  cart: ShoppingCartIcon,
+  yen: CurrencyYenIcon,
+  chart: ChartBarIcon,
+  settings: Cog6ToothIcon,
+  "arrow-right": ArrowRightIcon,
+  "arrow-left": ArrowLeftIcon,
+  "chevron-down": ChevronDownIcon,
+  "chevron-up": ChevronUpIcon,
+  pencil: PencilIcon,
+  trash: TrashIcon,
+  check: CheckIcon,
+  "currency-yen": CurrencyYenIcon,
+  folder: FolderIcon,
+  photo: PhotoIcon,
+  document: DocumentTextIcon,
+  download: ArrowDownTrayIcon,
+  refresh: ArrowPathIcon,
+  calendar: CalendarIcon,
+  tag: TagIcon,
+  banknotes: BanknotesIcon,
+  "clipboard-list": ClipboardDocumentListIcon,
+};
+
+const iconComponent = computed(() => {
+  switch (props.variant) {
+    case "solid":
+      return iconMapSolid[props.name];
+    case "mini":
+      return iconMapMini[props.name];
+    case "outline":
+    default:
+      return iconMapOutline[props.name];
+  }
+});
+
 const sizeClasses: Record<Size, string> = {
   sm: "w-4 h-4",
   md: "w-5 h-5",
@@ -123,7 +226,6 @@ const sizeClasses: Record<Size, string> = {
   xl: "w-8 h-8",
 };
 
-const iconComponent = computed(() => iconMap[props.name]);
 const iconClass = computed(() => sizeClasses[props.size]);
 </script>
 
