@@ -11,6 +11,7 @@ import TransactionFormFields from "../molecules/TransactionFormFields.vue";
 import TransactionItemsList from "../molecules/TransactionItemsList.vue";
 import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
 import ReceiptUploadArea from "../molecules/ReceiptUploadArea.vue";
+import BaseSpinner from "../atoms/BaseSpinner.vue";
 
 interface Props {
   isOpen: boolean;
@@ -154,7 +155,15 @@ const handleClose = () => {
       <div v-if="isOcrMode && !isOcrCompleted">
         <ReceiptUploadArea @upload="handleReceiptUpload" />
 
+        <!-- OCR解析中の表示 -->
         <div v-if="isOcrLoading" class="text-center py-8">
+          <BaseSpinner
+            icon="settings"
+            size="lg"
+            color="primary"
+            label="レシート解析中"
+            class="mb-2"
+          />
           <BaseText variant="body" color="gray">解析中...</BaseText>
         </div>
 
@@ -234,11 +243,20 @@ const handleClose = () => {
             @click="handleSubmit"
             class="flex-1"
           >
-            <span v-if="isSubmitting">
-              {{ isEditMode ? "更新中..." : "登録中..." }}
-            </span>
-            <span v-else>
-              {{ isEditMode ? "更新" : "登録" }}
+            <!-- ボタン内スピナー -->
+            <span class="flex items-center justify-center gap-2">
+              <BaseSpinner
+                v-if="isSubmitting"
+                icon="settings"
+                size="sm"
+                color="gray"
+              />
+              <span v-if="isSubmitting">
+                {{ isEditMode ? "更新中..." : "登録中..." }}
+              </span>
+              <span v-else>
+                {{ isEditMode ? "更新" : "登録" }}
+              </span>
             </span>
           </BaseButton>
         </div>
