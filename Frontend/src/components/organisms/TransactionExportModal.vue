@@ -166,7 +166,12 @@ watch(
 
       <BaseCard padding="sm" class="bg-yellow-50 border border-yellow-200">
         <div class="flex items-start gap-2 mb-2">
-          <BaseIcon name="warning" size="sm" class="text-yellow-600" />
+          <BaseIcon
+            name="warning"
+            size="sm"
+            class="text-yellow-600"
+            variant="solid"
+          />
           <BaseText variant="caption" weight="bold" class="text-yellow-800">
             注意事項
           </BaseText>
@@ -183,7 +188,12 @@ watch(
         class="p-3 bg-red-100 border border-red-400 rounded-lg"
       >
         <div class="flex items-start gap-2">
-          <BaseIcon name="warning" size="sm" class="text-red-700 mt-0.5" />
+          <BaseIcon
+            name="warning"
+            size="sm"
+            class="text-red-700 mt-0.5"
+            variant="solid"
+          />
           <BaseText variant="caption" class="text-red-700">
             {{ errorMessage }}
           </BaseText>
@@ -257,7 +267,12 @@ watch(
           class="pt-3 border-t border-gray-200"
         >
           <div class="flex items-start gap-2">
-            <BaseIcon name="warning" size="sm" class="text-red-500 mt-0.5" />
+            <BaseIcon
+              name="warning"
+              size="sm"
+              class="text-red-500 mt-0.5"
+              variant="solid"
+            />
             <BaseText variant="body" class="text-red-600">
               {{ exportResult.imagesFailedCount }}件の画像を取得できませんでした
             </BaseText>

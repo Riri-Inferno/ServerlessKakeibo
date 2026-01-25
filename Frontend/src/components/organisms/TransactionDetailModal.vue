@@ -278,13 +278,12 @@ const handleDelete = () => {
                 クリックして画像を選択（自動で圧縮されます）
               </BaseText>
             </div>
-            <BaseText
-              variant="caption"
-              color="gray"
-              class="mt-2 block text-center"
-            >
-              ⚠️ 一度添付すると変更できません（作成から7日以内のみ可能）
-            </BaseText>
+            <div class="flex items-center justify-center gap-1.5 mt-2">
+              <BaseIcon name="warning" size="sm" class="text-yellow-600" />
+              <BaseText variant="caption" color="gray">
+                一度添付すると変更できません（作成から7日以内のみ可能）
+              </BaseText>
+            </div>
           </BaseCard>
 
           <input
