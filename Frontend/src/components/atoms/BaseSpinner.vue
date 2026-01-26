@@ -11,7 +11,8 @@ type Color =
   | "danger"
   | "warning"
   | "info"
-  | "gray";
+  | "gray"
+  | "white";
 type IconType = "refresh" | "settings";
 
 interface Props {
@@ -50,6 +51,7 @@ const colorClasses: Record<Color, string> = {
   warning: "text-yellow-500",
   info: "text-blue-400",
   gray: "text-gray-400",
+  white: "text-white",
 };
 
 const iconClass = computed(() =>

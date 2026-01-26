@@ -4,6 +4,7 @@ import {
   authRepository,
   type CurrentUser,
 } from "../repositories/authRepository";
+import { settingsRepository } from "../repositories/settingsRepository";
 import { useAuthStore } from "../stores/authStore";
 
 /**
@@ -20,6 +21,7 @@ export function useAuth() {
   const isAuthenticated = computed(() => authStore.isAuthenticated);
   const user = computed(() => authStore.user);
   const accessToken = computed(() => authStore.accessToken);
+  const effectiveDisplayName = computed(() => authStore.effectiveDisplayName);
 
   /**
    * ログアウト
@@ -40,6 +42,17 @@ export function useAuth() {
     return await authRepository.getCurrentUser();
   };
 
+  // 設定を取得してストアに保存
+  const fetchSettings = async () => {
+    try {
+      const settings = await settingsRepository.getUserSettings();
+      authStore.setSettings(settings);
+    } catch (error) {
+      console.error("設定取得エラー:", error);
+      // エラーでも処理は継続
+    }
+  };
+
   return {
     // State
     isLoading,
@@ -47,9 +60,11 @@ export function useAuth() {
     isAuthenticated,
     user,
     accessToken,
+    effectiveDisplayName,
 
     // Actions
     logout,
     fetchCurrentUser,
+    fetchSettings,
   };
 }

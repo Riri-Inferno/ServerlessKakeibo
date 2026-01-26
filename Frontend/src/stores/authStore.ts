@@ -4,6 +4,7 @@ import {
   authRepository,
   type LoginResult,
 } from "../repositories/authRepository";
+import type { UserSettings } from "../types/settings";
 
 /**
  * ユーザー情報の型
@@ -22,9 +23,16 @@ export const useAuthStore = defineStore("auth", () => {
   const accessToken = ref<string | null>(null);
   const refreshToken = ref<string | null>(null);
   const user = ref<User | null>(null);
+  const settings = ref<UserSettings | null>(null);
 
   // Getters
   const isAuthenticated = computed(() => !!accessToken.value);
+
+  // 表示名(Override考慮)
+  const effectiveDisplayName = computed(() => {
+    if (!user.value) return "";
+    return settings.value?.displayNameOverride || user.value.displayName;
+  });
 
   /**
    * 初期化：localStorage からデータを復元
@@ -33,14 +41,16 @@ export const useAuthStore = defineStore("auth", () => {
     const savedAccessToken = localStorage.getItem("accessToken");
     const savedRefreshToken = localStorage.getItem("refreshToken");
     const savedUser = localStorage.getItem("user");
+    const savedSettings = localStorage.getItem("settings");
 
     if (savedAccessToken) accessToken.value = savedAccessToken;
     if (savedRefreshToken) refreshToken.value = savedRefreshToken;
     if (savedUser) user.value = JSON.parse(savedUser);
+    if (savedSettings) settings.value = JSON.parse(savedSettings);
   };
 
   /**
-   * ログイン成功時：トークンとユーザー情報を保存
+   * ログイン成功時:トークンとユーザー情報を保存
    */
   const setAuthData = (data: LoginResult) => {
     accessToken.value = data.accessToken;
@@ -57,6 +67,12 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.setItem("user", JSON.stringify(user.value));
   };
 
+  // 設定を保存
+  const setSettings = (newSettings: UserSettings) => {
+    settings.value = newSettings;
+    localStorage.setItem("settings", JSON.stringify(newSettings));
+  };
+
   /**
    * ログアウト
    */
@@ -64,10 +80,12 @@ export const useAuthStore = defineStore("auth", () => {
     accessToken.value = null;
     refreshToken.value = null;
     user.value = null;
+    settings.value = null;
 
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("settings");
   };
 
   /**
@@ -94,13 +112,16 @@ export const useAuthStore = defineStore("auth", () => {
     accessToken,
     refreshToken,
     user,
+    settings,
 
     // Getters
     isAuthenticated,
+    effectiveDisplayName,
 
     // Actions
     initialize,
     setAuthData,
+    setSettings,
     logout,
     refreshAccessToken,
   };
