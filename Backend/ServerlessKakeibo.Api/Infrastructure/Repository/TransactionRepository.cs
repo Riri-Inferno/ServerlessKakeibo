@@ -258,4 +258,165 @@ public class TransactionRepository : ITransactionRepository
             .ThenByDescending(t => t.CreatedAt)
             .ToListAsync(ct);
     }
+
+    /// <summary>
+    /// 全カテゴリの支出内訳を取得（TopN制限なし）
+    /// </summary>
+    public async Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        var expenseByCategory = await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && !t.IsDeleted
+                && t.Type == TransactionType.Expense
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .GroupBy(t => t.Category)
+            .Select(g => new
+            {
+                Category = g.Key,
+                Amount = g.Sum(t => t.AmountTotal ?? 0),
+                Count = g.Count()
+            })
+            .ToListAsync(ct);
+
+        return expenseByCategory.ToDictionary(
+            x => x.Category,
+            x => (x.Amount, x.Count)
+        );
+    }
+
+    /// <summary>
+    /// 指定月の最高額支出取引を取得
+    /// </summary>
+    public async Task<TransactionEntity?> GetMaxExpenseTransactionAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        return await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && !t.IsDeleted
+                && t.Type == TransactionType.Expense
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .OrderByDescending(t => t.AmountTotal)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    /// <summary>
+    /// 指定月の最も頻度の高いカテゴリを取得
+    /// </summary>
+    public async Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        var result = await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && !t.IsDeleted
+                && t.Type == TransactionType.Expense
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .GroupBy(t => t.Category)
+            .Select(g => new
+            {
+                Category = g.Key,
+                Count = g.Count(),
+                TotalAmount = g.Sum(t => t.AmountTotal ?? 0)
+            })
+            .OrderByDescending(x => x.Count)
+            .ThenByDescending(x => x.TotalAmount)
+            .FirstOrDefaultAsync(ct);
+
+        if (result == null)
+            return null;
+
+        return (result.Category, result.Count, result.TotalAmount);
+    }
+
+    /// <summary>
+    /// 指定月の支出があった日数を取得
+    /// </summary>
+    public async Task<int> GetDaysWithExpenseAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        return await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && !t.IsDeleted
+                && t.Type == TransactionType.Expense
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .Select(t => t.TransactionDate!.Value.Date)
+            .Distinct()
+            .CountAsync(ct);
+    }
+
+    /// <summary>
+    /// 複数月の月次サマリーを一括取得（月次推移用）
+    /// </summary>
+    public async Task<List<(int Year, int Month, decimal Income, decimal Expense, decimal Balance)>> GetMonthlyAggregatesAsync(
+        Guid userId,
+        List<(int Year, int Month)> monthlyRanges,
+        CancellationToken ct = default)
+    {
+        var results = new List<(int Year, int Month, decimal Income, decimal Expense, decimal Balance)>();
+
+        foreach (var (year, month) in monthlyRanges)
+        {
+            var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+            var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+            var transactions = await _context.Transactions
+                .AsNoTracking()
+                .Where(t => t.UserId == userId
+                    && !t.IsDeleted
+                    && t.TransactionDate >= startDate
+                    && t.TransactionDate <= endDate)
+                .Select(t => new
+                {
+                    t.Type,
+                    t.AmountTotal
+                })
+                .ToListAsync(ct);
+
+            var income = transactions
+                .Where(t => t.Type == TransactionType.Income)
+                .Sum(t => t.AmountTotal ?? 0);
+
+            var expense = transactions
+                .Where(t => t.Type == TransactionType.Expense)
+                .Sum(t => t.AmountTotal ?? 0);
+
+            var balance = income - expense;
+
+            results.Add((year, month, income, expense, balance));
+        }
+
+        return results;
+    }
 }

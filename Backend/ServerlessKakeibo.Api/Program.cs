@@ -31,6 +31,8 @@ using ServerlessKakeibo.Api.Application.TransactionSummary;
 using ServerlessKakeibo.Api.Application.TransactionSummary.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionExport.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionExport;
+using ServerlessKakeibo.Api.Application.Statistics.Usecases;
+using ServerlessKakeibo.Api.Application.Statistics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,6 +122,7 @@ builder.Services.AddScoped<IMonthlySummaryUseCase, MonthlySummaryInteractor>();
 builder.Services.AddScoped<ITransactionAttachReceiptUseCase, TransactionAttachReceiptInteractor>();
 builder.Services.AddScoped<IGetReceiptImageUrlUseCase, GetReceiptImageUrlInteractor>();
 builder.Services.AddScoped<ITransactionExportUseCase, TransactionExportInteractor>();
+builder.Services.AddScoped<IStatisticsUseCase, StatisticsInteractor>();
 #endregion
 
 #region DomainServices
