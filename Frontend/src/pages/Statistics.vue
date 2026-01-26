@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, computed } from "vue";
+import { onMounted } from "vue";
 import { useStatistics } from "../composables/useStatistics";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseIcon from "../components/atoms/BaseIcon.vue";
+import BaseButton from "../components/atoms/BaseButton.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 import StatsSummaryCards from "../components/molecules/StatsSummaryCards.vue";
 import CategoryBreakdownList from "../components/molecules/CategoryBreakdownList.vue";
@@ -19,39 +20,66 @@ const {
   highlights,
   isLoading,
   errorMessage,
-  fetchMonthlyComparison,
-  fetchCategoryBreakdown,
-  fetchMonthlyTrend,
-  fetchHighlights,
-  getCurrentYearMonth,
+  currentMonthLabel,
+  fetchCurrentMonth,
+  goToPreviousMonth,
+  goToNextMonth,
+  goToCurrentMonth,
 } = useStatistics();
 
-const currentMonth = computed(() => {
-  if (!monthlyComparison.value) return "";
-  const { year, month } = monthlyComparison.value.current;
-  return `${year}年${month}月`;
-});
-
 onMounted(async () => {
-  const { year, month } = getCurrentYearMonth();
-
-  await Promise.all([
-    fetchMonthlyComparison(year, month),
-    fetchCategoryBreakdown(year, month),
-    fetchMonthlyTrend(6),
-    fetchHighlights(year, month),
-  ]);
+  await fetchCurrentMonth();
 });
 </script>
 
 <template>
   <DefaultLayout>
     <div class="max-w-7xl mx-auto space-y-6">
-      <!-- ヘッダー -->
+      <!-- ヘッダー + 月切り替え -->
       <div class="mb-6">
-        <BaseText variant="h1" class="mb-2">統計</BaseText>
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+        >
+          <BaseText variant="h1">統計</BaseText>
+
+          <!-- 月切り替えUI -->
+          <div class="flex items-center justify-center sm:justify-end gap-2">
+            <BaseButton
+              variant="outline"
+              size="sm"
+              @click="goToPreviousMonth"
+              :disabled="isLoading"
+            >
+              <BaseIcon name="chevron-left" size="sm" />
+            </BaseButton>
+
+            <div class="min-w-[140px] text-center px-4">
+              <BaseText variant="h3">{{ currentMonthLabel }}</BaseText>
+            </div>
+
+            <BaseButton
+              variant="outline"
+              size="sm"
+              @click="goToNextMonth"
+              :disabled="isLoading"
+            >
+              <BaseIcon name="chevron-right" size="sm" />
+            </BaseButton>
+
+            <BaseButton
+              variant="outline"
+              size="sm"
+              @click="goToCurrentMonth"
+              :disabled="isLoading"
+              class="ml-2"
+            >
+              今月
+            </BaseButton>
+          </div>
+        </div>
+
         <BaseText variant="caption" color="gray">
-          {{ currentMonth }}の収支状況
+          {{ currentMonthLabel }}の収支状況
         </BaseText>
       </div>
 
