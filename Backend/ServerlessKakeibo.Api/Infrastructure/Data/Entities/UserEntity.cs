@@ -8,7 +8,8 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
     public class UserEntity : BaseEntity
     {
         /// <summary>
-        /// 表示名（Googleから取得した名前、またはユーザーが設定した名前）
+        /// 表示名(Googleから取得した名前、またはユーザーが設定した名前)
+        /// Googleログイン時に毎回更新される
         /// </summary>
         [Required]
         [MaxLength(100)]
@@ -21,13 +22,13 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? Email { get; set; }
 
         /// <summary>
-        /// プロフィール画像のURL（Googleから提供される画像URLなど）
+        /// プロフィール画像のURL(Googleから提供される画像URLなど)
         /// </summary>
         [MaxLength(500)]
         public string? PictureUrl { get; set; }
 
         /// <summary>
-        /// リフレッシュトークン（トークン更新用）
+        /// リフレッシュトークン(トークン更新用)
         /// </summary>
         [MaxLength(500)]
         public string? RefreshToken { get; set; }
@@ -48,5 +49,10 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// </summary>
         public ICollection<TransactionEntity> Transactions { get; set; }
             = new List<TransactionEntity>();
+
+        /// <summary>
+        /// このユーザーの設定(1対1リレーション)
+        /// </summary>
+        public UserSettingsEntity? Settings { get; set; }
     }
 }

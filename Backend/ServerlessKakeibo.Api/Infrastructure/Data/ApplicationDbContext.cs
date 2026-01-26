@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<TransactionItemEntity> TransactionItems { get; set; } = default!;
     public DbSet<TaxDetailEntity> TaxDetails { get; set; } = default!;
     public DbSet<ShopDetailEntity> ShopDetails { get; set; } = default!;
+    public DbSet<UserSettingsEntity> UserSettings { get; set; } = default!;
 
     /// <summary>
     /// 保存前の自動処理
@@ -101,6 +102,16 @@ public class ApplicationDbContext : DbContext
             .HasIndex(ue => new { ue.ProviderName, ue.ProviderKey })
             .IsUnique();
 
+        // UserSettingsEntity 
+        modelBuilder.Entity<UserSettingsEntity>()
+            .HasIndex(us => us.UserId)
+            .IsUnique()
+            .HasDatabaseName("IX_UserSettings_UserId");
+
+        modelBuilder.Entity<UserSettingsEntity>()
+            .HasIndex(us => us.TenantId)
+            .HasDatabaseName("IX_UserSettings_TenantId");
+
         // TransactionEntity
         modelBuilder.Entity<TransactionEntity>()
         .HasIndex(t => t.Category);
@@ -148,6 +159,13 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(ue => ue.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // User - UserSettings のリレーション (1対1)
+        modelBuilder.Entity<UserSettingsEntity>()
+            .HasOne(us => us.User)
+            .WithOne(u => u.Settings)
+            .HasForeignKey<UserSettingsEntity>(us => us.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Transaction - User のリレーション
         modelBuilder.Entity<TransactionEntity>()
             .HasOne(t => t.User)
@@ -179,6 +197,14 @@ public class ApplicationDbContext : DbContext
         #endregion
 
         #region settings
+        // UserSettingsEntity のデフォルト値設定
+        modelBuilder.Entity<UserSettingsEntity>()
+            .Property(us => us.TimeZone)
+            .HasDefaultValue("Asia/Tokyo");
+
+        modelBuilder.Entity<UserSettingsEntity>()
+            .Property(us => us.CurrencyCode)
+            .HasDefaultValue("JPY");
 
         // すべての BaseEntity 継承クラスに xmin による楽観ロックを設定
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
