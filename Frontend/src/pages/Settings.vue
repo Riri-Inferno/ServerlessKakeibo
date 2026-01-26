@@ -336,22 +336,25 @@ const closeExportModal = () => {
                   class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"
                 >
                   <!-- 左側: 説明エリア -->
-                  <div class="flex-1 space-y-2">
-                    <BaseText variant="body" weight="medium">
+                  <div class="flex-1 min-w-0">
+                    <BaseText variant="body" weight="medium" class="block">
                       取引データのエクスポート
                     </BaseText>
-                    <BaseText variant="caption" color="gray">
+
+                    <BaseText variant="caption" color="gray" class="block mb-2">
                       すべての取引データをCSVファイルとしてダウンロード
                     </BaseText>
-                    <!-- 導線リンク -->
+
                     <button
                       @click="router.push('/transactions')"
-                      class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                      class="block text-left text-sm text-blue-600 hover:text-blue-700 transition-colors mt-1"
                     >
-                      <BaseIcon name="arrow-right" size="sm" />
-                      <span class="underline"
-                        >詳細な条件でエクスポートする場合は取引一覧へ</span
-                      >
+                      <div class="flex items-center gap-1">
+                        <BaseIcon name="arrow-right" size="sm" />
+                        <span class="underline"
+                          >詳細な条件でエクスポートする場合は取引一覧へ</span
+                        >
+                      </div>
                     </button>
                   </div>
 
