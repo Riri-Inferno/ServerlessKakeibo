@@ -89,6 +89,9 @@ const handleSave = async () => {
           ? null
           : Number(formData.value.closingDay),
     });
+
+    const { fetchSettings } = useAuth();
+    await fetchSettings();
   } catch (error) {
     // エラーはcomposableで処理済み
   }
@@ -103,6 +106,8 @@ const handleResetToGoogle = async () => {
     try {
       await resetDisplayNameToGoogle();
       formData.value.displayNameOverride = "";
+      const { fetchSettings } = useAuth();
+      await fetchSettings();
     } catch (error) {
       // エラーはcomposableで処理済み
     }

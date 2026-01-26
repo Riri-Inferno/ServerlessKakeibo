@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// import { computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
@@ -9,7 +8,7 @@ const emit = defineEmits<{
   toggleSidebar: [];
 }>();
 
-const { user, logout } = useAuth();
+const { user, effectiveDisplayName, logout } = useAuth();
 </script>
 
 <template>
@@ -29,13 +28,13 @@ const { user, logout } = useAuth();
 
       <div class="flex items-center gap-2 md:gap-4">
         <BaseText variant="caption" color="gray" class="hidden sm:block">
-          {{ user?.displayName }}
+          {{ effectiveDisplayName }}
         </BaseText>
 
         <img
           v-if="user?.pictureUrl"
           :src="user.pictureUrl"
-          :alt="user.displayName"
+          :alt="effectiveDisplayName"
           class="w-8 h-8 md:w-10 md:h-10 rounded-full"
         />
 
