@@ -53,7 +53,7 @@ export const statisticsRepository = {
     month: number,
   ): Promise<MonthlyComparisonResult> {
     const response = await apiClient.get<ApiResponse<MonthlyComparisonResult>>(
-      "/Statistics/monthly-comparison",
+      "/api/Statistics/monthly-comparison",
       {
         params: { Year: year, Month: month },
       },
@@ -80,7 +80,7 @@ export const statisticsRepository = {
     month: number,
   ): Promise<CategoryBreakdownResult> {
     const response = await apiClient.get<ApiResponse<CategoryBreakdownResult>>(
-      "/Statistics/category-breakdown",
+      "/api/Statistics/category-breakdown",
       {
         params: { Year: year, Month: month },
       },
@@ -103,7 +103,7 @@ export const statisticsRepository = {
    */
   async getMonthlyTrend(months: number = 6): Promise<MonthlyTrendResult> {
     const response = await apiClient.get<ApiResponse<MonthlyTrendResult>>(
-      "/Statistics/trend",
+      "/api/Statistics/trend",
       {
         params: { Months: months },
       },
@@ -125,7 +125,7 @@ export const statisticsRepository = {
    */
   async getHighlights(year: number, month: number): Promise<HighlightsResult> {
     const response = await apiClient.get<ApiResponse<HighlightsResult>>(
-      "/Statistics/highlights",
+      "/api/Statistics/highlights",
       {
         params: { Year: year, Month: month },
       },
