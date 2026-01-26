@@ -33,6 +33,8 @@ using ServerlessKakeibo.Api.Application.TransactionExport.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionExport;
 using ServerlessKakeibo.Api.Application.Statistics.Usecases;
 using ServerlessKakeibo.Api.Application.Statistics;
+using ServerlessKakeibo.Api.Application.UserSettings.Usecases;
+using ServerlessKakeibo.Api.Application.UserSettings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,6 +125,8 @@ builder.Services.AddScoped<ITransactionAttachReceiptUseCase, TransactionAttachRe
 builder.Services.AddScoped<IGetReceiptImageUrlUseCase, GetReceiptImageUrlInteractor>();
 builder.Services.AddScoped<ITransactionExportUseCase, TransactionExportInteractor>();
 builder.Services.AddScoped<IStatisticsUseCase, StatisticsInteractor>();
+builder.Services.AddScoped<IGetUserSettingsUseCase, GetUserSettingsInteractor>();
+builder.Services.AddScoped<IUpdateUserSettingsUseCase, UpdateUserSettingsInteractor>();
 #endregion
 
 #region DomainServices
@@ -141,6 +145,7 @@ builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadR
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
 builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
+builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 #endregion
 
 #region CORS settings
