@@ -5,6 +5,7 @@ import Login from "../pages/Login.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import TransactionList from "../pages/TransactionList.vue";
 import Statistics from "../pages/Statistics.vue";
+import Settings from "../pages/Settings.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -35,6 +36,12 @@ const router = createRouter({
       path: "/statistics",
       name: "stats",
       component: Statistics,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/settings",
+      name: "settings",
+      component: Settings,
       meta: { requiresAuth: true },
     },
   ],
