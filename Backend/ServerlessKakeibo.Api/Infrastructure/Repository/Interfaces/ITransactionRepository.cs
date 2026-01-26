@@ -83,4 +83,72 @@ public interface ITransactionRepository
         decimal? maxAmount = null,
         TransactionType? type = null,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// 全カテゴリの支出内訳を取得（TopN制限なし）
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="year">対象年</param>
+    /// <param name="month">対象月</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>カテゴリ別の金額と件数</returns>
+    Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 指定月の最高額支出取引を取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="year">対象年</param>
+    /// <param name="month">対象月</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>最高額の取引（支出のみ）</returns>
+    Task<TransactionEntity?> GetMaxExpenseTransactionAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 指定月の最も頻度の高いカテゴリを取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="year">対象年</param>
+    /// <param name="month">対象月</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>カテゴリ、件数、合計金額</returns>
+    Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 指定月の支出があった日数を取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="year">対象年</param>
+    /// <param name="month">対象月</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>支出があった日数</returns>
+    Task<int> GetDaysWithExpenseAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 複数月の月次サマリーを一括取得（月次推移用）
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="monthlyRanges">取得する年月のリスト</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>各月の収入・支出・収支</returns>
+    Task<List<(int Year, int Month, decimal Income, decimal Expense, decimal Balance)>> GetMonthlyAggregatesAsync(
+        Guid userId,
+        List<(int Year, int Month)> monthlyRanges,
+        CancellationToken ct = default);
 }
