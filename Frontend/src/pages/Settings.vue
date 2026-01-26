@@ -11,6 +11,7 @@ import BaseIcon from "../components/atoms/BaseIcon.vue";
 import BaseInput from "../components/atoms/BaseInput.vue";
 import BaseSelect from "../components/atoms/BaseSelect.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
+import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 
 // 環境変数からバージョン情報を取得
 const appVersion = import.meta.env.VITE_APP_VERSION || "不明";
@@ -39,6 +40,10 @@ const formData = ref({
   timeZone: "Asia/Tokyo",
   currencyCode: "JPY",
 });
+
+// エクスポートモーダル用の状態
+const isExportModalOpen = ref(false);
+const exportFilters = ref({});
 
 // フォームが変更されたかどうか
 const hasChanges = computed(() => {
@@ -112,14 +117,20 @@ const handleLogout = async () => {
   }
 };
 
-// エクスポート（取引一覧に遷移）
-const handleExportAllData = () => {
-  router.push("/transactions");
-};
-
 // データ削除（未実装）
 const handleDeleteAllData = () => {
   alert("この機能は準備中です");
+};
+
+// エクスポートモーダルを開く
+const handleExportAllData = () => {
+  exportFilters.value = {}; // 全検索（条件未指定）
+  isExportModalOpen.value = true;
+};
+
+// エクスポートモーダルを閉じる
+const closeExportModal = () => {
+  isExportModalOpen.value = false;
 };
 </script>
 
@@ -320,50 +331,71 @@ const handleDeleteAllData = () => {
 
             <div class="space-y-3">
               <!-- エクスポート -->
-              <div
-                class="flex items-center justify-between py-3 border-b border-gray-100"
-              >
-                <div>
-                  <BaseText variant="body" weight="medium" class="mb-1">
-                    取引データのエクスポート
-                  </BaseText>
-                  <BaseText variant="caption" color="gray">
-                    CSVファイルとしてダウンロード
-                  </BaseText>
-                </div>
-                <BaseButton
-                  variant="outline"
-                  size="sm"
-                  @click="handleExportAllData"
+              <div class="py-3 border-b border-gray-100">
+                <div
+                  class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"
                 >
-                  <span class="flex items-center gap-1">
-                    <BaseIcon name="download" size="sm" />
-                    <span>エクスポート</span>
-                  </span>
-                </BaseButton>
+                  <!-- 左側: 説明エリア -->
+                  <div class="flex-1 space-y-2">
+                    <BaseText variant="body" weight="medium">
+                      取引データのエクスポート
+                    </BaseText>
+                    <BaseText variant="caption" color="gray">
+                      すべての取引データをCSVファイルとしてダウンロード
+                    </BaseText>
+                    <!-- 導線リンク -->
+                    <button
+                      @click="router.push('/transactions')"
+                      class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      <BaseIcon name="arrow-right" size="sm" />
+                      <span class="underline"
+                        >詳細な条件でエクスポートする場合は取引一覧へ</span
+                      >
+                    </button>
+                  </div>
+
+                  <!-- 右側: ボタン -->
+                  <BaseButton
+                    variant="outline"
+                    size="sm"
+                    @click="handleExportAllData"
+                    class="flex-shrink-0 self-start md:self-center"
+                  >
+                    <span class="flex items-center gap-1">
+                      <BaseIcon name="download" size="sm" />
+                      <span>エクスポート</span>
+                    </span>
+                  </BaseButton>
+                </div>
               </div>
 
               <!-- データ削除（将来実装） -->
-              <div class="flex items-center justify-between py-3">
-                <div>
-                  <BaseText variant="body" weight="medium" class="mb-1">
-                    全データの削除
-                  </BaseText>
-                  <BaseText variant="caption" color="gray">
-                    すべての取引データを削除します（準備中）
-                  </BaseText>
-                </div>
-                <BaseButton
-                  variant="outline"
-                  size="sm"
-                  :disabled="true"
-                  @click="handleDeleteAllData"
+              <div class="py-3">
+                <div
+                  class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"
                 >
-                  <span class="flex items-center gap-1">
-                    <BaseIcon name="trash" size="sm" />
-                    <span>削除</span>
-                  </span>
-                </BaseButton>
+                  <div class="flex-1">
+                    <BaseText variant="body" weight="medium" class="mb-1">
+                      全データの削除
+                    </BaseText>
+                    <BaseText variant="caption" color="gray">
+                      すべての取引データを削除します（準備中）
+                    </BaseText>
+                  </div>
+                  <BaseButton
+                    variant="outline"
+                    size="sm"
+                    :disabled="true"
+                    @click="handleDeleteAllData"
+                    class="flex-shrink-0 self-start md:self-center"
+                  >
+                    <span class="flex items-center gap-1">
+                      <BaseIcon name="trash" size="sm" />
+                      <span>削除</span>
+                    </span>
+                  </BaseButton>
+                </div>
               </div>
             </div>
           </div>
@@ -396,5 +428,11 @@ const handleDeleteAllData = () => {
         </BaseCard>
       </template>
     </div>
+    <!-- エクスポートモーダル -->
+    <TransactionExportModal
+      :is-open="isExportModalOpen"
+      :filters="exportFilters"
+      @close="closeExportModal"
+    />
   </DefaultLayout>
 </template>
