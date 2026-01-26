@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { statisticsRepository } from "../repositories/statisticsRepository";
 import type {
   MonthlySummaryResult,
@@ -17,6 +17,15 @@ export function useStatistics() {
 
   const isLoading = ref(false);
   const errorMessage = ref("");
+
+  // 現在表示中の年月
+  const currentYear = ref<number>(new Date().getFullYear());
+  const currentMonth = ref<number>(new Date().getMonth() + 1);
+
+  // 表示用ラベル
+  const currentMonthLabel = computed(
+    () => `${currentYear.value}年${currentMonth.value}月`,
+  );
 
   /**
    * 月次サマリーを取得
@@ -125,6 +134,53 @@ export function useStatistics() {
     }
   };
 
+  // 現在月のすべてのデータを取得
+  const fetchCurrentMonth = async () => {
+    await Promise.all([
+      fetchMonthlyComparison(currentYear.value, currentMonth.value),
+      fetchCategoryBreakdown(currentYear.value, currentMonth.value),
+      fetchMonthlyTrend(6),
+      fetchHighlights(currentYear.value, currentMonth.value),
+    ]);
+  };
+
+  // 前月に移動
+  const goToPreviousMonth = async () => {
+    if (currentMonth.value === 1) {
+      currentMonth.value = 12;
+      currentYear.value--;
+    } else {
+      currentMonth.value--;
+    }
+    await fetchCurrentMonth();
+  };
+
+  // 次月に移動
+  const goToNextMonth = async () => {
+    if (currentMonth.value === 12) {
+      currentMonth.value = 1;
+      currentYear.value++;
+    } else {
+      currentMonth.value++;
+    }
+    await fetchCurrentMonth();
+  };
+
+  // 今月に戻る
+  const goToCurrentMonth = async () => {
+    const now = new Date();
+    currentYear.value = now.getFullYear();
+    currentMonth.value = now.getMonth() + 1;
+    await fetchCurrentMonth();
+  };
+
+  // 特定の年月に移動
+  const goToMonth = async (year: number, month: number) => {
+    currentYear.value = year;
+    currentMonth.value = month;
+    await fetchCurrentMonth();
+  };
+
   /**
    * 現在の年月を取得
    */
@@ -145,6 +201,9 @@ export function useStatistics() {
     highlights,
     isLoading,
     errorMessage,
+    currentYear,
+    currentMonth,
+    currentMonthLabel,
 
     // Methods
     fetchMonthlySummary,
@@ -152,6 +211,11 @@ export function useStatistics() {
     fetchCategoryBreakdown,
     fetchMonthlyTrend,
     fetchHighlights,
+    fetchCurrentMonth,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToCurrentMonth,
+    goToMonth,
     getCurrentYearMonth,
   };
 }
