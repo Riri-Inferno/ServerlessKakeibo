@@ -141,6 +141,7 @@ builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadR
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
 builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
+builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 #endregion
 
 #region CORS settings
