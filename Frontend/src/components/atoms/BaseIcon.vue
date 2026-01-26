@@ -31,6 +31,8 @@ import {
   BanknotesIcon,
   ClipboardDocumentListIcon,
   CheckCircleIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from "@heroicons/vue/24/outline";
 
 // ===== Solid (24x24) =====
@@ -89,7 +91,9 @@ type IconName =
   | "tag"
   | "banknotes"
   | "clipboard-list"
-  | "check-circle";
+  | "check-circle"
+  | "arrow-up"
+  | "arrow-down";
 
 type Size = "sm" | "md" | "lg" | "xl";
 type Variant = "outline" | "solid" | "mini";
@@ -139,6 +143,8 @@ const iconMapOutline: Record<IconName, Component> = {
   banknotes: BanknotesIcon,
   "clipboard-list": ClipboardDocumentListIcon,
   "check-circle": CheckCircleIcon,
+  "arrow-up": ArrowUpIcon,
+  "arrow-down": ArrowDownIcon,
 };
 
 // Solid (24x24) - 必要に応じて追加
@@ -172,6 +178,8 @@ const iconMapSolid: Record<IconName, Component> = {
   tag: TagIcon,
   banknotes: BanknotesIcon,
   "clipboard-list": ClipboardDocumentListIcon,
+  "arrow-up": ArrowUpIcon,
+  "arrow-down": ArrowDownIcon,
 };
 
 // Mini (20x20) - よく使うものだけ
@@ -205,6 +213,8 @@ const iconMapMini: Record<IconName, Component> = {
   tag: TagIcon,
   banknotes: BanknotesIcon,
   "clipboard-list": ClipboardDocumentListIcon,
+  "arrow-up": ArrowUpIcon,
+  "arrow-down": ArrowDownIcon,
 };
 
 const iconComponent = computed(() => {
