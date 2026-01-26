@@ -62,8 +62,8 @@ export function useSettings() {
    * 締め日オプションを取得(1-31 + 月末)
    */
   const getClosingDayOptions = () => {
-    const options: Array<{ value: number | null; label: string }> = [
-      { value: null, label: "月末締め" },
+    const options: Array<{ value: string | number; label: string }> = [
+      { value: "", label: "月末締め" },
     ];
 
     for (let i = 1; i <= 31; i++) {
@@ -72,7 +72,6 @@ export function useSettings() {
 
     return options;
   };
-
   /**
    * 締め日の表示ラベルを取得
    */

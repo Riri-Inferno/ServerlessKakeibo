@@ -81,6 +81,7 @@ type IconName =
   | "check"
   | "warning"
   | "info"
+  | "alert"
   | "currency-yen"
   | "folder"
   | "photo"
@@ -145,6 +146,7 @@ const iconMapOutline: Record<IconName, Component> = {
   "check-circle": CheckCircleIcon,
   "arrow-up": ArrowUpIcon,
   "arrow-down": ArrowDownIcon,
+  alert: ExclamationTriangleIcon,
 };
 
 // Solid (24x24) - 必要に応じて追加
@@ -180,6 +182,7 @@ const iconMapSolid: Record<IconName, Component> = {
   "clipboard-list": ClipboardDocumentListIcon,
   "arrow-up": ArrowUpIcon,
   "arrow-down": ArrowDownIcon,
+  alert: ExclamationTriangleIconSolid,
 };
 
 // Mini (20x20) - よく使うものだけ
@@ -215,6 +218,7 @@ const iconMapMini: Record<IconName, Component> = {
   "clipboard-list": ClipboardDocumentListIcon,
   "arrow-up": ArrowUpIcon,
   "arrow-down": ArrowDownIcon,
+  alert: ExclamationTriangleIconMini,
 };
 
 const iconComponent = computed(() => {
