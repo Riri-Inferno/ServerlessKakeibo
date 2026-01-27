@@ -21,6 +21,8 @@ const {
   isLoading,
   errorMessage,
   currentMonthLabel,
+  isCurrentMonth,
+  isFutureMonth,
   fetchCurrentMonth,
   goToPreviousMonth,
   goToNextMonth,
@@ -49,6 +51,7 @@ onMounted(async () => {
               size="sm"
               @click="goToPreviousMonth"
               :disabled="isLoading"
+              aria-label="前月"
             >
               <BaseIcon name="chevron-left" size="sm" />
             </BaseButton>
@@ -57,11 +60,13 @@ onMounted(async () => {
               <BaseText variant="h3">{{ currentMonthLabel }}</BaseText>
             </div>
 
+            <!-- 次月ボタン: 未来の月または現在の月なら無効化 -->
             <BaseButton
               variant="outline"
               size="sm"
               @click="goToNextMonth"
-              :disabled="isLoading"
+              :disabled="isLoading || isCurrentMonth || isFutureMonth"
+              aria-label="翌月"
             >
               <BaseIcon name="chevron-right" size="sm" />
             </BaseButton>
@@ -70,7 +75,7 @@ onMounted(async () => {
               variant="outline"
               size="sm"
               @click="goToCurrentMonth"
-              :disabled="isLoading"
+              :disabled="isLoading || isCurrentMonth"
               class="ml-2"
             >
               今月
@@ -150,12 +155,14 @@ onMounted(async () => {
           </div>
         </BaseCard>
 
-        <!-- 今月のハイライト -->
+        <!-- ハイライト -->
         <BaseCard v-if="highlights">
           <div class="space-y-4">
             <div class="flex items-center gap-2 mb-4">
               <BaseIcon name="info" size="md" class="text-gray-500" />
-              <BaseText variant="h3">今月のハイライト</BaseText>
+              <BaseText variant="h3"
+                >{{ currentMonthLabel }}のハイライト</BaseText
+              >
             </div>
 
             <HighlightsCards :highlights="highlights" />

@@ -192,6 +192,40 @@ export function useStatistics() {
     };
   };
 
+  /**
+   * 表示中の月が現在の月かどうかを判定
+   * 「今月」ボタンの無効化制御に使用
+   */
+  const isCurrentMonth = computed(() => {
+    const now = new Date();
+    const current = new Date(currentYear.value, currentMonth.value - 1);
+    return (
+      now.getFullYear() === current.getFullYear() &&
+      now.getMonth() === current.getMonth()
+    );
+  });
+
+  /**
+   * 表示中の月が未来の月かどうかを判定
+   * 「次月」ボタンの無効化制御に使用
+   */
+  const isFutureMonth = computed(() => {
+    const now = new Date();
+    const current = new Date(currentYear.value, currentMonth.value - 1);
+
+    // 年が未来
+    if (current.getFullYear() > now.getFullYear()) return true;
+
+    // 同じ年で月が未来
+    if (
+      current.getFullYear() === now.getFullYear() &&
+      current.getMonth() > now.getMonth()
+    )
+      return true;
+
+    return false;
+  });
+
   return {
     // State
     monthlySummary,
@@ -204,6 +238,10 @@ export function useStatistics() {
     currentYear,
     currentMonth,
     currentMonthLabel,
+
+    // Computed
+    isCurrentMonth,
+    isFutureMonth,
 
     // Methods
     fetchMonthlySummary,
