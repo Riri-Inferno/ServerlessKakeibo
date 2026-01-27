@@ -91,10 +91,8 @@ public class UpdateUserSettingsInteractor : IUpdateUserSettingsUseCase
                         : request.DisplayNameOverride;
                 }
 
-                if (request.ClosingDay.HasValue)
-                {
-                    settings.ClosingDay = request.ClosingDay.Value;
-                }
+                // nullの場合月末締めになる
+                settings.ClosingDay = request.ClosingDay;
 
                 if (!string.IsNullOrWhiteSpace(request.TimeZone))
                 {
