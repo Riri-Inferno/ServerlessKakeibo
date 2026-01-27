@@ -24,7 +24,7 @@ public static class TransactionMapper
             UserId = userId,
             TenantId = tenantId,
             Type = TransactionType.Expense,
-            TransactionDate = parseResult.Normalized.TransactionDate?.ToUniversalTime(),
+            TransactionDate = parseResult.Normalized.TransactionDate,
             AmountTotal = parseResult.Normalized.AmountTotal,
             Currency = parseResult.Normalized.Currency,
             Payer = parseResult.Normalized.Payer,

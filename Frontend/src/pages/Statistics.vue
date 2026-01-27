@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { onMounted, computed } from "vue";
+import { onMounted } from "vue";
 import { useStatistics } from "../composables/useStatistics";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseIcon from "../components/atoms/BaseIcon.vue";
+import BaseButton from "../components/atoms/BaseButton.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 import StatsSummaryCards from "../components/molecules/StatsSummaryCards.vue";
 import CategoryBreakdownList from "../components/molecules/CategoryBreakdownList.vue";
 import HighlightsCards from "../components/molecules/HighlightsCards.vue";
 import CategoryPieChart from "../components/organisms/CategoryPieChart.vue";
 import MonthlyTrendChart from "../components/organisms/MonthlyTrendChart.vue";
+import BaseSelect from "../components/atoms/BaseSelect.vue";
 
 const {
   monthlyComparison,
@@ -19,39 +21,110 @@ const {
   highlights,
   isLoading,
   errorMessage,
-  fetchMonthlyComparison,
-  fetchCategoryBreakdown,
-  fetchMonthlyTrend,
-  fetchHighlights,
-  getCurrentYearMonth,
+  currentYear,
+  currentMonth,
+  currentMonthLabel,
+  isCurrentMonth,
+  yearOptions,
+  monthOptions,
+  fetchCurrentMonth,
+  goToPreviousMonth,
+  goToNextMonth,
+  goToCurrentMonth,
+  handleYearChange,
+  handleMonthChange,
+  currentPeriodLabel,
 } = useStatistics();
 
-const currentMonth = computed(() => {
-  if (!monthlyComparison.value) return "";
-  const { year, month } = monthlyComparison.value.current;
-  return `${year}年${month}月`;
-});
-
 onMounted(async () => {
-  const { year, month } = getCurrentYearMonth();
-
-  await Promise.all([
-    fetchMonthlyComparison(year, month),
-    fetchCategoryBreakdown(year, month),
-    fetchMonthlyTrend(6),
-    fetchHighlights(year, month),
-  ]);
+  await fetchCurrentMonth();
 });
 </script>
 
 <template>
   <DefaultLayout>
     <div class="max-w-7xl mx-auto space-y-6">
-      <!-- ヘッダー -->
+      <!-- ヘッダー + 月切り替え -->
       <div class="mb-6">
-        <BaseText variant="h1" class="mb-2">統計</BaseText>
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+        >
+          <BaseText variant="h1">統計</BaseText>
+
+          <!-- 月切り替えUI -->
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+          >
+            <!-- 年月ドロップダウン -->
+            <div class="flex items-center gap-2 order-2 sm:order-1">
+              <BaseSelect
+                :model-value="currentYear"
+                :options="yearOptions"
+                @update:model-value="(value) => handleYearChange(Number(value))"
+                :disabled="isLoading"
+                size="sm"
+                hide-placeholder
+                class="!w-28"
+              />
+              <BaseSelect
+                :model-value="currentMonth"
+                :options="monthOptions"
+                @update:model-value="
+                  (value) => handleMonthChange(Number(value))
+                "
+                :disabled="isLoading"
+                size="sm"
+                hide-placeholder
+                class="w-24"
+              />
+            </div>
+
+            <!-- ← → 今月ボタン -->
+            <div
+              class="flex items-center justify-center gap-2 order-1 sm:order-2"
+            >
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToPreviousMonth"
+                :disabled="isLoading"
+                aria-label="前月"
+              >
+                <BaseIcon name="chevron-left" size="sm" />
+              </BaseButton>
+
+              <!-- モバイルのみ: 月ラベル表示 -->
+              <div class="min-w-[120px] text-center px-2 sm:hidden">
+                <BaseText variant="body" weight="medium">
+                  {{ currentPeriodLabel }}
+                </BaseText>
+              </div>
+
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToNextMonth"
+                :disabled="isLoading || isCurrentMonth"
+                aria-label="翌月"
+              >
+                <BaseIcon name="chevron-right" size="sm" />
+              </BaseButton>
+
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToCurrentMonth"
+                :disabled="isLoading || isCurrentMonth"
+                class="ml-2"
+              >
+                今月
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+
         <BaseText variant="caption" color="gray">
-          {{ currentMonth }}の収支状況
+          {{ currentPeriodLabel }}の収支状況
         </BaseText>
       </div>
 
@@ -122,12 +195,14 @@ onMounted(async () => {
           </div>
         </BaseCard>
 
-        <!-- 今月のハイライト -->
+        <!-- ハイライト -->
         <BaseCard v-if="highlights">
           <div class="space-y-4">
             <div class="flex items-center gap-2 mb-4">
               <BaseIcon name="info" size="md" class="text-gray-500" />
-              <BaseText variant="h3">今月のハイライト</BaseText>
+              <BaseText variant="h3"
+                >{{ currentMonthLabel }}のハイライト</BaseText
+              >
             </div>
 
             <HighlightsCards :highlights="highlights" />

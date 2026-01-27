@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useAuthStore } from "../stores/authStore";
+import { useAuth } from "../composables/useAuth";
 import { useStatistics } from "../composables/useStatistics";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 
-const authStore = useAuthStore();
+const { effectiveDisplayName } = useAuth();
 
 const {
   monthlySummary,
@@ -29,7 +29,7 @@ onMounted(async () => {
       <div>
         <BaseText variant="h1" class="mb-2">ダッシュボード</BaseText>
         <BaseText variant="body" color="gray">
-          ようこそ、{{ authStore.user?.displayName }}さん
+          ようこそ、{{ effectiveDisplayName }}さん
         </BaseText>
       </div>
 

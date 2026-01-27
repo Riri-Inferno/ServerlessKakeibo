@@ -186,7 +186,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             UserId = userId,
             TenantId = tenantId,
             Type = existingType,  // 既存の Type を引き継ぐ
-            TransactionDate = request.TransactionDate.ToUniversalTime(),
+            TransactionDate = request.TransactionDate,
             Currency = request.Currency,
             Payer = request.Payer,
             Payee = request.Payee,

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
@@ -13,6 +14,20 @@ public class TransactionRepository : ITransactionRepository
     public TransactionRepository(ApplicationDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
+
+    /// <summary>
+    /// 締め日を取得
+    /// </summary>
+    private async Task<int?> GetClosingDayAsync(Guid userId, CancellationToken ct)
+    {
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && !s.IsDeleted)
+            .Select(s => s.ClosingDay)
+            .FirstOrDefaultAsync(ct);
+
+        return settings;
     }
 
     /// <summary>
@@ -173,8 +188,9 @@ public class TransactionRepository : ITransactionRepository
             int month,
             CancellationToken ct = default)
     {
-        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var endDate = startDate.AddMonths(1).AddTicks(-1);
+        // 締め日を考慮した期間取得
+        var closingDay = await GetClosingDayAsync(userId, ct);
+        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
         var transactions = await _context.Transactions
             .AsNoTracking()
@@ -268,8 +284,8 @@ public class TransactionRepository : ITransactionRepository
         int month,
         CancellationToken ct = default)
     {
-        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var endDate = startDate.AddMonths(1).AddTicks(-1);
+        var closingDay = await GetClosingDayAsync(userId, ct);
+        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
         var expenseByCategory = await _context.Transactions
             .AsNoTracking()
@@ -302,8 +318,8 @@ public class TransactionRepository : ITransactionRepository
         int month,
         CancellationToken ct = default)
     {
-        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var endDate = startDate.AddMonths(1).AddTicks(-1);
+        var closingDay = await GetClosingDayAsync(userId, ct);
+        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
         return await _context.Transactions
             .AsNoTracking()
@@ -325,8 +341,8 @@ public class TransactionRepository : ITransactionRepository
         int month,
         CancellationToken ct = default)
     {
-        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var endDate = startDate.AddMonths(1).AddTicks(-1);
+        var closingDay = await GetClosingDayAsync(userId, ct);
+        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
         var result = await _context.Transactions
             .AsNoTracking()
@@ -361,8 +377,8 @@ public class TransactionRepository : ITransactionRepository
         int month,
         CancellationToken ct = default)
     {
-        var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var endDate = startDate.AddMonths(1).AddTicks(-1);
+        var closingDay = await GetClosingDayAsync(userId, ct);
+        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
         return await _context.Transactions
             .AsNoTracking()
@@ -384,12 +400,13 @@ public class TransactionRepository : ITransactionRepository
         List<(int Year, int Month)> monthlyRanges,
         CancellationToken ct = default)
     {
+        // 締め日を一度だけ取得
+        var closingDay = await GetClosingDayAsync(userId, ct);
         var results = new List<(int Year, int Month, decimal Income, decimal Expense, decimal Balance)>();
 
         foreach (var (year, month) in monthlyRanges)
         {
-            var startDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-            var endDate = startDate.AddMonths(1).AddTicks(-1);
+            var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
             var transactions = await _context.Transactions
                 .AsNoTracking()

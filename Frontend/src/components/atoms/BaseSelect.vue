@@ -14,6 +14,7 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   error?: boolean;
+  hidePlaceholder?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: "選択してください",
   disabled: false,
   error: false,
+  hidePlaceholder: false,
 });
 
 const modelValue = defineModel<string | number | null>();
@@ -50,7 +52,7 @@ const selectClass = computed(() => {
 
 <template>
   <select v-model="modelValue" :disabled="disabled" :class="selectClass">
-    <option :value="null">{{ placeholder }}</option>
+    <option v-if="!hidePlaceholder" :value="null">{{ placeholder }}</option>
     <option v-for="option in options" :key="option.value" :value="option.value">
       {{ option.label }}
     </option>
