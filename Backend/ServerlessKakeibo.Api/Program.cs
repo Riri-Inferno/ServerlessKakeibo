@@ -35,6 +35,7 @@ using ServerlessKakeibo.Api.Application.Statistics.Usecases;
 using ServerlessKakeibo.Api.Application.Statistics;
 using ServerlessKakeibo.Api.Application.UserSettings.Usecases;
 using ServerlessKakeibo.Api.Application.UserSettings;
+using ServerlessKakeibo.Api.Common.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,7 @@ builder.Services
     .AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        opt.JsonSerializerOptions.Converters.Add(new DateTimeOffsetUtcJsonConverter());
         opt.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
@@ -235,6 +237,35 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = Dat
 #endregion
 
 app.Run();
+
+#region JSON Converters
+/// <summary>
+/// DateTimeOffset を常に UTC として扱う JsonConverter
+/// </summary>
+public class DateTimeOffsetUtcJsonConverter : JsonConverter<DateTimeOffset>
+{
+    public override DateTimeOffset Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options)
+    {
+        var stringValue = reader.GetString();
+
+        if (string.IsNullOrWhiteSpace(stringValue))
+            throw new JsonException("DateTimeOffset の値が空です");
+
+        return DateTimeHelper.ParseAsUtc(stringValue);
+    }
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        DateTimeOffset value,
+        JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToUniversalTime().ToString("o"));
+    }
+}
+#endregion
 
 // 統合テスト用のパーシャルクラス
 public partial class Program { }
