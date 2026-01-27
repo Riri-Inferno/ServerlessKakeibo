@@ -294,26 +294,54 @@ export function useStatistics() {
     // 締め日が設定されていない（月末締め）
     if (closingDay === null || closingDay === undefined) {
       const lastDay = new Date(year, month, 0).getDate();
-      return `${year}年${month}月1日 ~ ${year}年${month}月${lastDay}日`;
+      return `${year}年${month}月1日〜${lastDay}日の収支`;
     }
 
     // 締め日が設定されている場合
-    // 例: 締め日25日、表示月2026年1月 → 2025年12月26日 ~ 2026年1月25日
-    let startYear = year;
-    let startMonth = month - 1;
-    const startDay = closingDay + 1;
 
-    // 前月の計算
-    if (startMonth === 0) {
-      startMonth = 12;
-      startYear = year - 1;
+    // 当月の実際の日数と締め日
+    const daysInCurrentMonth = new Date(year, month, 0).getDate();
+    const endDay = Math.min(closingDay, daysInCurrentMonth);
+
+    // 前月の年月を計算
+    let prevYear = year;
+    let prevMonth = month - 1;
+    if (prevMonth === 0) {
+      prevMonth = 12;
+      prevYear -= 1;
     }
 
-    const endYear = year;
-    const endMonth = month;
-    const endDay = closingDay;
+    // 前月の実際の日数と締め日
+    const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
+    const prevClosingDay = Math.min(closingDay, daysInPrevMonth);
 
-    return `${startYear}年${startMonth}月${startDay}日 ~ ${endYear}年${endMonth}月${endDay}日`;
+    // 開始日 = 前月締め日 + 1
+    let startYear = prevYear;
+    let startMonth = prevMonth;
+    let startDay = prevClosingDay + 1;
+
+    // 日付が月をまたぐ場合の処理
+    if (startDay > daysInPrevMonth) {
+      startDay = 1;
+      startMonth += 1;
+      if (startMonth > 12) {
+        startMonth = 1;
+        startYear += 1;
+      }
+    }
+
+    // フォーマット
+    const formatYMD = (y: number, m: number, d: number) => {
+      if (y === year && m === month) {
+        return `${m}月${d}日`;
+      }
+      if (y === year) {
+        return `${m}月${d}日`;
+      }
+      return `${y}年${m}月${d}日`;
+    };
+
+    return `${formatYMD(startYear, startMonth, startDay)}〜${formatYMD(year, month, endDay)}の収支`;
   });
 
   /**
