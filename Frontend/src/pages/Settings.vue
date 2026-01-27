@@ -118,7 +118,7 @@ const handleResetToGoogle = async () => {
 const handleLogout = async () => {
   if (confirm("ログアウトしますか？")) {
     await logout();
-    router.push("/login");
+    router.push("/");
   }
 };
 
@@ -259,7 +259,7 @@ const closeExportModal = () => {
                   :disabled="isSaving"
                 />
                 <BaseText variant="caption" color="gray" class="mt-1">
-                  家計簿の集計期間の区切り日（将来的な機能拡張用）
+                  家計簿の集計期間の区切り日
                 </BaseText>
               </div>
 

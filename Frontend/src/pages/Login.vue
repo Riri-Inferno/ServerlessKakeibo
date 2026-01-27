@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { googleSdkLoaded, type CallbackTypes } from "vue3-google-login";
 import { authRepository } from "../repositories/authRepository";
 import { useAuthStore } from "../stores/authStore";
+import { useAuth } from "../composables/useAuth";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import logo from "../assets/icons/logo.svg?url";
@@ -11,6 +12,7 @@ import router from "../router";
 type CredentialResponse = CallbackTypes.CredentialPopupResponse;
 
 const authStore = useAuthStore();
+const { fetchSettings } = useAuth();
 const isLoading = ref(false);
 const errorMessage = ref("");
 const googleButtonContainer = ref<HTMLDivElement>();
@@ -38,13 +40,13 @@ const handleCredentialResponse = async (response: CredentialResponse) => {
     // Pinia ストアに保存
     authStore.setAuthData(userData);
 
+    // 設定を取得
+    await fetchSettings();
+
     // ダッシュボードにリダイレクト
     router.push({ name: "dashboard" });
 
-    alert(`ログイン成功！\nようこそ、${userData.displayName}さん`);
-
-    // ダッシュボードにリダイレクト（後で実装）
-    // router.push({ name: "dashboard" });
+    alert(`ようこそ、${authStore.effectiveDisplayName}さん`); // effectiveDisplayNameを使用
   } catch (error) {
     console.error("ログインエラー:", error);
 
