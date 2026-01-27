@@ -63,7 +63,7 @@ onMounted(async () => {
                 :disabled="isLoading"
                 size="sm"
                 hide-placeholder
-                class="w-28"
+                class="!w-28"
               />
               <BaseSelect
                 :model-value="currentMonth"
