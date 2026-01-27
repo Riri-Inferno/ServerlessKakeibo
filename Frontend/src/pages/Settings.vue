@@ -257,6 +257,7 @@ const closeExportModal = () => {
                   v-model="formData.closingDay"
                   :options="closingDayOptions"
                   :disabled="isSaving"
+                  hide-placeholder
                 />
                 <BaseText variant="caption" color="gray" class="mt-1">
                   家計簿の集計期間の区切り日
