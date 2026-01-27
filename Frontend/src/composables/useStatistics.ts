@@ -1,5 +1,6 @@
 import { ref, computed } from "vue";
 import { statisticsRepository } from "../repositories/statisticsRepository";
+import { useAuthStore } from "../stores/authStore";
 import type {
   MonthlySummaryResult,
   MonthlyComparisonResult,
@@ -9,6 +10,7 @@ import type {
 } from "../types/statistics";
 
 export function useStatistics() {
+  const authStore = useAuthStore();
   const monthlySummary = ref<MonthlySummaryResult | null>(null);
   const monthlyComparison = ref<MonthlyComparisonResult | null>(null);
   const categoryBreakdown = ref<CategoryBreakdownResult | null>(null);
@@ -282,6 +284,39 @@ export function useStatistics() {
   });
 
   /**
+   * 締め日に応じた期間ラベルを取得
+   */
+  const currentPeriodLabel = computed(() => {
+    const closingDay = authStore.settings?.closingDay;
+    const year = currentYear.value;
+    const month = currentMonth.value;
+
+    // 締め日が設定されていない（月末締め）
+    if (closingDay === null || closingDay === undefined) {
+      const lastDay = new Date(year, month, 0).getDate();
+      return `${year}年${month}月1日 ~ ${year}年${month}月${lastDay}日`;
+    }
+
+    // 締め日が設定されている場合
+    // 例: 締め日25日、表示月2026年1月 → 2025年12月26日 ~ 2026年1月25日
+    let startYear = year;
+    let startMonth = month - 1;
+    const startDay = closingDay + 1;
+
+    // 前月の計算
+    if (startMonth === 0) {
+      startMonth = 12;
+      startYear = year - 1;
+    }
+
+    const endYear = year;
+    const endMonth = month;
+    const endDay = closingDay;
+
+    return `${startYear}年${startMonth}月${startDay}日 ~ ${endYear}年${endMonth}月${endDay}日`;
+  });
+
+  /**
    * 年が変更されたときの処理
    */
   const handleYearChange = async (year: number) => {
@@ -307,6 +342,7 @@ export function useStatistics() {
     currentYear,
     currentMonth,
     currentMonthLabel,
+    currentPeriodLabel,
 
     // Computed
     isCurrentMonth,

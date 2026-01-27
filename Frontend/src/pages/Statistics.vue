@@ -33,6 +33,7 @@ const {
   goToCurrentMonth,
   handleYearChange,
   handleMonthChange,
+  currentPeriodLabel,
 } = useStatistics();
 
 onMounted(async () => {
@@ -95,7 +96,7 @@ onMounted(async () => {
               <!-- モバイルのみ: 月ラベル表示 -->
               <div class="min-w-[120px] text-center px-2 sm:hidden">
                 <BaseText variant="body" weight="medium">
-                  {{ currentMonthLabel }}
+                  {{ currentPeriodLabel }}
                 </BaseText>
               </div>
 
@@ -123,7 +124,7 @@ onMounted(async () => {
         </div>
 
         <BaseText variant="caption" color="gray">
-          {{ currentMonthLabel }}の収支状況
+          {{ currentPeriodLabel }}の収支状況
         </BaseText>
       </div>
 
