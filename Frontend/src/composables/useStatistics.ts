@@ -18,6 +18,8 @@ export function useStatistics() {
   const isLoading = ref(false);
   const errorMessage = ref("");
 
+  const oldestYear = ref<number | null>(null);
+
   // 現在表示中の年月
   const currentYear = ref<number>(new Date().getFullYear());
   const currentMonth = ref<number>(new Date().getMonth() + 1);
@@ -105,6 +107,12 @@ export function useStatistics() {
 
     try {
       monthlyTrend.value = await statisticsRepository.getMonthlyTrend(months);
+
+      // 最古の年を記録（動的な年リストを作るため）
+      const oldestMonth = monthlyTrend.value?.months?.[0];
+      if (oldestMonth) {
+        oldestYear.value = oldestMonth.year;
+      }
     } catch (error) {
       console.error("月次推移取得エラー:", error);
       errorMessage.value =
@@ -226,6 +234,67 @@ export function useStatistics() {
     return false;
   });
 
+  /**
+   * 年オプション（最古の年 ～ 今年）
+   */
+  const yearOptions = computed(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const years: Array<{ value: number; label: string }> = [];
+
+    // 最古の年が不明な場合は過去5年
+    const startYear = oldestYear.value ?? currentYear - 5;
+
+    // 最古の年から今年まで
+    for (let year = currentYear; year >= startYear; year--) {
+      years.push({
+        value: year,
+        label: `${year}年`,
+      });
+    }
+
+    return years;
+  });
+
+  /**
+   * 月オプション（1-12月）
+   * 未来の月は無効化
+   */
+  const monthOptions = computed(() => {
+    const now = new Date();
+    const months: Array<{ value: number; label: string }> = [];
+
+    for (let i = 1; i <= 12; i++) {
+      const isFuture =
+        currentYear.value > now.getFullYear() ||
+        (currentYear.value === now.getFullYear() && i > now.getMonth() + 1);
+
+      // 未来の月は含めない
+      if (!isFuture) {
+        months.push({
+          value: i,
+          label: `${i}月`,
+        });
+      }
+    }
+
+    return months;
+  });
+
+  /**
+   * 年が変更されたときの処理
+   */
+  const handleYearChange = async (year: number) => {
+    await goToMonth(year, currentMonth.value);
+  };
+
+  /**
+   * 月が変更されたときの処理
+   */
+  const handleMonthChange = async (month: number) => {
+    await goToMonth(currentYear.value, month);
+  };
+
   return {
     // State
     monthlySummary,
@@ -242,6 +311,8 @@ export function useStatistics() {
     // Computed
     isCurrentMonth,
     isFutureMonth,
+    yearOptions,
+    monthOptions,
 
     // Methods
     fetchMonthlySummary,
@@ -255,5 +326,7 @@ export function useStatistics() {
     goToCurrentMonth,
     goToMonth,
     getCurrentYearMonth,
+    handleYearChange,
+    handleMonthChange,
   };
 }

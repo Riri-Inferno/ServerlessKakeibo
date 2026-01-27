@@ -12,6 +12,7 @@ import CategoryBreakdownList from "../components/molecules/CategoryBreakdownList
 import HighlightsCards from "../components/molecules/HighlightsCards.vue";
 import CategoryPieChart from "../components/organisms/CategoryPieChart.vue";
 import MonthlyTrendChart from "../components/organisms/MonthlyTrendChart.vue";
+import BaseSelect from "../components/atoms/BaseSelect.vue";
 
 const {
   monthlyComparison,
@@ -20,13 +21,18 @@ const {
   highlights,
   isLoading,
   errorMessage,
+  currentYear,
+  currentMonth,
   currentMonthLabel,
   isCurrentMonth,
-  isFutureMonth,
+  yearOptions,
+  monthOptions,
   fetchCurrentMonth,
   goToPreviousMonth,
   goToNextMonth,
   goToCurrentMonth,
+  handleYearChange,
+  handleMonthChange,
 } = useStatistics();
 
 onMounted(async () => {
@@ -45,41 +51,74 @@ onMounted(async () => {
           <BaseText variant="h1">統計</BaseText>
 
           <!-- 月切り替えUI -->
-          <div class="flex items-center justify-center sm:justify-end gap-2">
-            <BaseButton
-              variant="outline"
-              size="sm"
-              @click="goToPreviousMonth"
-              :disabled="isLoading"
-              aria-label="前月"
-            >
-              <BaseIcon name="chevron-left" size="sm" />
-            </BaseButton>
-
-            <div class="min-w-[140px] text-center px-4">
-              <BaseText variant="h3">{{ currentMonthLabel }}</BaseText>
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+          >
+            <!-- 年月ドロップダウン -->
+            <div class="flex items-center gap-2 order-2 sm:order-1">
+              <BaseSelect
+                :model-value="currentYear"
+                :options="yearOptions"
+                @update:model-value="(value) => handleYearChange(Number(value))"
+                :disabled="isLoading"
+                size="sm"
+                hide-placeholder
+                class="w-28"
+              />
+              <BaseSelect
+                :model-value="currentMonth"
+                :options="monthOptions"
+                @update:model-value="
+                  (value) => handleMonthChange(Number(value))
+                "
+                :disabled="isLoading"
+                size="sm"
+                hide-placeholder
+                class="w-24"
+              />
             </div>
 
-            <!-- 次月ボタン: 未来の月または現在の月なら無効化 -->
-            <BaseButton
-              variant="outline"
-              size="sm"
-              @click="goToNextMonth"
-              :disabled="isLoading || isCurrentMonth || isFutureMonth"
-              aria-label="翌月"
+            <!-- ← → 今月ボタン -->
+            <div
+              class="flex items-center justify-center gap-2 order-1 sm:order-2"
             >
-              <BaseIcon name="chevron-right" size="sm" />
-            </BaseButton>
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToPreviousMonth"
+                :disabled="isLoading"
+                aria-label="前月"
+              >
+                <BaseIcon name="chevron-left" size="sm" />
+              </BaseButton>
 
-            <BaseButton
-              variant="outline"
-              size="sm"
-              @click="goToCurrentMonth"
-              :disabled="isLoading || isCurrentMonth"
-              class="ml-2"
-            >
-              今月
-            </BaseButton>
+              <!-- モバイルのみ: 月ラベル表示 -->
+              <div class="min-w-[120px] text-center px-2 sm:hidden">
+                <BaseText variant="body" weight="medium">
+                  {{ currentMonthLabel }}
+                </BaseText>
+              </div>
+
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToNextMonth"
+                :disabled="isLoading || isCurrentMonth"
+                aria-label="翌月"
+              >
+                <BaseIcon name="chevron-right" size="sm" />
+              </BaseButton>
+
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="goToCurrentMonth"
+                :disabled="isLoading || isCurrentMonth"
+                class="ml-2"
+              >
+                今月
+              </BaseButton>
+            </div>
           </div>
         </div>
 
