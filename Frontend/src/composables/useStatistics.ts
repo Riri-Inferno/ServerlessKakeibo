@@ -203,45 +203,11 @@ export function useStatistics() {
   };
 
   /**
-   * 表示中の月が現在の月かどうかを判定
-   * 「今月」ボタンの無効化制御に使用
-   */
-  const isCurrentMonth = computed(() => {
-    const now = new Date();
-    const current = new Date(currentYear.value, currentMonth.value - 1);
-    return (
-      now.getFullYear() === current.getFullYear() &&
-      now.getMonth() === current.getMonth()
-    );
-  });
-
-  /**
-   * 表示中の月が未来の月かどうかを判定
-   * 「次月」ボタンの無効化制御に使用
-   */
-  const isFutureMonth = computed(() => {
-    const now = new Date();
-    const current = new Date(currentYear.value, currentMonth.value - 1);
-
-    // 年が未来
-    if (current.getFullYear() > now.getFullYear()) return true;
-
-    // 同じ年で月が未来
-    if (
-      current.getFullYear() === now.getFullYear() &&
-      current.getMonth() > now.getMonth()
-    )
-      return true;
-
-    return false;
-  });
-
-  /**
    * 年オプション（最古の年 ～ 今年）
    */
   const yearOptions = computed(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
+    const currentClosingMonth = getCurrentClosingMonth();
+    const currentYear = currentClosingMonth.year;
     const years: Array<{ value: number; label: string }> = [];
 
     // 最古の年が不明な場合は過去5年
@@ -260,19 +226,13 @@ export function useStatistics() {
 
   /**
    * 月オプション（1-12月）
-   * 未来の月は無効化
+   * 未来の締め日月は含めない
    */
   const monthOptions = computed(() => {
-    const now = new Date();
     const months: Array<{ value: number; label: string }> = [];
 
     for (let i = 1; i <= 12; i++) {
-      const isFuture =
-        currentYear.value > now.getFullYear() ||
-        (currentYear.value === now.getFullYear() && i > now.getMonth() + 1);
-
-      // 未来の月は含めない
-      if (!isFuture) {
+      if (isSelectableMonth(currentYear.value, i)) {
         months.push({
           value: i,
           label: `${i}月`,
@@ -282,6 +242,23 @@ export function useStatistics() {
 
     return months;
   });
+
+  /**
+   * 指定された年月が選択可能かどうか
+   * （現在の締め日月以前なら選択可能）
+   */
+  const isSelectableMonth = (year: number, month: number): boolean => {
+    const current = getCurrentClosingMonth();
+
+    // 年が過去なら選択可能
+    if (year < current.year) return true;
+
+    // 年が未来なら選択不可
+    if (year > current.year) return false;
+
+    // 同じ年の場合は月で判定
+    return month <= current.month;
+  };
 
   /**
    * 締め日に応じた期間ラベルを取得
@@ -357,6 +334,68 @@ export function useStatistics() {
   const handleMonthChange = async (month: number) => {
     await goToMonth(currentYear.value, month);
   };
+
+  /**
+   * 現在日が属する締め日月を取得
+   */
+  const getCurrentClosingMonth = () => {
+    const now = new Date();
+    const closingDay = authStore.settings?.closingDay;
+
+    // 月末締めの場合は通常のカレンダー月
+    if (closingDay === null || closingDay === undefined) {
+      return {
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+      };
+    }
+
+    // N日締めの場合
+    const currentDay = now.getDate();
+    let year = now.getFullYear();
+    let month = now.getMonth() + 1; // 1-12
+
+    // 今日が締め日より後なら、次の締め日月に属する
+    // 例: 1/28で締め日25日 → 2月期間（1/26-2/25）に属する
+    if (currentDay > closingDay) {
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+
+    return { year, month };
+  };
+
+  /**
+   * 表示中の月が現在の締め日月かどうかを判定
+   */
+  const isCurrentMonth = computed(() => {
+    const current = getCurrentClosingMonth();
+    return (
+      currentYear.value === current.year && currentMonth.value === current.month
+    );
+  });
+
+  /**
+   * 表示中の月が未来の締め日月かどうかを判定
+   */
+  const isFutureMonth = computed(() => {
+    const current = getCurrentClosingMonth();
+
+    // 年が未来
+    if (currentYear.value > current.year) return true;
+
+    // 同じ年で月が未来
+    if (
+      currentYear.value === current.year &&
+      currentMonth.value > current.month
+    )
+      return true;
+
+    return false;
+  });
 
   return {
     // State
