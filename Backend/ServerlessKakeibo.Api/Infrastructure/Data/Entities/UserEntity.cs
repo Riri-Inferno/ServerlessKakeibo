@@ -28,10 +28,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? PictureUrl { get; set; }
 
         /// <summary>
-        /// リフレッシュトークン(トークン更新用)
+        /// リフレッシュトークンのハッシュ値(PBKDF2でハッシュ化されたトークン)
+        /// Base64エンコードされたsalt+hash (最大約64文字)
         /// </summary>
-        [MaxLength(500)]
-        public string? RefreshToken { get; set; }
+        [MaxLength(100)]
+        public string? RefreshTokenHash { get; set; }
 
         /// <summary>
         /// リフレッシュトークンの有効期限
