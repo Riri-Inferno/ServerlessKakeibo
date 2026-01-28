@@ -16,6 +16,7 @@ public class RefreshTokenInteractor : IRefreshTokenUseCase
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
     private readonly IGenericWriteRepository<UserEntity> _userWriteRepository;
     private readonly IJwtTokenService _jwtService;
+    private readonly IPasswordHashService _passwordHashService;
     private readonly ILogger<RefreshTokenInteractor> _logger;
 
     public RefreshTokenInteractor(
@@ -23,16 +24,18 @@ public class RefreshTokenInteractor : IRefreshTokenUseCase
         IGenericReadRepository<UserEntity> userReadRepository,
         IGenericWriteRepository<UserEntity> userWriteRepository,
         IJwtTokenService jwtService,
+        IPasswordHashService passwordHashService,
         ILogger<RefreshTokenInteractor> logger)
     {
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper)); 
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
         _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>
+   /// <summary>
     /// リフレッシュトークンを使って新しいアクセストークンを取得
     /// </summary>
     public async Task<LoginResult> ExecuteAsync(
@@ -50,9 +53,26 @@ public class RefreshTokenInteractor : IRefreshTokenUseCase
             return await _transactionHelper.ExecuteInTransactionAsync(async () =>
             {
                 // 1. リフレッシュトークンからユーザーを検索（トランザクション内でロック）
-                var user = await _userReadRepository.FirstOrDefaultAsync(
-                    u => u.RefreshToken == refreshToken && !u.IsDeleted,
+                // ハッシュが存在し、有効期限内のユーザーを取得
+                var users = await _userReadRepository.FindAsync(
+                    u => u.RefreshTokenHash != null 
+                         && u.RefreshTokenExpiry != null 
+                         && u.RefreshTokenExpiry > DateTimeOffset.UtcNow
+                         && !u.IsDeleted,
                     cancellationToken);
+
+                // 受け取ったトークンとハッシュを比較してユーザーを特定
+                UserEntity? user = null;
+                foreach (var candidateUser in users)
+                {
+                    if (_passwordHashService.VerifyPassword(
+                        refreshToken, 
+                        candidateUser.RefreshTokenHash!))
+                    {
+                        user = candidateUser;
+                        break;
+                    }
+                }
 
                 if (user == null)
                 {
@@ -73,8 +93,8 @@ public class RefreshTokenInteractor : IRefreshTokenUseCase
                 var newAccessToken = _jwtService.GenerateToken(user);
                 var newRefreshToken = _jwtService.GenerateRefreshToken();
 
-                // 4. 新しいリフレッシュトークンをDBに保存（古いトークンを無効化）
-                user.RefreshToken = newRefreshToken;
+                // 4. 新しいリフレッシュトークンをハッシュ化してDBに保存（古いトークンを無効化）
+                user.RefreshTokenHash = _passwordHashService.HashPassword(newRefreshToken);
                 user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays);
                 user.UpdatedAt = DateTimeOffset.UtcNow;
                 user.UpdatedBy = user.Id;

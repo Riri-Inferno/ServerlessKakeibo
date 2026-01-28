@@ -19,6 +19,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
     private readonly IGenericWriteRepository<UserEntity> _userWriteRepository;
     private readonly IUserExternalLoginRepository _externalLoginRepository;
     private readonly IJwtTokenService _jwtService;
+    private readonly IPasswordHashService _passwordHashService; // 追加
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleLoginInteractor> _logger;
 
@@ -28,6 +29,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         IGenericWriteRepository<UserEntity> userWriteRepository,
         IUserExternalLoginRepository externalLoginRepository,
         IJwtTokenService jwtService,
+        IPasswordHashService passwordHashService, // 追加
         IConfiguration configuration,
         ILogger<GoogleLoginInteractor> logger)
     {
@@ -36,6 +38,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
         _externalLoginRepository = externalLoginRepository ?? throw new ArgumentNullException(nameof(externalLoginRepository));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService)); // 追加
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -109,8 +112,8 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
                 var accessToken = _jwtService.GenerateToken(user);
                 var refreshToken = _jwtService.GenerateRefreshToken();
 
-                // RefreshToken を DB に保存
-                user.RefreshToken = refreshToken;
+                // 6. RefreshToken をハッシュ化して DB に保存
+                user.RefreshTokenHash = _passwordHashService.HashPassword(refreshToken);
                 user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays);
                 user.UpdatedAt = DateTimeOffset.UtcNow;
                 user.UpdatedBy = user.Id;
@@ -120,9 +123,10 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
                     "JWTトークンを発行しました。UserId: {UserId}, RefreshTokenExpiry: {Expiry}",
                     user.Id, user.RefreshTokenExpiry);
 
+                // 7. クライアントには平文のトークンを返す
                 return new LoginResult(
                     accessToken,
-                    refreshToken,
+                    refreshToken, // ← 平文で返す
                     user.Id,
                     user.DisplayName,
                     user.PictureUrl
@@ -185,7 +189,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         var user = new UserEntity
         {
             Id = userId,
-            DisplayName = displayName, // ← 修正
+            DisplayName = displayName,
             Email = payload.Email,
             PictureUrl = payload.Picture,
             TenantId = tenantId,
