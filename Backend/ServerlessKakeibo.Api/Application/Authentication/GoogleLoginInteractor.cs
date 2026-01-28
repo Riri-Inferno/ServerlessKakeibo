@@ -19,7 +19,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
     private readonly IGenericWriteRepository<UserEntity> _userWriteRepository;
     private readonly IUserExternalLoginRepository _externalLoginRepository;
     private readonly IJwtTokenService _jwtService;
-    private readonly IPasswordHashService _passwordHashService; // 追加
+    private readonly IPasswordHashService _passwordHashService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleLoginInteractor> _logger;
 
@@ -29,7 +29,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         IGenericWriteRepository<UserEntity> userWriteRepository,
         IUserExternalLoginRepository externalLoginRepository,
         IJwtTokenService jwtService,
-        IPasswordHashService passwordHashService, // 追加
+        IPasswordHashService passwordHashService,
         IConfiguration configuration,
         ILogger<GoogleLoginInteractor> logger)
     {
@@ -38,7 +38,7 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
         _externalLoginRepository = externalLoginRepository ?? throw new ArgumentNullException(nameof(externalLoginRepository));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
-        _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService)); // 追加
+        _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
