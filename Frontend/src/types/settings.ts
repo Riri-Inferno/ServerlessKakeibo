@@ -37,6 +37,18 @@ export interface UpdateUserSettingsRequest {
 }
 
 /**
+ * 削除対象取引データのサマリー
+ */
+export interface DeleteTargetSummary {
+  /** 総取引件数 */
+  totalCount: number;
+  /** 最古の取引日(ISO 8601形式) */
+  oldestDate: string | null;
+  /** 最新の取引日(ISO 8601形式) */
+  latestDate: string | null;
+}
+
+/**
  * 全取引データ削除結果
  */
 export interface DeleteAllTransactionsResult {
