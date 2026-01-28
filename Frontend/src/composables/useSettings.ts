@@ -3,14 +3,17 @@ import { settingsRepository } from "../repositories/settingsRepository";
 import type {
   UserSettings,
   UpdateUserSettingsRequest,
+  DeleteAllTransactionsResult,
 } from "../types/settings";
 
 export function useSettings() {
   const settings = ref<UserSettings | null>(null);
   const isLoading = ref(false);
   const isSaving = ref(false);
+  const isDeleting = ref(false);
   const errorMessage = ref("");
   const successMessage = ref("");
+  const deleteResult = ref<DeleteAllTransactionsResult | null>(null);
 
   /**
    * ユーザー設定を取得
@@ -48,6 +51,33 @@ export function useSettings() {
       throw error;
     } finally {
       isSaving.value = false;
+    }
+  };
+
+  /**
+   * 全取引データを削除
+   */
+  const deleteAllTransactions = async () => {
+    isDeleting.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+    deleteResult.value = null;
+
+    try {
+      deleteResult.value = await settingsRepository.deleteAllTransactions();
+
+      successMessage.value = `${deleteResult.value.deletedTransactionCount}件の取引を削除しました`;
+
+      return deleteResult.value;
+    } catch (error) {
+      console.error("取引削除エラー:", error);
+      errorMessage.value =
+        error instanceof Error
+          ? error.message
+          : "取引データの削除に失敗しました";
+      throw error;
+    } finally {
+      isDeleting.value = false;
     }
   };
 
@@ -109,5 +139,6 @@ export function useSettings() {
     getClosingDayLabel,
     clearError,
     clearSuccess,
+    deleteAllTransactions,
   };
 }
