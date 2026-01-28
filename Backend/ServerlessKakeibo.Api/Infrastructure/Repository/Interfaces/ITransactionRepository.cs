@@ -151,4 +151,22 @@ public interface ITransactionRepository
         Guid userId,
         List<(int Year, int Month)> monthlyRanges,
         CancellationToken ct = default);
+
+        /// <summary>
+        /// ユーザーの全取引に紐づく画像URLを一括取得
+        /// </summary>
+        /// <param name="userId">ユーザーID</param>
+        /// <param name="ct">キャンセルトークン</param>
+        /// <returns>画像URLのリスト</returns>
+        Task<List<string>> GetAllReceiptImageUrlsAsync(Guid userId, CancellationToken ct = default);
+
+        /// <summary>
+        /// ユーザーの全取引データを一括で論理削除
+        /// </summary>
+        /// <param name="userId">ユーザーID</param>
+        /// <param name="ct">キャンセルトークン</param>
+        /// <returns>削除件数(Transactions, Items, Taxes, Shops)</returns>
+        Task<(int Transactions, int Items, int Taxes, int Shops)> SoftDeleteAllUserTransactionsAsync(
+            Guid userId,
+            CancellationToken ct = default);
 }

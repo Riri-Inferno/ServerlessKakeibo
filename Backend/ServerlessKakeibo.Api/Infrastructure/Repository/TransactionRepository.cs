@@ -436,4 +436,84 @@ public class TransactionRepository : ITransactionRepository
 
         return results;
     }
+
+    /// <summary>
+    /// ユーザーの全取引に紐づく画像URLを一括取得
+    /// </summary>
+    public async Task<List<string>> GetAllReceiptImageUrlsAsync(
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        return await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                        && !t.IsDeleted
+                        && !string.IsNullOrEmpty(t.SourceUrl))
+            .Select(t => t.SourceUrl!)
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// ユーザーの全取引データを一括で論理削除
+    /// </summary>
+    public async Task<(int Transactions, int Items, int Taxes, int Shops)> SoftDeleteAllUserTransactionsAsync(
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        // 1. 対象取引のIDリストを取得
+        var transactionIds = await _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId && !t.IsDeleted)
+            .Select(t => t.Id)
+            .ToListAsync(ct);
+
+        if (!transactionIds.Any())
+        {
+            return (0, 0, 0, 0);
+        }
+
+        // 2. 取引明細を一括削除
+        var deletedItems = await _context.TransactionItems
+            .Where(ti => transactionIds.Contains(ti.TransactionId) && !ti.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(ti => ti.IsDeleted, true)
+                    .SetProperty(ti => ti.UpdatedAt, now)
+                    .SetProperty(ti => ti.UpdatedBy, userId),
+                ct);
+
+        // 3. 税詳細を一括削除
+        var deletedTaxes = await _context.TaxDetails
+            .Where(td => transactionIds.Contains(td.TransactionId) && !td.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(td => td.IsDeleted, true)
+                    .SetProperty(td => td.UpdatedAt, now)
+                    .SetProperty(td => td.UpdatedBy, userId),
+                ct);
+
+        // 4. 店舗詳細を一括削除
+        var deletedShops = await _context.ShopDetails
+            .Where(sd => transactionIds.Contains(sd.TransactionId) && !sd.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(sd => sd.IsDeleted, true)
+                    .SetProperty(sd => sd.UpdatedAt, now)
+                    .SetProperty(sd => sd.UpdatedBy, userId),
+                ct);
+
+        // 5. 取引本体を一括削除
+        var deletedTransactions = await _context.Transactions
+            .Where(t => t.UserId == userId && !t.IsDeleted)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(t => t.IsDeleted, true)
+                    .SetProperty(t => t.UpdatedAt, now)
+                    .SetProperty(t => t.UpdatedBy, userId),
+                ct);
+
+        return (deletedTransactions, deletedItems, deletedTaxes, deletedShops);
+    }
 }
