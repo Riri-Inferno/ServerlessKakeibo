@@ -36,6 +36,8 @@ using ServerlessKakeibo.Api.Application.Statistics;
 using ServerlessKakeibo.Api.Application.UserSettings.Usecases;
 using ServerlessKakeibo.Api.Application.UserSettings;
 using ServerlessKakeibo.Api.Common.Helpers;
+using ServerlessKakeibo.Api.Application.UserData.Usecases;
+using ServerlessKakeibo.Api.Application.UserData;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,6 +132,7 @@ builder.Services.AddScoped<ITransactionExportUseCase, TransactionExportInteracto
 builder.Services.AddScoped<IStatisticsUseCase, StatisticsInteractor>();
 builder.Services.AddScoped<IGetUserSettingsUseCase, GetUserSettingsInteractor>();
 builder.Services.AddScoped<IUpdateUserSettingsUseCase, UpdateUserSettingsInteractor>();
+builder.Services.AddScoped<IDeleteAllTransactionsUseCase, DeleteAllTransactionsInteractor>();
 #endregion
 
 #region DomainServices
