@@ -12,6 +12,7 @@ import BaseInput from "../components/atoms/BaseInput.vue";
 import BaseSelect from "../components/atoms/BaseSelect.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
+import TransactionDeleteConfirmModal from "../components/organisms/TransactionDeleteConfirmModal.vue";
 
 // 環境変数からバージョン情報を取得
 const appVersion = import.meta.env.VITE_APP_VERSION || "不明";
@@ -41,8 +42,9 @@ const formData = ref({
   currencyCode: "JPY",
 });
 
-// エクスポートモーダル用の状態
+// モーダル用の状態
 const isExportModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const exportFilters = ref({});
 
 // フォームが変更されたかどうか
@@ -122,20 +124,25 @@ const handleLogout = async () => {
   }
 };
 
-// データ削除（未実装）
-const handleDeleteAllData = () => {
-  alert("この機能は準備中です");
-};
-
 // エクスポートモーダルを開く
 const handleExportAllData = () => {
-  exportFilters.value = {}; // 全検索（条件未指定）
+  exportFilters.value = {};
   isExportModalOpen.value = true;
 };
 
 // エクスポートモーダルを閉じる
 const closeExportModal = () => {
   isExportModalOpen.value = false;
+};
+
+// 削除モーダルを開く
+const handleDeleteAllData = () => {
+  isDeleteModalOpen.value = true;
+};
+
+// 削除モーダルを閉じる
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false;
 };
 </script>
 
@@ -379,7 +386,7 @@ const closeExportModal = () => {
                 </div>
               </div>
 
-              <!-- データ削除（将来実装） -->
+              <!-- データ削除 -->
               <div class="py-3">
                 <div
                   class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"
@@ -389,17 +396,16 @@ const closeExportModal = () => {
                       全データの削除
                     </BaseText>
                     <BaseText variant="caption" color="gray">
-                      すべての取引データを削除します（準備中）
+                      すべての取引データを削除します
                     </BaseText>
                   </div>
                   <BaseButton
                     variant="outline"
                     size="sm"
-                    :disabled="true"
                     @click="handleDeleteAllData"
                     class="flex-shrink-0 self-start md:self-center"
                   >
-                    <span class="flex items-center gap-1">
+                    <span class="flex items-center gap-1 text-red-600">
                       <BaseIcon name="trash" size="sm" />
                       <span>削除</span>
                     </span>
@@ -437,11 +443,18 @@ const closeExportModal = () => {
         </BaseCard>
       </template>
     </div>
+
     <!-- エクスポートモーダル -->
     <TransactionExportModal
       :is-open="isExportModalOpen"
       :filters="exportFilters"
       @close="closeExportModal"
+    />
+
+    <!-- 削除確認モーダル -->
+    <TransactionDeleteConfirmModal
+      :is-open="isDeleteModalOpen"
+      @close="closeDeleteModal"
     />
   </DefaultLayout>
 </template>

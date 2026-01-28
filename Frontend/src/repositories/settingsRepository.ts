@@ -2,6 +2,7 @@ import apiClient from "../api/axios";
 import type {
   UserSettings,
   UpdateUserSettingsRequest,
+  DeleteAllTransactionsResult,
 } from "../types/settings";
 
 interface ApiResponse<T> {
@@ -46,6 +47,25 @@ export const settingsRepository = {
     if (response.data.status !== "Success") {
       throw new Error(
         response.data.message || "ユーザー設定の更新に失敗しました",
+      );
+    }
+
+    return response.data.data;
+  },
+
+  /**
+   * ユーザーの全取引データを削除
+   *
+   * @returns 削除結果
+   */
+  async deleteAllTransactions(): Promise<DeleteAllTransactionsResult> {
+    const response = await apiClient.delete<
+      ApiResponse<DeleteAllTransactionsResult>
+    >("/api/UserData/transactions");
+
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "取引データの削除に失敗しました",
       );
     }
 

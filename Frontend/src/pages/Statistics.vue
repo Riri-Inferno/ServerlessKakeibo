@@ -114,7 +114,7 @@ onMounted(async () => {
                 variant="outline"
                 size="sm"
                 @click="goToCurrentMonth"
-                :disabled="isLoading || isCurrentMonth"
+                :disabled="isLoading"
                 class="ml-2"
               >
                 今月

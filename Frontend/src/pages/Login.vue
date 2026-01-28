@@ -46,7 +46,7 @@ const handleCredentialResponse = async (response: CredentialResponse) => {
     // ダッシュボードにリダイレクト
     router.push({ name: "dashboard" });
 
-    alert(`ようこそ、${authStore.effectiveDisplayName}さん`); // effectiveDisplayNameを使用
+    alert(`ようこそ、${authStore.effectiveDisplayName}さん`);
   } catch (error) {
     console.error("ログインエラー:", error);
 
@@ -72,14 +72,16 @@ onMounted(() => {
       use_fedcm_for_prompt: false, // FedCM を無効化
     });
 
-    // ボタンをレンダリング
+    // コンテナの実際の幅を取得してボタンをレンダリング
+    const containerWidth = googleButtonContainer.value.offsetWidth;
+
     google.accounts.id.renderButton(googleButtonContainer.value, {
       theme: "outline",
       size: "large",
       text: "signin_with",
       shape: "rectangular",
       locale: "ja",
-      width: "400",
+      width: containerWidth.toString(),
     });
 
     console.log("Google ログインボタンをレンダリングしました");
@@ -116,7 +118,7 @@ onMounted(() => {
       <div
         v-show="!isLoading"
         ref="googleButtonContainer"
-        class="flex justify-center"
+        class="w-full max-w-sm mx-auto"
       ></div>
 
       <!-- フッター -->
