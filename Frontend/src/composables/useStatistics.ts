@@ -1,4 +1,7 @@
 import { ref, computed } from "vue";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { statisticsRepository } from "../repositories/statisticsRepository";
 import { useAuthStore } from "../stores/authStore";
 import type {
@@ -8,6 +11,10 @@ import type {
   MonthlyTrendResult,
   HighlightsResult,
 } from "../types/statistics";
+
+// Day.jsプラグインを有効化
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export function useStatistics() {
   const authStore = useAuthStore();
@@ -30,6 +37,14 @@ export function useStatistics() {
   const currentMonthLabel = computed(
     () => `${currentYear.value}年${currentMonth.value}月`,
   );
+
+  /**
+   * ユーザーのタイムゾーンを考慮した現在日時を取得
+   */
+  const getUserNow = () => {
+    const tz = authStore.settings?.timeZone || "Asia/Tokyo";
+    return dayjs().tz(tz);
+  };
 
   /**
    * 月次サマリーを取得
@@ -156,31 +171,31 @@ export function useStatistics() {
 
   // 前月に移動
   const goToPreviousMonth = async () => {
-    if (currentMonth.value === 1) {
-      currentMonth.value = 12;
-      currentYear.value--;
-    } else {
-      currentMonth.value--;
-    }
+    const current = dayjs(`${currentYear.value}-${currentMonth.value}-01`);
+    const prev = current.subtract(1, "month");
+
+    currentYear.value = prev.year();
+    currentMonth.value = prev.month() + 1;
+
     await fetchCurrentMonth();
   };
 
   // 次月に移動
   const goToNextMonth = async () => {
-    if (currentMonth.value === 12) {
-      currentMonth.value = 1;
-      currentYear.value++;
-    } else {
-      currentMonth.value++;
-    }
+    const current = dayjs(`${currentYear.value}-${currentMonth.value}-01`);
+    const next = current.add(1, "month");
+
+    currentYear.value = next.year();
+    currentMonth.value = next.month() + 1;
+
     await fetchCurrentMonth();
   };
 
   // 今月に戻る
   const goToCurrentMonth = async () => {
-    const now = new Date();
-    currentYear.value = now.getFullYear();
-    currentMonth.value = now.getMonth() + 1;
+    const now = getUserNow();
+    currentYear.value = now.year();
+    currentMonth.value = now.month() + 1;
     await fetchCurrentMonth();
   };
 
@@ -195,10 +210,10 @@ export function useStatistics() {
    * 現在の年月を取得
    */
   const getCurrentYearMonth = () => {
-    const now = new Date();
+    const now = getUserNow();
     return {
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
+      year: now.year(),
+      month: now.month() + 1,
     };
   };
 
@@ -270,55 +285,40 @@ export function useStatistics() {
 
     // 締め日が設定されていない（月末締め）
     if (closingDay === null || closingDay === undefined) {
-      const lastDay = new Date(year, month, 0).getDate();
+      const currentMonthDate = dayjs(`${year}-${month}-01`);
+      const lastDay = currentMonthDate.daysInMonth();
       return `${year}年${month}月1日〜${lastDay}日の収支`;
     }
 
     // 締め日が設定されている場合
+    const currentMonthDate = dayjs(`${year}-${month}-01`);
+    const prevMonthDate = currentMonthDate.subtract(1, "month");
 
     // 当月の実際の日数と締め日
-    const daysInCurrentMonth = new Date(year, month, 0).getDate();
+    const daysInCurrentMonth = currentMonthDate.daysInMonth();
     const endDay = Math.min(closingDay, daysInCurrentMonth);
 
-    // 前月の年月を計算
-    let prevYear = year;
-    let prevMonth = month - 1;
-    if (prevMonth === 0) {
-      prevMonth = 12;
-      prevYear -= 1;
-    }
-
     // 前月の実際の日数と締め日
-    const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
+    const daysInPrevMonth = prevMonthDate.daysInMonth();
     const prevClosingDay = Math.min(closingDay, daysInPrevMonth);
 
     // 開始日 = 前月締め日 + 1
-    let startYear = prevYear;
-    let startMonth = prevMonth;
-    let startDay = prevClosingDay + 1;
+    const startDate = prevMonthDate.date(prevClosingDay).add(1, "day");
 
-    // 日付が月をまたぐ場合の処理
-    if (startDay > daysInPrevMonth) {
-      startDay = 1;
-      startMonth += 1;
-      if (startMonth > 12) {
-        startMonth = 1;
-        startYear += 1;
-      }
-    }
+    const endDate = currentMonthDate.date(endDay);
 
     // フォーマット
-    const formatYMD = (y: number, m: number, d: number) => {
-      if (y === year && m === month) {
-        return `${m}月${d}日`;
+    const formatYMD = (date: dayjs.Dayjs) => {
+      if (date.year() === year && date.month() + 1 === month) {
+        return `${date.month() + 1}月${date.date()}日`;
       }
-      if (y === year) {
-        return `${m}月${d}日`;
+      if (date.year() === year) {
+        return `${date.month() + 1}月${date.date()}日`;
       }
-      return `${y}年${m}月${d}日`;
+      return `${date.year()}年${date.month() + 1}月${date.date()}日`;
     };
 
-    return `${formatYMD(startYear, startMonth, startDay)}〜${formatYMD(year, month, endDay)}の収支`;
+    return `${formatYMD(startDate)}〜${formatYMD(endDate)}の収支`;
   });
 
   /**
@@ -339,33 +339,30 @@ export function useStatistics() {
    * 現在日が属する締め日月を取得
    */
   const getCurrentClosingMonth = () => {
-    const now = new Date();
+    const now = getUserNow();
     const closingDay = authStore.settings?.closingDay;
 
     // 月末締めの場合は通常のカレンダー月
     if (closingDay === null || closingDay === undefined) {
       return {
-        year: now.getFullYear(),
-        month: now.getMonth() + 1,
+        year: now.year(),
+        month: now.month() + 1,
       };
     }
 
     // N日締めの場合
-    const currentDay = now.getDate();
-    let year = now.getFullYear();
-    let month = now.getMonth() + 1; // 1-12
+    const currentDay = now.date();
+    let targetMonth = now;
 
     // 今日が締め日より後なら、次の締め日月に属する
-    // 例: 1/28で締め日25日 → 2月期間（1/26-2/25）に属する
     if (currentDay > closingDay) {
-      month += 1;
-      if (month > 12) {
-        month = 1;
-        year += 1;
-      }
+      targetMonth = now.add(1, "month");
     }
 
-    return { year, month };
+    return {
+      year: targetMonth.year(),
+      month: targetMonth.month() + 1,
+    };
   };
 
   /**
