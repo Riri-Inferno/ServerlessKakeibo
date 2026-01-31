@@ -45,8 +45,8 @@ public class MonthlySummaryInteractor : IMonthlySummaryUseCase
                 "月次サマリー取得を開始します。UserId: {UserId}, Year: {Year}, Month: {Month}",
                 userId, year, month);
 
-            var (totalIncome, totalExpense, expenseByCategory) =
-                await _transactionRepository.GetMonthlySummaryAsync(userId, year, month, cancellationToken);
+            var (totalIncome, totalExpense, incomeByCategory, expenseByCategory) =
+    await _transactionRepository.GetMonthlySummaryAsync(userId, year, month, cancellationToken);
 
             var balance = totalIncome - totalExpense;
 
@@ -63,7 +63,7 @@ public class MonthlySummaryInteractor : IMonthlySummaryUseCase
                 })
                 .ToList();
 
-            var incomeCount = expenseByCategory.Values.Sum(x => x.Count);
+            var incomeCount = incomeByCategory.Values.Sum(x => x.Count);
             var expenseCount = expenseByCategory.Values.Sum(x => x.Count);
             var totalCount = incomeCount + expenseCount;
 

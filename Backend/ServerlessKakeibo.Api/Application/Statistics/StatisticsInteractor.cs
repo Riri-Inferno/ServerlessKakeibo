@@ -241,8 +241,8 @@ public class StatisticsInteractor : IStatisticsUseCase
             var daysWithExpense = await _transactionRepository.GetDaysWithExpenseAsync(
                 userId, year, month, cancellationToken);
 
-            var (_, totalExpense, _) = await _transactionRepository.GetMonthlySummaryAsync(
-                userId, year, month, cancellationToken);
+            var (_, totalExpense, _, _) = await _transactionRepository.GetMonthlySummaryAsync(
+            userId, year, month, cancellationToken);
 
             // 平均支出を計算
             var averageExpensePerDay = daysWithExpense > 0
