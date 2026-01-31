@@ -181,14 +181,17 @@ public class TransactionRepository : ITransactionRepository
     /// <summary>
     /// 月次サマリーを取得
     /// </summary>
-    public async Task<(decimal TotalIncome, decimal TotalExpense, Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
+    public async Task<(
+        decimal TotalIncome,
+        decimal TotalExpense,
+        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
+        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
         GetMonthlySummaryAsync(
             Guid userId,
             int year,
             int month,
             CancellationToken ct = default)
     {
-        // 締め日を考慮した期間取得
         var closingDay = await GetClosingDayAsync(userId, ct);
         var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
@@ -214,6 +217,14 @@ public class TransactionRepository : ITransactionRepository
             .Where(t => t.Type == TransactionType.Expense)
             .Sum(t => t.AmountTotal ?? 0);
 
+        var incomeByCategory = transactions
+            .Where(t => t.Type == TransactionType.Income)
+            .GroupBy(t => t.Category)
+            .ToDictionary(
+                g => g.Key,
+                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
+            );
+
         var expenseByCategory = transactions
             .Where(t => t.Type == TransactionType.Expense)
             .GroupBy(t => t.Category)
@@ -222,7 +233,7 @@ public class TransactionRepository : ITransactionRepository
                 g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
             );
 
-        return (totalIncome, totalExpense, expenseByCategory);
+        return (totalIncome, totalExpense, incomeByCategory, expenseByCategory);
     }
 
     /// <summary>
