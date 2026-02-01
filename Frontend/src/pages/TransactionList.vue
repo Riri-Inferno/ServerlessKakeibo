@@ -203,29 +203,47 @@ onUnmounted(() => {
   <DefaultLayout>
     <div class="max-w-7xl mx-auto h-full flex flex-col">
       <!-- ヘッダー部分 -->
-      <div class="flex-shrink-0 space-y-6 mb-6">
-        <div class="flex items-center justify-between">
+      <div class="flex-shrink-0 space-y-4 mb-6">
+        <!-- タイトルとボタン：PCは横並び、モバイルは縦並び -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
+          <!-- タイトル -->
           <div>
             <BaseText variant="h1" class="mb-2">取引一覧</BaseText>
             <BaseText variant="caption" color="gray">
               全{{ totalCount }}件
             </BaseText>
           </div>
-          <div class="flex gap-2">
-            <!-- エクスポートボタン -->
-            <BaseButton variant="outline" @click="openExportModal">
-              <span class="flex items-center gap-1">
+
+          <!-- ボタン：モバイルは2列グリッド、PCは横並び -->
+          <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+            <BaseButton
+              variant="outline"
+              class="w-full sm:w-auto"
+              @click="openExportModal"
+            >
+              <span class="flex items-center justify-center gap-1">
                 <BaseIcon name="download" size="sm" />
-                <span>エクスポート</span>
+                <span class="hidden sm:inline">エクスポート</span>
+                <span class="sm:hidden">エクスポート</span>
               </span>
             </BaseButton>
-            <!-- 新規登録ボタン -->
-            <BaseButton variant="primary" @click="openCreateModal">
-              新規登録
+
+            <BaseButton
+              variant="primary"
+              class="w-full sm:w-auto"
+              @click="openCreateModal"
+            >
+              <span class="flex items-center justify-center gap-1">
+                <BaseIcon name="plus" size="sm" />
+                <span>新規登録</span>
+              </span>
             </BaseButton>
           </div>
         </div>
 
+        <!-- フィルター -->
         <TransactionFilter @search="handleSearch" @clear="handleClearFilters" />
       </div>
 

@@ -49,7 +49,7 @@ const sizeClasses: Record<Size, string> = {
 
 const inputClass = computed(() => {
   const base =
-    "w-full rounded-lg border-2 transition-all duration-200 font-medium";
+    "w-full rounded-lg border-2 transition-all duration-200 font-medium appearance-none"; // appearance-none追加
   const size = sizeClasses[props.size];
 
   // TODO: カラーパレット確定後、色を調整
