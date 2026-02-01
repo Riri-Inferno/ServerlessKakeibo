@@ -18,6 +18,12 @@ public enum AuthProvider
     /// </summary>
     [Description("Google")]
     Google = 1,
+
+    /// <summary>
+    /// GitHub認証
+    /// </summary>
+    [Description("GitHub")]
+    GitHub = 2,
 }
 
 /// <summary>
@@ -57,6 +63,7 @@ public static class AuthProviderExtensions
         return providerName switch
         {
             "Google" => AuthProvider.Google,
+            "GitHub" => AuthProvider.GitHub,
             "未指定" => AuthProvider.None,
             _ => null
         };

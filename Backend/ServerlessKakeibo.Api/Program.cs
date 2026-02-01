@@ -114,6 +114,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 builder.Services.AddSingleton<IPasswordHashService, PasswordHashService>();
+builder.Services.AddSingleton<IGitHubAuthService, GitHubAuthService>();
 #endregion
 
 #region UseCases
@@ -133,6 +134,7 @@ builder.Services.AddScoped<IStatisticsUseCase, StatisticsInteractor>();
 builder.Services.AddScoped<IGetUserSettingsUseCase, GetUserSettingsInteractor>();
 builder.Services.AddScoped<IUpdateUserSettingsUseCase, UpdateUserSettingsInteractor>();
 builder.Services.AddScoped<IDeleteAllTransactionsUseCase, DeleteAllTransactionsInteractor>();
+builder.Services.AddScoped<IGitHubLoginUseCase, GitHubLoginInteractor>();
 #endregion
 
 #region DomainServices
@@ -155,19 +157,64 @@ builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 #endregion
 
 #region CORS settings
-// CORS 設定（開発環境のみ全許可）
-if (builder.Environment.IsDevelopment())
+builder.Services.AddCors(options =>
 {
-    builder.Services.AddCors(options =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        options.AddPolicy("AllowAll", p =>
-            p.WithOrigins("http://localhost:5173")
-             .AllowAnyHeader()
-             .AllowAnyMethod()
-             .AllowCredentials()
-             .WithExposedHeaders("*"));
+        if (builder.Environment.IsDevelopment())
+        {
+            // 開発環境: localhost とプライベートネットワークを許可
+            policy.SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                    return false;
+
+                // ローカルホスト
+                if (origin.StartsWith("http://localhost") ||
+                    origin.StartsWith("http://127.0.0.1") ||
+                    origin.StartsWith("http://[::1]") ||           // IPv6 localhost
+                    origin.StartsWith("http://[0:0:0:0:0:0:0:1]")) // IPv6 localhost (完全表記)
+                    return true;
+
+                // プライベートIPアドレス (RFC 1918)
+                if (origin.StartsWith("http://10."))              // Class A: 10.0.0.0/8
+                    return true;
+
+                if (origin.StartsWith("http://192.168."))         // Class C: 192.168.0.0/16
+                    return true;
+
+                // Class B: 172.16.0.0/12 (172.16.0.0 ~ 172.31.255.255)
+                if (origin.StartsWith("http://172."))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(
+                        origin,
+                        @"^http://172\.(\d+)\.");
+
+                    if (match.Success &&
+                        int.TryParse(match.Groups[1].Value, out var secondOctet) &&
+                        secondOctet >= 16 && secondOctet <= 31)
+                        return true;
+                }
+
+                return false;
+            });
+        }
+        else
+        {
+            // 本番環境: appsettings.json の AllowedOrigins を使用
+            var allowedOrigins = builder.Configuration
+                .GetSection("AllowedOrigins")
+                .Get<string[]>() ?? Array.Empty<string>();
+
+            policy.WithOrigins(allowedOrigins);
+        }
+
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("*");
     });
-}
+});
 #endregion
 
 #region Swagger settings

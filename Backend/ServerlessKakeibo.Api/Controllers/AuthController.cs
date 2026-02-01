@@ -17,17 +17,20 @@ namespace ServerlessKakeibo.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IGoogleLoginUseCase _googleLoginUseCase;
+    private readonly IGitHubLoginUseCase _gitHubLoginUseCase;
     private readonly IRefreshTokenUseCase _refreshTokenUseCase;
     private readonly ILogger<AuthController> _logger;
     private readonly IHostEnvironment _environment;
 
     public AuthController(
         IGoogleLoginUseCase googleLoginUseCase,
+        IGitHubLoginUseCase gitHubLoginUseCase,
         IRefreshTokenUseCase refreshTokenUseCase,
         ILogger<AuthController> logger,
         IHostEnvironment environment)
     {
         _googleLoginUseCase = googleLoginUseCase ?? throw new ArgumentNullException(nameof(googleLoginUseCase));
+        _gitHubLoginUseCase = gitHubLoginUseCase ?? throw new ArgumentNullException(nameof(gitHubLoginUseCase));
         _refreshTokenUseCase = refreshTokenUseCase ?? throw new ArgumentNullException(nameof(refreshTokenUseCase));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
@@ -106,6 +109,106 @@ public class AuthController : ControllerBase
                 ApiResponse<LoginResult>.Fail(
                     ApiStatus.InvalidRequest,
                     "認証処理に失敗しました。"
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "予期しないエラーが発生しました");
+
+            if (!_environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<LoginResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
+
+    /// <summary>
+    /// GitHub認証でログイン
+    /// </summary>
+    /// <param name="request">GitHubログインリクエスト</param>
+    /// <returns>JWT accessTokenとユーザー情報</returns>
+    [HttpPost("github")]
+    [SwaggerOperation(
+        Summary = "GitHub認証でログイン",
+        Description = @"
+## 使い方
+
+1. フロントエンドでGitHubログインを実行し、**認証コード**を取得  
+2. 取得した **code** を `code` フィールドに設定してリクエスト  
+3. 初回ログイン時は自動でユーザーが作成されます  
+4. レスポンスの `accessToken` を保存し、以降のAPI呼び出しで使用してください  
+
+## GitHub OAuth フロー
+
+1. ユーザーを `https://github.com/login/oauth/authorize?client_id={CLIENT_ID}` にリダイレクト  
+2. ユーザーが認証を許可すると、コールバックURLに `code` パラメータ付きでリダイレクトされる  
+3. その `code` をこのAPIに送信  
+
+## 注意事項
+
+- メールアドレスが公開されていない場合、確認済みメールアドレスが必要です  
+- 取得した `accessToken` は  
+  `Authorization: Bearer {accessToken}`  
+  ヘッダーに設定して他のAPIを呼び出してください
+")]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<LoginResult>>> GitHubLoginAsync(
+        [FromBody] GitHubLoginRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("GitHub認証リクエストを受信しました");
+
+            var result = await _gitHubLoginUseCase.ExecuteAsync(request);
+
+            _logger.LogInformation(
+                "GitHub認証に成功しました。UserId: {UserId}",
+                result.UserId);
+
+            return Ok(ApiResponse<LoginResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "GitHub認証に失敗しました");
+            return Unauthorized(
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    "認証に失敗しました。"
+                )
+            );
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "不正なリクエストです");
+            return BadRequest(
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
+                )
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "認証処理中にエラーが発生しました");
+            return BadRequest(
+                ApiResponse<LoginResult>.Fail(
+                    ApiStatus.InvalidRequest,
+                    ex.Message
                 )
             );
         }

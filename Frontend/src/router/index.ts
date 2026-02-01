@@ -6,6 +6,7 @@ import Dashboard from "../pages/Dashboard.vue";
 import TransactionList from "../pages/TransactionList.vue";
 import Statistics from "../pages/Statistics.vue";
 import Settings from "../pages/Settings.vue";
+import AuthCallback from "../pages/AuthCallback.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,6 +15,12 @@ const router = createRouter({
       path: "/",
       name: "login",
       component: Login,
+    },
+    {
+      path: "/auth/callback",
+      name: "authCallback",
+      component: AuthCallback,
+      meta: { requiresAuth: false },
     },
     {
       path: "/dashboard",

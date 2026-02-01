@@ -241,7 +241,7 @@ const closeDeleteModal = () => {
                   >
                     <span class="flex items-center gap-1 text-blue-600">
                       <BaseIcon name="refresh" size="sm" />
-                      <span class="text-xs">Google情報に戻す</span>
+                      <span class="text-xs">認証情報に戻す</span>
                     </span>
                   </BaseButton>
                 </div>
@@ -251,7 +251,7 @@ const closeDeleteModal = () => {
                   :disabled="isSaving"
                 />
                 <BaseText variant="caption" color="gray" class="mt-1">
-                  空欄の場合はGoogleアカウントの名前が使用されます
+                  空欄の場合は認証アカウントの名前が使用されます
                 </BaseText>
               </div>
 

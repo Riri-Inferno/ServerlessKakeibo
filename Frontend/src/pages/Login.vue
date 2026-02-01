@@ -1,90 +1,59 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { googleSdkLoaded, type CallbackTypes } from "vue3-google-login";
-import { authRepository } from "../repositories/authRepository";
-import { useAuthStore } from "../stores/authStore";
+import { useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import logo from "../assets/icons/logo.svg?url";
-import router from "../router";
 
 type CredentialResponse = CallbackTypes.CredentialPopupResponse;
 
-const authStore = useAuthStore();
-const { fetchSettings } = useAuth();
-const isLoading = ref(false);
-const errorMessage = ref("");
+const router = useRouter();
+const { loginWithGoogle, startGitHubLogin, isLoading, errorMessage } =
+  useAuth();
 const googleButtonContainer = ref<HTMLDivElement>();
 
-// Google ログイン成功時のコールバック
 const handleCredentialResponse = async (response: CredentialResponse) => {
-  isLoading.value = true;
-  errorMessage.value = "";
-
   try {
     const idToken = response.credential;
+    if (!idToken) throw new Error("Google ID Token を取得できませんでした");
 
-    if (!idToken) {
-      throw new Error("Google ID Token を取得できませんでした");
-    }
-
-    console.log("Google ID Token を取得しました");
-
-    // バックエンドに ID Token を送信
-    console.log("バックエンドに認証リクエスト...");
-    const userData = await authRepository.loginWithGoogle(idToken);
-
-    console.log("ログイン成功:", userData);
-
-    // Pinia ストアに保存
-    authStore.setAuthData(userData);
-
-    // 設定を取得
-    await fetchSettings();
-
-    // ダッシュボードにリダイレクト
+    await loginWithGoogle(idToken);
     router.push({ name: "dashboard" });
-
-    alert(`ようこそ、${authStore.effectiveDisplayName}さん`);
   } catch (error) {
-    console.error("ログインエラー:", error);
-
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = "ログインに失敗しました。もう一度お試しください。";
-    }
-  } finally {
-    isLoading.value = false;
+    console.error("Google ログインエラー:", error);
   }
 };
 
-// Google SDK 読み込み後にボタンをレンダリング
+const handleGitHubLogin = () => {
+  try {
+    startGitHubLogin();
+  } catch (error) {
+    console.error("GitHub ログインエラー:", error);
+  }
+};
+
 onMounted(() => {
   googleSdkLoaded((google) => {
     if (!googleButtonContainer.value) return;
 
-    // Google Identity Services を初期化
     google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
       use_fedcm_for_prompt: false, // FedCM を無効化
     });
 
-    // コンテナの実際の幅を取得してボタンをレンダリング
-    const containerWidth = googleButtonContainer.value.offsetWidth;
-
     google.accounts.id.renderButton(googleButtonContainer.value, {
+      type: "standard",
       theme: "outline",
       size: "large",
       text: "signin_with",
       shape: "rectangular",
+      logo_alignment: "center",
       locale: "ja",
-      width: containerWidth.toString(),
+      width: googleButtonContainer.value.offsetWidth.toString(),
     });
-
-    console.log("Google ログインボタンをレンダリングしました");
   });
 });
 </script>
@@ -114,17 +83,40 @@ onMounted(() => {
         <BaseText variant="body">ログイン中...</BaseText>
       </div>
 
-      <!-- Google ログインボタン（公式） -->
-      <div
-        v-show="!isLoading"
-        ref="googleButtonContainer"
-        class="w-full max-w-sm mx-auto"
-      ></div>
+      <!-- ログインボタン -->
+      <div v-show="!isLoading" class="space-y-3">
+        <!-- Google ログインボタン（公式SDK） -->
+        <div ref="googleButtonContainer" class="w-full"></div>
+
+        <!-- GitHub ログインボタン -->
+        <button
+          @click="handleGitHubLogin"
+          :disabled="isLoading"
+          class="w-full h-10 flex items-center justify-center gap-3 bg-white border border-[#dadce0] rounded text-[#3c4043] text-sm font-medium hover:bg-[#f8f9fa] hover:shadow-md active:bg-[#f1f3f4] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          :style="{
+            fontFamily: `'Google Sans', 'Roboto', 'Noto Sans JP', sans-serif`,
+          }"
+        >
+          <!-- GitHub ロゴ -->
+          <svg
+            class="w-[18px] h-[18px] flex-shrink-0"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+            />
+          </svg>
+
+          <!-- テキスト -->
+          <span>GitHub でログイン</span>
+        </button>
+      </div>
 
       <!-- フッター -->
       <div class="mt-8 text-center">
         <BaseText variant="caption" color="gray">
-          ログインすることで、利用規約とプライバシーポリシーに同意したものとみなされます
+          ログインすることで、利用規約とプライバシーポリシーに同意したものとみなされます（準備中）
         </BaseText>
       </div>
     </BaseCard>
