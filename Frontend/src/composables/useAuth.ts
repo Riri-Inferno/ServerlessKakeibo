@@ -45,12 +45,28 @@ export function useAuth() {
 
   /**
    * GitHub でログイン
+   * @param code GitHub から返された認証コード
+   * @param state GitHub から返された state（CSRF 対策用）
    */
   const loginWithGitHub = async (code: string, state?: string) => {
     isLoading.value = true;
     errorMessage.value = "";
 
     try {
+      // CSRF対策でstateを検証
+      const savedState = sessionStorage.getItem("github_oauth_state");
+
+      if (!state || !savedState) {
+        throw new Error("認証パラメータが不正です (state missing)");
+      }
+
+      if (state !== savedState) {
+        throw new Error("認証パラメータが不正です (state mismatch)");
+      }
+
+      // 検証成功後、state を削除（再利用防止）
+      sessionStorage.removeItem("github_oauth_state");
+
       const userData = await authRepository.loginWithGitHub(code, state);
       authStore.setAuthData(userData);
       await fetchSettings();
@@ -59,6 +75,10 @@ export function useAuth() {
       console.error("GitHub ログインエラー:", error);
       errorMessage.value =
         error instanceof Error ? error.message : "GitHub 認証に失敗しました";
+
+      // エラー時も state をクリーンアップ
+      sessionStorage.removeItem("github_oauth_state");
+
       throw error;
     } finally {
       isLoading.value = false;
@@ -102,10 +122,15 @@ export function useAuth() {
    */
   const getGitHubAuthUrl = () => {
     const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+
+    if (!GITHUB_CLIENT_ID) {
+      throw new Error("GitHub Client ID が設定されていません");
+    }
+
     const REDIRECT_URI = `${window.location.origin}/auth/callback`;
     const state = generateRandomState();
 
-    // state をセッションストレージに保存
+    // state をセッションストレージに保存（CSRF 対策）
     sessionStorage.setItem("github_oauth_state", state);
 
     const authUrl = new URL("https://github.com/login/oauth/authorize");
@@ -121,7 +146,8 @@ export function useAuth() {
    * GitHub ログインを開始（リダイレクト）
    */
   const startGitHubLogin = () => {
-    window.location.href = getGitHubAuthUrl();
+    const authUrl = getGitHubAuthUrl();
+    window.location.href = authUrl;
   };
 
   return {
@@ -146,8 +172,16 @@ export function useAuth() {
 
 /**
  * ランダムな state を生成（CSRF 対策）
+ *
+ * より強固な実装が必要な場合は crypto.randomUUID() を使用
  */
 function generateRandomState(): string {
+  // モダンブラウザの場合
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  // フォールバック
   return (
     Math.random().toString(36).substring(2, 15) +
     Math.random().toString(36).substring(2, 15)
