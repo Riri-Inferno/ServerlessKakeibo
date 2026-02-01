@@ -90,7 +90,8 @@ const toggleExpand = () => {
         <BaseText variant="h3">検索条件</BaseText>
         <button
           @click="toggleExpand"
-          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors tap-transparent"
+          aria-label="検索条件を展開"
         >
           <BaseIcon
             :name="isExpanded ? 'chevron-up' : 'chevron-down'"
@@ -100,26 +101,27 @@ const toggleExpand = () => {
       </div>
 
       <div v-show="isExpanded" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 日付範囲：モバイルは縦並び、タブレット以上は横並び -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >開始日</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              開始日
+            </BaseText>
             <BaseInput v-model="filters.startDate" type="date" size="md" />
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >終了日</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              終了日
+            </BaseText>
             <BaseInput v-model="filters.endDate" type="date" size="md" />
           </div>
         </div>
 
         <div>
-          <BaseText variant="caption" color="gray" class="mb-1"
-            >支払先</BaseText
-          >
+          <BaseText variant="caption" color="gray" class="mb-1">
+            支払先
+          </BaseText>
           <BaseInput
             v-model="filters.payee"
             type="text"
@@ -128,11 +130,12 @@ const toggleExpand = () => {
           />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 種別・カテゴリ：モバイルは縦並び、タブレット以上は横並び -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >取引種別</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              取引種別
+            </BaseText>
             <BaseSelect
               v-model="filters.type"
               :options="typeOptions"
@@ -142,9 +145,9 @@ const toggleExpand = () => {
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >カテゴリ</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              カテゴリ
+            </BaseText>
             <BaseSelect
               v-model="filters.category"
               :options="categoryOptions"
@@ -154,11 +157,12 @@ const toggleExpand = () => {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 金額範囲：モバイルは縦並び、タブレット以上は横並び -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >最小金額</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              最小金額
+            </BaseText>
             <BaseInputNumber
               v-model="filters.minAmount"
               placeholder="0"
@@ -167,9 +171,9 @@ const toggleExpand = () => {
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
-              >最大金額</BaseText
-            >
+            <BaseText variant="caption" color="gray" class="mb-1">
+              最大金額
+            </BaseText>
             <BaseInputNumber
               v-model="filters.maxAmount"
               placeholder="999999999"
@@ -178,13 +182,18 @@ const toggleExpand = () => {
           </div>
         </div>
 
-        <div class="flex gap-2">
-          <BaseButton variant="primary" class="flex-1" @click="handleSearch">
+        <!-- ボタン：モバイルは縦並び、タブレット以上は横並び -->
+        <div class="flex flex-col sm:flex-row gap-2">
+          <BaseButton
+            variant="primary"
+            class="w-full sm:flex-1"
+            @click="handleSearch"
+          >
             検索
           </BaseButton>
           <BaseButton
             variant="outline"
-            class="flex-shrink-0"
+            class="w-full sm:w-auto sm:flex-shrink-0"
             @click="handleClear"
           >
             クリア
