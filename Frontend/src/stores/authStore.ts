@@ -1,9 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import {
-  authRepository,
-  type LoginResult,
-} from "../repositories/authRepository";
+import { authRepository } from "../repositories/authRepository";
+import type { LoginResult } from "../types/auth";
 import type { UserSettings } from "../types/settings";
 
 /**
