@@ -70,7 +70,7 @@ watch(
       displayValue.value = formatNumber(newValue);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 入力時の処理
@@ -177,7 +177,7 @@ const iconSizeClasses: Record<Size, string> = {
 
 const inputClass = computed(() => {
   const base =
-    "w-full rounded-lg border-2 transition-all duration-200 font-medium text-right";
+    "w-full rounded-lg border-2 transition-all duration-200 font-medium text-right appearance-none"; // appearance-none追加
   const size = sizeClasses[props.size];
 
   // TODO: カラーパレット確定後、色を調整
