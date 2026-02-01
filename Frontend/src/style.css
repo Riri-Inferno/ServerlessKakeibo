@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* フォーム要素のappearanceをリセット */
+  input,
+  select,
+  textarea {
+    @apply appearance-none;
+  }
+
+  /* date型入力の高さを統一*/
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    @apply min-h-12; /* 48px */
+  }
+
+  /* モバイルでのズーム防止 */
+  @media (max-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* iOS Safariのタップハイライトを無効化 */
+  .tap-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
