@@ -88,18 +88,18 @@ onMounted(() => {
         <!-- Google ログインボタン（公式SDK） -->
         <div ref="googleButtonContainer" class="w-full"></div>
 
-        <!-- GitHub ログインボタン-->
+        <!-- GitHub ログインボタン -->
         <button
           @click="handleGitHubLogin"
           :disabled="isLoading"
-          class="w-full h-10 px-3 flex items-center bg-white border border-[#dadce0] rounded text-[#3c4043] text-sm font-medium hover:bg-[#f8f9fa] hover:shadow-md active:bg-[#f1f3f4] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 relative"
+          class="w-full h-10 flex items-center justify-center gap-3 bg-white border border-[#dadce0] rounded text-[#3c4043] text-sm font-medium hover:bg-[#f8f9fa] hover:shadow-md active:bg-[#f1f3f4] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           :style="{
             fontFamily: `'Google Sans', 'Roboto', 'Noto Sans JP', sans-serif`,
           }"
         >
-          <!-- GitHub ロゴ（絶対配置で左端固定） -->
+          <!-- GitHub ロゴ -->
           <svg
-            class="w-[18px] h-[18px] flex-shrink-0 absolute left-3"
+            class="w-[18px] h-[18px] flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
@@ -108,8 +108,8 @@ onMounted(() => {
             />
           </svg>
 
-          <!-- テキスト（中央配置） -->
-          <span class="flex-1 text-center">GitHub でログイン</span>
+          <!-- テキスト -->
+          <span>GitHub でログイン</span>
         </button>
       </div>
 
