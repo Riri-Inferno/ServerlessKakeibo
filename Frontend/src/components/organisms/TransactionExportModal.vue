@@ -6,7 +6,7 @@ import type { GetTransactionsRequest } from "../../types/transaction";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
-import BaseCheckbox from "../atoms/BaseCheckbox.vue";
+import LabeledCheckbox from "../molecules/LabeledCheckbox.vue";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
@@ -154,7 +154,7 @@ watch(
       </div>
 
       <div class="pt-4 border-t border-gray-200">
-        <BaseCheckbox
+        <LabeledCheckbox
           v-model="includeImages"
           label="レシート画像を含める"
           :description="

@@ -12,6 +12,7 @@ import BaseText from "../atoms/BaseText.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
 import BaseSelect from "../atoms/BaseSelect.vue";
+import LabeledCheckbox from "./LabeledCheckbox.vue";
 
 interface Props {
   type: TransactionType;
@@ -76,6 +77,12 @@ const totalDifference = computed(() => {
 const hasCalculationError = computed(() => {
   return totalDifference.value > 1;
 });
+
+// 自動計算のv-model用
+const autoCalculate = computed({
+  get: () => props.isAutoCalculate,
+  set: (value: boolean) => emit("update:isAutoCalculate", value),
+});
 </script>
 
 <template>
@@ -105,22 +112,9 @@ const hasCalculationError = computed(() => {
 
     <!-- 合計金額 -->
     <div>
-      <div class="flex items-center justify-between mb-1">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
         <BaseText variant="caption" color="gray">合計金額</BaseText>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            :checked="isAutoCalculate"
-            @change="
-              emit(
-                'update:isAutoCalculate',
-                ($event.target as HTMLInputElement).checked,
-              )
-            "
-            class="rounded"
-          />
-          <BaseText variant="caption" color="gray">自動計算</BaseText>
-        </label>
+        <LabeledCheckbox v-model="autoCalculate" label="自動計算" size="sm" />
       </div>
       <BaseInputNumber
         :model-value="amountTotal"

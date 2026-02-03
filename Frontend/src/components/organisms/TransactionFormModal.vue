@@ -6,7 +6,7 @@ import { useReceiptOcr } from "../../composables/useReceiptOcr";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
-import BaseCheckbox from "../atoms/BaseCheckbox.vue";
+import LabeledCheckbox from "../molecules/LabeledCheckbox.vue";
 import TransactionFormFields from "../molecules/TransactionFormFields.vue";
 import TransactionItemsList from "../molecules/TransactionItemsList.vue";
 import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
@@ -219,7 +219,7 @@ const handleClose = () => {
           v-if="isOcrMode && !isEditMode"
           class="pt-4 border-t border-gray-200"
         >
-          <BaseCheckbox
+          <LabeledCheckbox
             v-model="shouldSaveImage"
             label="レシート画像をサーバーに保存する"
             description="後から取引詳細で画像を確認できます（作成後7日以内であれば後から添付も可能）"
