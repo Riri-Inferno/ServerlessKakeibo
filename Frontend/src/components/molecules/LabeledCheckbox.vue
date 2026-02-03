@@ -68,11 +68,15 @@ const labelClass = computed(() => {
   const cursor = props.disabled ? "cursor-not-allowed" : "cursor-pointer";
   return `${base} ${cursor}`;
 });
+
+// 説明文がある場合は上揃え、ない場合は中央揃え
+const containerAlignClass = computed(() => {
+  return props.description ? "items-start" : "items-center";
+});
 </script>
 
 <template>
-  <label :class="`flex items-start gap-3 ${labelClass}`">
-    <!-- 実際のinput要素（視覚的に非表示） -->
+  <label :class="`flex gap-3 ${containerAlignClass} ${labelClass}`">
     <input
       v-model="modelValue"
       type="checkbox"
@@ -80,8 +84,8 @@ const labelClass = computed(() => {
       class="sr-only"
     />
 
-    <!-- カスタムチェックボックスUI -->
-    <div :class="checkboxContainerClass">
+    <!-- チェックボックス本体（説明文がある場合は少し下げる） -->
+    <div :class="[checkboxContainerClass, description ? 'mt-0.5' : '']">
       <CheckIcon
         v-if="modelValue"
         :class="iconSizeClasses[size]"
@@ -89,7 +93,6 @@ const labelClass = computed(() => {
       />
     </div>
 
-    <!-- ラベルと説明文（BaseTextを使用） -->
     <div v-if="label || description" class="flex-1">
       <BaseText v-if="label" variant="body" :class="labelClass">
         {{ label }}
