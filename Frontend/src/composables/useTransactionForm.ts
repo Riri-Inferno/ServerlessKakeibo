@@ -57,6 +57,7 @@ export function useTransactionForm() {
 
   const isAutoCalculate = ref(false);
 
+  // 明細や税情報が変更された時に自動計算
   watch(
     [items, taxes, taxInclusionType],
     () => {
@@ -66,6 +67,13 @@ export function useTransactionForm() {
     },
     { deep: true },
   );
+
+  // 自動計算チェックを入れた瞬間に上書き
+  watch(isAutoCalculate, (newValue) => {
+    if (newValue) {
+      amountTotal.value = calculatedTotal.value;
+    }
+  });
 
   const setFromOcrResult = (result: ReceiptParseResult) => {
     const normalized = result.normalized;
