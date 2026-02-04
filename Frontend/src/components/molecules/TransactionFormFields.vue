@@ -143,27 +143,53 @@ const autoCalculate = computed({
       </div>
     </div>
 
-    <!-- 支払者（収入時） -->
-    <div v-if="type === TransactionType.Income">
-      <BaseText variant="caption" color="gray" class="mb-1">支払者</BaseText>
+    <!-- 支払者（収入時のみ有効） -->
+    <div>
+      <BaseText
+        variant="caption"
+        :color="type === TransactionType.Income ? 'gray' : 'muted'"
+        class="mb-1"
+      >
+        支払者
+        <span v-if="type !== TransactionType.Income" class="text-xs">
+          （収入時のみ）
+        </span>
+      </BaseText>
       <BaseInput
         :model-value="payer"
         @update:model-value="emit('update:payer', $event as string)"
         type="text"
         placeholder="給与振込元など"
         size="md"
+        :disabled="type !== TransactionType.Income"
+        :class="{
+          'opacity-50 cursor-not-allowed': type !== TransactionType.Income,
+        }"
       />
     </div>
 
-    <!-- 支払先（支出時） -->
-    <div v-else>
-      <BaseText variant="caption" color="gray" class="mb-1">支払先</BaseText>
+    <!-- 支払先（支出時のみ有効） -->
+    <div>
+      <BaseText
+        variant="caption"
+        :color="type === TransactionType.Expense ? 'gray' : 'muted'"
+        class="mb-1"
+      >
+        支払先
+        <span v-if="type !== TransactionType.Expense" class="text-xs">
+          （支出時のみ）
+        </span>
+      </BaseText>
       <BaseInput
         :model-value="payee"
         @update:model-value="emit('update:payee', $event as string)"
         type="text"
         placeholder="店舗名など"
         size="md"
+        :disabled="type !== TransactionType.Expense"
+        :class="{
+          'opacity-50 cursor-not-allowed': type !== TransactionType.Expense,
+        }"
       />
     </div>
 

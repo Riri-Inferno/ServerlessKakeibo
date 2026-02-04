@@ -10,7 +10,7 @@ import { computed } from "vue";
  */
 
 type Variant = "h1" | "h2" | "h3" | "body" | "caption" | "amount";
-type Color = "default" | "primary" | "success" | "danger" | "gray";
+type Color = "default" | "primary" | "success" | "danger" | "gray" | "muted";
 type Weight = "normal" | "medium" | "bold";
 
 interface Props {
@@ -48,6 +48,7 @@ const colorClasses: Record<Color, string> = {
   success: "text-green-600", // 収入用
   danger: "text-red-600", // 支出用
   gray: "text-gray-500",
+  muted: "text-gray-400",
 };
 
 const weightClasses: Record<Weight, string> = {
