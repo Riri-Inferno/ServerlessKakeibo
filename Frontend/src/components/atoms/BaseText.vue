@@ -10,7 +10,7 @@ import { computed } from "vue";
  */
 
 type Variant = "h1" | "h2" | "h3" | "body" | "caption" | "amount";
-type Color = "default" | "primary" | "success" | "danger" | "gray" | "muted"; // ← 修正
+type Color = "default" | "primary" | "success" | "danger" | "gray" | "muted";
 type Weight = "normal" | "medium" | "bold";
 
 interface Props {
