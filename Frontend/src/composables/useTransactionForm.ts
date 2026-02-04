@@ -23,6 +23,7 @@ export function useTransactionForm() {
   const transactionDate = ref("");
   const amountTotal = ref<number | null>(null);
   const payee = ref("");
+  const payer = ref("");
   const category = ref<TransactionCategory>(TransactionCategory.Uncategorized);
   const paymentMethod = ref("");
   const notes = ref("");
@@ -79,6 +80,7 @@ export function useTransactionForm() {
     }
 
     amountTotal.value = normalized.amountTotal || null;
+    payer.value = ""; // OCR対応ではない
     payee.value = normalized.payee || "";
     category.value =
       (normalized.category as TransactionCategory) ||
@@ -134,6 +136,7 @@ export function useTransactionForm() {
     transactionDate.value = date.toISOString().split("T")[0] ?? "";
 
     amountTotal.value = transaction.amountTotal;
+    payer.value = transaction.payer || "";
     payee.value = transaction.payee || "";
     category.value = transaction.category;
     paymentMethod.value = transaction.paymentMethod || "";
@@ -178,6 +181,7 @@ export function useTransactionForm() {
       const request: UpdateTransactionRequest = {
         transactionDate: transactionDate.value,
         currency: "JPY",
+        payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
         category: category.value,
@@ -204,6 +208,7 @@ export function useTransactionForm() {
     type.value = TransactionType.Expense;
     transactionDate.value = "";
     amountTotal.value = null;
+    payer.value = "";
     payee.value = "";
     category.value = TransactionCategory.Uncategorized;
     paymentMethod.value = "";
@@ -270,6 +275,7 @@ export function useTransactionForm() {
         transactionDate: transactionDate.value,
         amountTotal: amountTotal.value!,
         currency: "JPY",
+        payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
         category: category.value,
@@ -325,6 +331,7 @@ export function useTransactionForm() {
     type,
     transactionDate,
     amountTotal,
+    payer,
     payee,
     category,
     paymentMethod,

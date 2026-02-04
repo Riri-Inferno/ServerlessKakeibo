@@ -18,6 +18,7 @@ interface Props {
   type: TransactionType;
   transactionDate: string;
   amountTotal: number | null;
+  payer: string;
   payee: string;
   category: TransactionCategory;
   paymentMethod: string;
@@ -37,6 +38,7 @@ const emit = defineEmits<{
   "update:type": [value: TransactionType];
   "update:transactionDate": [value: string];
   "update:amountTotal": [value: number | null];
+  "update:payer": [value: string];
   "update:payee": [value: string];
   "update:category": [value: TransactionCategory];
   "update:paymentMethod": [value: string];
@@ -141,8 +143,20 @@ const autoCalculate = computed({
       </div>
     </div>
 
-    <!-- 支払先 -->
-    <div>
+    <!-- 支払者（収入時） -->
+    <div v-if="type === TransactionType.Income">
+      <BaseText variant="caption" color="gray" class="mb-1">支払者</BaseText>
+      <BaseInput
+        :model-value="payer"
+        @update:model-value="emit('update:payer', $event as string)"
+        type="text"
+        placeholder="給与振込元など"
+        size="md"
+      />
+    </div>
+
+    <!-- 支払先（支出時） -->
+    <div v-else>
       <BaseText variant="caption" color="gray" class="mb-1">支払先</BaseText>
       <BaseInput
         :model-value="payee"
