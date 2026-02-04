@@ -30,6 +30,7 @@ const {
   type,
   transactionDate,
   amountTotal,
+  payer,
   payee,
   category,
   paymentMethod,
@@ -181,6 +182,7 @@ const handleClose = () => {
           :type="type"
           :transaction-date="transactionDate"
           :amount-total="amountTotal"
+          :payer="payer"
           :payee="payee"
           :category="category"
           :payment-method="paymentMethod"
@@ -192,6 +194,7 @@ const handleClose = () => {
           @update:type="type = $event"
           @update:transaction-date="transactionDate = $event"
           @update:amount-total="amountTotal = $event"
+          @update:payer="payer = $event"
           @update:payee="payee = $event"
           @update:category="category = $event"
           @update:payment-method="paymentMethod = $event"

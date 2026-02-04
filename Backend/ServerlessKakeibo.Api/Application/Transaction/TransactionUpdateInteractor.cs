@@ -99,12 +99,6 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                 newEntity.SourceUrl = existingEntity.SourceUrl;
                 newEntity.ReceiptAttachedAt = existingEntity.ReceiptAttachedAt;
 
-                // 収入の場合は既存の AmountTotal を維持
-                if (existingType == TransactionType.Income)
-                {
-                    newEntity.AmountTotal = existingEntity.AmountTotal;
-                }
-
                 // 5. ドメイン検証
                 var transactionDomain = TransactionCreateMapper.ToDomainModel(newEntity);
                 var validationResult = _transactionDomainService.ValidateTransaction(transactionDomain);
@@ -202,7 +196,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Taxes = new List<TaxDetailEntity>()
         };
 
-        // Items 追加（収入の場合は空でもOK）
+        // Items 追加
         if (request.Items != null)
         {
             foreach (var itemReq in request.Items)
@@ -261,26 +255,22 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             );
         }
 
-        // 金額計算：支出の場合は Items + Taxes（税の扱いに応じて）、収入の場合は既存値を維持
-        if (existingType == TransactionType.Expense)
-        {
-            var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
-            var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
+        // 金額計算：Items + Taxes（税の扱いに応じて）
+        var itemsTotal = entity.Items.Sum(i => i.Amount ?? 0);
+        var taxTotal = entity.Taxes.Sum(t => t.TaxAmount ?? 0);
 
-            // 税の扱いに応じて AmountTotal を設定
-            if (request.TaxInclusionType == TaxInclusionType.Inclusive ||
-                request.TaxInclusionType == TaxInclusionType.NoTax)
-            {
-                // 内税または非課税：itemsTotal がそのまま合計
-                entity.AmountTotal = itemsTotal;
-            }
-            else // Exclusive または Unknown
-            {
-                // 外税：itemsTotal + 税額
-                entity.AmountTotal = itemsTotal + taxTotal;
-            }
+        // 税の扱いに応じて AmountTotal を設定
+        if (request.TaxInclusionType == TaxInclusionType.Inclusive ||
+            request.TaxInclusionType == TaxInclusionType.NoTax)
+        {
+            // 内税または非課税：itemsTotal がそのまま合計
+            entity.AmountTotal = itemsTotal;
         }
-        // 収入の場合は AmountTotal は変更しない（既存の取引の値を維持する必要があるため、呼び出し元で設定）
+        else // Exclusive または Unknown
+        {
+            // 外税：itemsTotal + 税額
+            entity.AmountTotal = itemsTotal + taxTotal;
+        }
 
         return entity;
     }

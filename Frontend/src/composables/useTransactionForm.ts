@@ -23,6 +23,7 @@ export function useTransactionForm() {
   const transactionDate = ref("");
   const amountTotal = ref<number | null>(null);
   const payee = ref("");
+  const payer = ref("");
   const category = ref<TransactionCategory>(TransactionCategory.Uncategorized);
   const paymentMethod = ref("");
   const notes = ref("");
@@ -56,6 +57,7 @@ export function useTransactionForm() {
 
   const isAutoCalculate = ref(false);
 
+  // 明細や税情報が変更された時に自動計算
   watch(
     [items, taxes, taxInclusionType],
     () => {
@@ -65,6 +67,13 @@ export function useTransactionForm() {
     },
     { deep: true },
   );
+
+  // 自動計算チェックを入れた瞬間に上書き
+  watch(isAutoCalculate, (newValue) => {
+    if (newValue) {
+      amountTotal.value = calculatedTotal.value;
+    }
+  });
 
   const setFromOcrResult = (result: ReceiptParseResult) => {
     const normalized = result.normalized;
@@ -79,6 +88,7 @@ export function useTransactionForm() {
     }
 
     amountTotal.value = normalized.amountTotal || null;
+    payer.value = ""; // OCR対応ではない
     payee.value = normalized.payee || "";
     category.value =
       (normalized.category as TransactionCategory) ||
@@ -134,6 +144,7 @@ export function useTransactionForm() {
     transactionDate.value = date.toISOString().split("T")[0] ?? "";
 
     amountTotal.value = transaction.amountTotal;
+    payer.value = transaction.payer || "";
     payee.value = transaction.payee || "";
     category.value = transaction.category;
     paymentMethod.value = transaction.paymentMethod || "";
@@ -167,7 +178,7 @@ export function useTransactionForm() {
    * 取引を更新
    */
   const updateTransaction = async (id: string): Promise<boolean> => {
-    if (!validateForm()) {
+    if (!validateForm(true)) {
       return false;
     }
 
@@ -178,6 +189,7 @@ export function useTransactionForm() {
       const request: UpdateTransactionRequest = {
         transactionDate: transactionDate.value,
         currency: "JPY",
+        payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
         category: category.value,
@@ -204,6 +216,7 @@ export function useTransactionForm() {
     type.value = TransactionType.Expense;
     transactionDate.value = "";
     amountTotal.value = null;
+    payer.value = "";
     payee.value = "";
     category.value = TransactionCategory.Uncategorized;
     paymentMethod.value = "";
@@ -216,36 +229,39 @@ export function useTransactionForm() {
     isAutoCalculate.value = false;
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = (isUpdate: boolean = false): boolean => {
     if (!transactionDate.value) {
       errorMessage.value = "取引日は必須です";
       return false;
     }
 
-    if (!amountTotal.value || amountTotal.value <= 0) {
-      errorMessage.value = "金額は0より大きい値を入力してください";
-      return false;
-    }
-
-    if (items.value.length > 0 && !isAutoCalculate.value) {
-      const diff = Math.abs(calculatedTotal.value - amountTotal.value);
-
-      if (diff > 1) {
-        // 税区分に応じたメッセージ
-        const taxTypeLabel =
-          taxInclusionType.value === "Inclusive"
-            ? "内税"
-            : taxInclusionType.value === "Exclusive"
-              ? "外税"
-              : taxInclusionType.value === "NoTax"
-                ? "非課税"
-                : "不明";
-
-        errorMessage.value =
-          `明細合計（${calculatedTotal.value}円）が入力金額（${amountTotal.value}円）と一致しません。` +
-          `\n税区分: ${taxTypeLabel}\n` +
-          `自動計算をオンにするか、税区分を確認してください。`;
+    // 新規作成時のみ金額チェック（更新時はサーバー側で計算）
+    if (!isUpdate) {
+      if (!amountTotal.value || amountTotal.value <= 0) {
+        errorMessage.value = "金額は0より大きい値を入力してください";
         return false;
+      }
+
+      if (items.value.length > 0 && !isAutoCalculate.value) {
+        const diff = Math.abs(calculatedTotal.value - amountTotal.value);
+
+        if (diff > 1) {
+          // 税区分に応じたメッセージ
+          const taxTypeLabel =
+            taxInclusionType.value === "Inclusive"
+              ? "内税"
+              : taxInclusionType.value === "Exclusive"
+                ? "外税"
+                : taxInclusionType.value === "NoTax"
+                  ? "非課税"
+                  : "不明";
+
+          errorMessage.value =
+            `明細合計（${calculatedTotal.value}円）が入力金額（${amountTotal.value}円）と一致しません。` +
+            `\n税区分: ${taxTypeLabel}\n` +
+            `自動計算をオンにするか、税区分を確認してください。`;
+          return false;
+        }
       }
     }
 
@@ -257,7 +273,7 @@ export function useTransactionForm() {
     success: boolean;
     transactionId?: string;
   }> => {
-    if (!validateForm()) {
+    if (!validateForm(false)) {
       return { success: false };
     }
 
@@ -270,6 +286,7 @@ export function useTransactionForm() {
         transactionDate: transactionDate.value,
         amountTotal: amountTotal.value!,
         currency: "JPY",
+        payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
         category: category.value,
@@ -325,6 +342,7 @@ export function useTransactionForm() {
     type,
     transactionDate,
     amountTotal,
+    payer,
     payee,
     category,
     paymentMethod,

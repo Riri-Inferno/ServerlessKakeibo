@@ -45,6 +45,20 @@ const isExportModalOpen = ref(false);
 const listContainerRef = ref<HTMLElement>();
 let resizeObserver: ResizeObserver | null = null;
 
+/**
+ * 取引の表示名を取得
+ * - 収入: Payer（支払者）
+ * - 支出: Payee（受取者）
+ */
+const getDisplayName = (
+  transaction: (typeof transactions.value)[0],
+): string => {
+  if (transaction.type === TransactionType.Income) {
+    return transaction.payer || "不明"; // 未登録なら不明
+  }
+  return transaction.payee || "不明"; // 未登録なら不明
+};
+
 const measureHeights = () => {
   if (!listContainerRef.value) return;
 
@@ -321,7 +335,7 @@ onUnmounted(() => {
                     </BaseBadge>
                   </div>
                   <BaseText variant="body" weight="bold" class="mb-1">
-                    {{ transaction.payee }}
+                    {{ getDisplayName(transaction) }}
                   </BaseText>
                   <BaseText variant="caption" color="gray">
                     {{ formatDate(transaction.transactionDate) }}
