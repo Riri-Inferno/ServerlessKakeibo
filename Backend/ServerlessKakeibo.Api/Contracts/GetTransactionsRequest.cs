@@ -38,6 +38,11 @@ public class GetTransactionsRequest
     public TransactionCategory? Category { get; set; }
 
     /// <summary>
+    /// 支払者フィルタ（部分一致）
+    /// </summary>
+    public string? Payer { get; set; }
+
+    /// <summary>
     /// 受取者(店舗名)で部分一致検索
     /// </summary>
     [MaxLength(200)]

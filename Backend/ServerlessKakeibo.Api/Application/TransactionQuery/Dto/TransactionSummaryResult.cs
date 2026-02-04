@@ -34,6 +34,11 @@ public class TransactionSummaryResult
     public string Currency { get; set; } = "JPY";
 
     /// <summary>
+    /// 支払者
+    /// </summary>
+    public string? Payer { get; set; }
+
+    /// <summary>
     /// 受取者(店舗名など)
     /// </summary>
     public string? Payee { get; set; }
