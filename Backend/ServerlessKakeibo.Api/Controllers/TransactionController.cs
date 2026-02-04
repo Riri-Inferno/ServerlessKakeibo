@@ -99,7 +99,7 @@ public class TransactionController : ControllerBase
     [HttpGet]
     [SwaggerOperation(
         Summary = "取引一覧を取得",
-        Description = "取引の一覧をページングして取得する。\n\n日付範囲、カテゴリ、金額などでフィルタ可能。")]
+        Description = "取引の一覧をページングして取得する。\n\n日付範囲、カテゴリ、支払者(Payer)、受取者(Payee)、金額などでフィルタ可能。")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<TransactionSummaryResult>>), StatusCodes.Status401Unauthorized)]

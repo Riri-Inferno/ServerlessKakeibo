@@ -23,6 +23,7 @@ public interface ITransactionRepository
         DateTimeOffset? startDate = null,
         DateTimeOffset? endDate = null,
         TransactionCategory? category = null,
+        string? payer = null,
         string? payee = null,
         decimal? minAmount = null,
         decimal? maxAmount = null,

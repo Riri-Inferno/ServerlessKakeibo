@@ -126,6 +126,7 @@ public static class TransactionQueryMapper
             TransactionDate = entity.TransactionDate,
             AmountTotal = entity.AmountTotal,
             Currency = entity.Currency,
+            Payer = entity.Payer,
             Payee = entity.Payee,
             Category = entity.Category,
             PaymentMethod = entity.PaymentMethod,
