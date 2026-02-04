@@ -84,7 +84,8 @@ export interface TransactionSummary {
   transactionDate: string;
   amountTotal: number;
   currency: string;
-  payee: string;
+  payer: string | null;
+  payee: string | null;
   category: TransactionCategory;
   paymentMethod: string | null;
   taxInclusionType?: TaxInclusionType;
@@ -182,6 +183,7 @@ export interface GetTransactionsRequest {
   startDate?: string;
   endDate?: string;
   category?: TransactionCategory;
+  payer?: string;
   payee?: string;
   minAmount?: number;
   maxAmount?: number;
