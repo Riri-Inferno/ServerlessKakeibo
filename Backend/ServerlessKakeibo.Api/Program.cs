@@ -38,6 +38,8 @@ using ServerlessKakeibo.Api.Application.UserSettings;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Application.UserData.Usecases;
 using ServerlessKakeibo.Api.Application.UserData;
+using ServerlessKakeibo.Api.Application.TransactionCategory.Usecases;
+using ServerlessKakeibo.Api.Application.TransactionCategory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -136,6 +138,12 @@ builder.Services.AddScoped<IGetUserSettingsUseCase, GetUserSettingsInteractor>()
 builder.Services.AddScoped<IUpdateUserSettingsUseCase, UpdateUserSettingsInteractor>();
 builder.Services.AddScoped<IDeleteAllTransactionsUseCase, DeleteAllTransactionsInteractor>();
 builder.Services.AddScoped<IGitHubLoginUseCase, GitHubLoginInteractor>();
+builder.Services.AddScoped<IGetTransactionCategoriesUseCase, GetTransactionCategoriesInteractor>();
+builder.Services.AddScoped<ICreateTransactionCategoryUseCase, CreateTransactionCategoryInteractor>();
+builder.Services.AddScoped<IUpdateTransactionCategoryUseCase, UpdateTransactionCategoryInteractor>();
+builder.Services.AddScoped<IDeleteTransactionCategoryUseCase, DeleteTransactionCategoryInteractor>();
+builder.Services.AddScoped<IRestoreTransactionCategoryUseCase, RestoreTransactionCategoryInteractor>();
+builder.Services.AddScoped<IResetTransactionCategoriesToMasterUseCase, ResetTransactionCategoriesToMasterInteractor>();
 #endregion
 
 #region DomainServices
