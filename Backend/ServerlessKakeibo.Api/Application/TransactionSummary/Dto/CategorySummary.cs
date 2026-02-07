@@ -10,7 +10,7 @@ public class CategorySummary
     /// <summary>
     /// カテゴリ
     /// </summary>
-    public TransactionCategory Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory Category { get; set; }
 
     /// <summary>
     /// カテゴリ名（日本語）

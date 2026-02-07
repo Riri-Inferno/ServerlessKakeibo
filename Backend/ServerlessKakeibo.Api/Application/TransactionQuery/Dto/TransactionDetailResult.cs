@@ -52,7 +52,7 @@ public class TransactionDetailResult
     /// カテゴリ
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory Category { get; set; }
 
     /// <summary>
     /// メモ・備考

@@ -140,7 +140,7 @@ public class ReceiptResponseParser
     /// <summary>
     /// 取引カテゴリをパース
     /// </summary>
-    private static TransactionCategory? ParseTransactionCategory(JsonElement root, string propertyName)
+    private static Domain.ValueObjects.TransactionCategory? ParseTransactionCategory(JsonElement root, string propertyName)
     {
         if (!root.TryGetProperty(propertyName, out var prop))
             return null;
@@ -151,19 +151,19 @@ public class ReceiptResponseParser
 
         return categoryString.ToUpperInvariant() switch
         {
-            "UNCATEGORIZED" => TransactionCategory.Uncategorized,
-            "FOOD" => TransactionCategory.Food,
-            "DININGOUT" => TransactionCategory.DiningOut,
-            "DAILYNECESSITIES" => TransactionCategory.DailyNecessities,
-            "TRANSPORTATION" => TransactionCategory.Transportation,
-            "EDUCATION" => TransactionCategory.Education,
-            "MEDICAL" => TransactionCategory.Medical,
-            "ENTERTAINMENT" => TransactionCategory.Entertainment,
-            "FASHION" => TransactionCategory.Fashion,
-            "UTILITIES" => TransactionCategory.Utilities,
-            "COMMUNICATION" => TransactionCategory.Communication,
-            "OTHER" => TransactionCategory.Other,
-            _ => TransactionCategory.Uncategorized
+            "UNCATEGORIZED" => Domain.ValueObjects.TransactionCategory.Uncategorized,
+            "FOOD" => Domain.ValueObjects.TransactionCategory.Food,
+            "DININGOUT" => Domain.ValueObjects.TransactionCategory.DiningOut,
+            "DAILYNECESSITIES" => Domain.ValueObjects.TransactionCategory.DailyNecessities,
+            "TRANSPORTATION" => Domain.ValueObjects.TransactionCategory.Transportation,
+            "EDUCATION" => Domain.ValueObjects.TransactionCategory.Education,
+            "MEDICAL" => Domain.ValueObjects.TransactionCategory.Medical,
+            "ENTERTAINMENT" => Domain.ValueObjects.TransactionCategory.Entertainment,
+            "FASHION" => Domain.ValueObjects.TransactionCategory.Fashion,
+            "UTILITIES" => Domain.ValueObjects.TransactionCategory.Utilities,
+            "COMMUNICATION" => Domain.ValueObjects.TransactionCategory.Communication,
+            "OTHER" => Domain.ValueObjects.TransactionCategory.Other,
+            _ => Domain.ValueObjects.TransactionCategory.Uncategorized
         };
     }
 

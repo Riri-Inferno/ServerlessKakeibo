@@ -47,7 +47,7 @@ public class TransactionSummaryResult
     /// カテゴリ
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory Category { get; set; }
 
     /// <summary>
     /// 支払方法

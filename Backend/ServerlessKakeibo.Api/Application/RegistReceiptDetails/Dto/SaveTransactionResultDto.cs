@@ -40,7 +40,7 @@ public class SaveTransactionResultDto
     /// <summary>
     /// カテゴリ(保存された値)
     /// </summary>
-    public TransactionCategory Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory Category { get; set; }
 
     /// <summary>
     /// 検証時の警告リスト

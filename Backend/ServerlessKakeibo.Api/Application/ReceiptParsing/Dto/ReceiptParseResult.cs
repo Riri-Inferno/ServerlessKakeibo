@@ -104,7 +104,7 @@ public class NormalizedTransaction
     /// LLMが推論したカテゴリ
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory? Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory? Category { get; set; }
 
     /// <summary>
     /// 金額整合性の観測結果

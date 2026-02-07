@@ -47,7 +47,7 @@ public class TransactionResult
     /// カテゴリ
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory Category { get; set; }
+    public Domain.ValueObjects.TransactionCategory Category { get; set; }
 
     /// <summary>
     /// 税の扱い（外税・内税・不明）
