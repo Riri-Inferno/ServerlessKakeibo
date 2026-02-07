@@ -40,6 +40,8 @@ using ServerlessKakeibo.Api.Application.UserData.Usecases;
 using ServerlessKakeibo.Api.Application.UserData;
 using ServerlessKakeibo.Api.Application.TransactionCategory.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionCategory;
+using ServerlessKakeibo.Api.Application.ItemCategory;
+using ServerlessKakeibo.Api.Application.ItemCategory.Usecases;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,6 +146,12 @@ builder.Services.AddScoped<IUpdateTransactionCategoryUseCase, UpdateTransactionC
 builder.Services.AddScoped<IDeleteTransactionCategoryUseCase, DeleteTransactionCategoryInteractor>();
 builder.Services.AddScoped<IRestoreTransactionCategoryUseCase, RestoreTransactionCategoryInteractor>();
 builder.Services.AddScoped<IResetTransactionCategoriesToMasterUseCase, ResetTransactionCategoriesToMasterInteractor>();
+builder.Services.AddScoped<IGetItemCategoriesUseCase, GetItemCategoriesInteractor>();
+builder.Services.AddScoped<ICreateItemCategoryUseCase, CreateItemCategoryInteractor>();
+builder.Services.AddScoped<IUpdateItemCategoryUseCase, UpdateItemCategoryInteractor>();
+builder.Services.AddScoped<IDeleteItemCategoryUseCase, DeleteItemCategoryInteractor>();
+builder.Services.AddScoped<IRestoreItemCategoryUseCase, RestoreItemCategoryInteractor>();
+builder.Services.AddScoped<IResetItemCategoriesToMasterUseCase, ResetItemCategoriesToMasterInteractor>();
 #endregion
 
 #region DomainServices
@@ -165,6 +173,7 @@ builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginReposi
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<ICategoryMasterRepository, CategoryMasterRepository>();
 builder.Services.AddScoped<IUserTransactionCategoryRepository, UserTransactionCategoryRepository>();
+builder.Services.AddScoped<IUserItemCategoryRepository, UserItemCategoryRepository>();
 #endregion
 
 #region CORS settings
