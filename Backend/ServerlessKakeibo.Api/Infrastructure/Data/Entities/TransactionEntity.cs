@@ -20,6 +20,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public TaxInclusionType? TaxInclusionType { get; set; }
 
         /// <summary>
+        /// ユーザー取引カテゴリID（外部キー）
+        /// </summary>
+        public Guid? UserTransactionCategoryId { get; set; }
+
+        /// <summary>
         /// メモ・備考
         /// </summary>
         [MaxLength(1000)]
@@ -95,6 +100,7 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
 
         /// <summary>
         /// カテゴリ(Enum)
+        /// TODO:カスタムカテゴリに置き換え後削除する
         /// </summary>
         public TransactionCategory Category { get; set; } = TransactionCategory.Uncategorized;
 
@@ -134,5 +140,10 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// 店舗詳細情報
         /// </summary>
         public ShopDetailEntity? ShopDetail { get; set; }
+
+        /// <summary>
+        /// ユーザー取引カテゴリ（ナビゲーションプロパティ）
+        /// </summary>
+        public UserTransactionCategoryEntity? UserTransactionCategory { get; set; }
     }
 }
