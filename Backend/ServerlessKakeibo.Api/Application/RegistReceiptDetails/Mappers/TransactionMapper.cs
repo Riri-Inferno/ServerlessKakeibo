@@ -16,7 +16,7 @@ public static class TransactionMapper
         ReceiptParseResult parseResult,
         Guid userId,
         Guid tenantId,
-        TransactionCategory? category = null)
+        Domain.ValueObjects.TransactionCategory? category = null)
     {
         var transaction = new TransactionEntity
         {
@@ -42,7 +42,7 @@ public static class TransactionMapper
             RawDataJson = parseResult.Raw.HasValue
                 ? parseResult.Raw.Value.GetRawText()
                 : null,
-            Category = category ?? TransactionCategory.Uncategorized,
+            Category = category ?? Domain.ValueObjects.TransactionCategory.Uncategorized,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -61,7 +61,7 @@ public static class TransactionMapper
                 TenantId = tenantId,
                 CreatedBy = userId
             })
-            .ToList();
+                .ToList();
 
         // 税情報の変換
         transaction.Taxes = parseResult.Normalized.Taxes
@@ -78,7 +78,7 @@ public static class TransactionMapper
                 TenantId = tenantId,
                 CreatedBy = userId
             })
-            .ToList();
+                    .ToList();
 
         // 店舗情報の変換
         if (parseResult.Normalized.ShopDetails != null)
