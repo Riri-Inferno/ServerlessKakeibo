@@ -115,6 +115,7 @@ builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 builder.Services.AddScoped<IGcpStorageService, GcpStorageService>();
 builder.Services.AddSingleton<IPasswordHashService, PasswordHashService>();
 builder.Services.AddSingleton<IGitHubAuthService, GitHubAuthService>();
+builder.Services.AddScoped<ICategoryInitializationService, CategoryInitializationService>();
 #endregion
 
 #region UseCases
@@ -154,6 +155,7 @@ builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWrit
 builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
+builder.Services.AddScoped<ICategoryMasterRepository, CategoryMasterRepository>();
 #endregion
 
 #region CORS settings

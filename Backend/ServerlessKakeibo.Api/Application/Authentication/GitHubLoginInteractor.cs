@@ -22,6 +22,8 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
     private readonly IGitHubAuthService _gitHubAuthService;
     private readonly IJwtTokenService _jwtService;
     private readonly IPasswordHashService _passwordHashService;
+    private readonly IGenericWriteRepository<UserSettingsEntity> _userSettingsWriteRepository;
+    private readonly ICategoryInitializationService _categoryInitService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GitHubLoginInteractor> _logger;
 
@@ -33,6 +35,8 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
         IGitHubAuthService gitHubAuthService,
         IJwtTokenService jwtService,
         IPasswordHashService passwordHashService,
+        IGenericWriteRepository<UserSettingsEntity> userSettingsWriteRepository,
+        ICategoryInitializationService categoryInitService,
         IConfiguration configuration,
         ILogger<GitHubLoginInteractor> logger)
     {
@@ -43,6 +47,8 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
         _gitHubAuthService = gitHubAuthService ?? throw new ArgumentNullException(nameof(gitHubAuthService));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
         _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
+        _userSettingsWriteRepository = userSettingsWriteRepository ?? throw new ArgumentNullException(nameof(userSettingsWriteRepository));
+        _categoryInitService = categoryInitService ?? throw new ArgumentNullException(nameof(categoryInitService));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -148,6 +154,7 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
 
     /// <summary>
     /// 新規ユーザーを作成
+    /// TODO: オーケストレーターとして共通化を検討
     /// </summary>
     private async Task<UserEntity> CreateNewUserAsync(
         GitHubUserInfo gitHubUser,
@@ -190,6 +197,30 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
         };
 
         await _externalLoginRepository.CreateAsync(externalLogin, cancellationToken);
+
+        // UserSettings 作成
+        var userSettings = new UserSettingsEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TimeZone = "Asia/Tokyo",
+            CurrencyCode = "JPY",
+            TenantId = tenantId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = userId,
+            UpdatedBy = userId
+        };
+
+        await _userSettingsWriteRepository.AddAsync(userSettings, cancellationToken);
+        await _userSettingsWriteRepository.SaveChangesAsync(cancellationToken);
+
+        // カテゴリ初期化
+        await _categoryInitService.InitializeUserCategoriesAsync(
+            userSettings.Id,
+            userId,
+            tenantId,
+            cancellationToken);
 
         return user;
     }
