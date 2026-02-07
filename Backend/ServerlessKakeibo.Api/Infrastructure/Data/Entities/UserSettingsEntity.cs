@@ -51,5 +51,23 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// ユーザーエンティティへのナビゲーションプロパティ
         /// </summary>
         public UserEntity User { get; set; } = null!;
+
+        /// <summary>
+        /// このユーザーのカスタム取引カテゴリ一覧
+        /// </summary>
+        public ICollection<UserTransactionCategoryEntity> UserTransactionCategories { get; set; }
+            = new List<UserTransactionCategoryEntity>();
+
+        /// <summary>
+        /// このユーザーのカスタム商品カテゴリ一覧（支出用）
+        /// </summary>
+        public ICollection<UserItemCategoryEntity> UserItemCategories { get; set; }
+            = new List<UserItemCategoryEntity>();
+
+        /// <summary>
+        /// このユーザーのカスタム給与項目カテゴリ一覧（収入用）
+        /// </summary>
+        public ICollection<UserIncomeItemCategoryEntity> UserIncomeItemCategories { get; set; }
+            = new List<UserIncomeItemCategoryEntity>();
     }
 }

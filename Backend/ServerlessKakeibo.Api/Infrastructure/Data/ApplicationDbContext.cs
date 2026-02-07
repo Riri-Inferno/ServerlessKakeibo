@@ -15,13 +15,36 @@ public class ApplicationDbContext : DbContext
     }
 
     // 永続化エンティティを登録
+    // ユーザー
     public DbSet<UserEntity> Users { get; set; } = default!;
+
+    // ユーザー外部認証用
     public DbSet<UserExternalLoginEntity> UserExternalLogins { get; set; } = default!;
+
+    // 取引
     public DbSet<TransactionEntity> Transactions { get; set; } = default!;
+
+    // 取引明細
     public DbSet<TransactionItemEntity> TransactionItems { get; set; } = default!;
+
+    // 税情報
     public DbSet<TaxDetailEntity> TaxDetails { get; set; } = default!;
+
+    // 店舗情報
     public DbSet<ShopDetailEntity> ShopDetails { get; set; } = default!;
+
+    // ユーザー設定
     public DbSet<UserSettingsEntity> UserSettings { get; set; } = default!;
+
+    // カテゴリマスタ
+    public DbSet<TransactionCategoryMasterEntity> TransactionCategoryMasters { get; set; } = default!;
+    public DbSet<ItemCategoryMasterEntity> ItemCategoryMasters { get; set; } = default!;
+    public DbSet<IncomeItemCategoryMasterEntity> IncomeItemCategoryMasters { get; set; } = default!;
+
+    // ユーザーカテゴリ
+    public DbSet<UserTransactionCategoryEntity> UserTransactionCategories { get; set; } = default!;
+    public DbSet<UserItemCategoryEntity> UserItemCategories { get; set; } = default!;
+    public DbSet<UserIncomeItemCategoryEntity> UserIncomeItemCategories { get; set; } = default!;
 
     /// <summary>
     /// 保存前の自動処理
@@ -149,6 +172,76 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<ShopDetailEntity>()
             .HasIndex(sd => sd.Name);
+
+        // TransactionCategoryMasterEntity
+        modelBuilder.Entity<TransactionCategoryMasterEntity>()
+            .HasIndex(m => m.Code)
+            .IsUnique();
+
+        modelBuilder.Entity<TransactionCategoryMasterEntity>()
+            .HasIndex(m => m.DisplayOrder);
+
+        // ItemCategoryMasterEntity
+        modelBuilder.Entity<ItemCategoryMasterEntity>()
+            .HasIndex(m => m.Code)
+            .IsUnique();
+
+        modelBuilder.Entity<ItemCategoryMasterEntity>()
+            .HasIndex(m => m.DisplayOrder);
+
+        // IncomeItemCategoryMasterEntity
+        modelBuilder.Entity<IncomeItemCategoryMasterEntity>()
+            .HasIndex(m => m.Code)
+            .IsUnique();
+
+        modelBuilder.Entity<IncomeItemCategoryMasterEntity>()
+            .HasIndex(m => m.DisplayOrder);
+
+        // UserTransactionCategoryEntity
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasIndex(c => c.UserSettingsId);
+
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasIndex(c => new { c.UserSettingsId, c.DisplayOrder });
+
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasIndex(c => c.MasterCategoryId);
+
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasIndex(c => c.IsHidden);
+
+        // UserItemCategoryEntity
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasIndex(c => c.UserSettingsId);
+
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasIndex(c => new { c.UserSettingsId, c.DisplayOrder });
+
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasIndex(c => c.MasterCategoryId);
+
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasIndex(c => c.IsHidden);
+
+        // UserIncomeItemCategoryEntity
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasIndex(c => c.UserSettingsId);
+
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasIndex(c => new { c.UserSettingsId, c.DisplayOrder });
+
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasIndex(c => c.MasterCategoryId);
+
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasIndex(c => c.IsHidden);
+
+        // TransactionItemEntity（新規）
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasIndex(i => i.UserItemCategoryId);
+
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasIndex(i => i.UserIncomeItemCategoryId);
         #endregion
 
         #region relationships
@@ -193,6 +286,69 @@ public class ApplicationDbContext : DbContext
             .WithOne(t => t.ShopDetail)
             .HasForeignKey<ShopDetailEntity>(sd => sd.TransactionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // UserSettings - UserTransactionCategory のリレーション
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasOne(c => c.UserSettings)
+            .WithMany(us => us.UserTransactionCategories)
+            .HasForeignKey(c => c.UserSettingsId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // TransactionCategoryMaster - UserTransactionCategory のリレーション
+        modelBuilder.Entity<UserTransactionCategoryEntity>()
+            .HasOne(c => c.MasterCategory)
+            .WithMany(m => m.UserCategories)
+            .HasForeignKey(c => c.MasterCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // UserSettings - UserItemCategory のリレーション
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasOne(c => c.UserSettings)
+            .WithMany(us => us.UserItemCategories)
+            .HasForeignKey(c => c.UserSettingsId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ItemCategoryMaster - UserItemCategory のリレーション
+        modelBuilder.Entity<UserItemCategoryEntity>()
+            .HasOne(c => c.MasterCategory)
+            .WithMany(m => m.UserCategories)
+            .HasForeignKey(c => c.MasterCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // UserSettings - UserIncomeItemCategory のリレーション
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasOne(c => c.UserSettings)
+            .WithMany(us => us.UserIncomeItemCategories)
+            .HasForeignKey(c => c.UserSettingsId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // IncomeItemCategoryMaster - UserIncomeItemCategory のリレーション
+        modelBuilder.Entity<UserIncomeItemCategoryEntity>()
+            .HasOne(c => c.MasterCategory)
+            .WithMany(m => m.UserCategories)
+            .HasForeignKey(c => c.MasterCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Transaction - UserTransactionCategory のリレーション
+        modelBuilder.Entity<TransactionEntity>()
+            .HasOne(t => t.UserTransactionCategory)
+            .WithMany(c => c.Transactions)
+            .HasForeignKey(t => t.UserTransactionCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // TransactionItem - UserItemCategory のリレーション（支出用）
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasOne(i => i.UserItemCategory)
+            .WithMany(c => c.TransactionItems)
+            .HasForeignKey(i => i.UserItemCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // TransactionItem - UserIncomeItemCategory のリレーション（収入用）
+        modelBuilder.Entity<TransactionItemEntity>()
+            .HasOne(i => i.UserIncomeItemCategory)
+            .WithMany(c => c.TransactionItems)
+            .HasForeignKey(i => i.UserIncomeItemCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         #endregion
 
