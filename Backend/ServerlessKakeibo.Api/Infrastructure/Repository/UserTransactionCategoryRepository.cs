@@ -69,7 +69,6 @@ public class UserTransactionCategoryRepository : IUserTransactionCategoryReposit
             .ToListAsync(cancellationToken);
 
         _context.UserTransactionCategories.RemoveRange(masterDerivedCategories);
-        await _context.SaveChangesAsync(cancellationToken);
 
         // 2. マスタから再コピー
         var masters = await _masterRepository.GetAllTransactionCategoryMastersAsync(cancellationToken);
@@ -95,6 +94,5 @@ public class UserTransactionCategoryRepository : IUserTransactionCategoryReposit
         }).ToList();
 
         await _context.UserTransactionCategories.AddRangeAsync(newCategories, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }
