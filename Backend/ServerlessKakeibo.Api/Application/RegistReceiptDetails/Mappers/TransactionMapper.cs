@@ -57,7 +57,7 @@ public static class TransactionMapper
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
                 Amount = item.Amount,
-                Category = item.Category ?? ItemCategory.Uncategorized,
+                Category = item.Category ?? Domain.ValueObjects.ItemCategory.Uncategorized,
                 TenantId = tenantId,
                 CreatedBy = userId
             })

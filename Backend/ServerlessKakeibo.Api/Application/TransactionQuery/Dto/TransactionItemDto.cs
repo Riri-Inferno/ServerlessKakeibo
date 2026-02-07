@@ -37,5 +37,5 @@ public class TransactionItemDto
     /// 商品カテゴリ
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ItemCategory Category { get; set; }
+    public Domain.ValueObjects.ItemCategory Category { get; set; }
 }

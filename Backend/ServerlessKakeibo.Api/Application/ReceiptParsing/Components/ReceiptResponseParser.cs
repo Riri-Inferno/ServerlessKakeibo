@@ -170,7 +170,7 @@ public class ReceiptResponseParser
     /// <summary>
     /// 商品カテゴリをパース
     /// </summary>
-    private static ItemCategory? ParseItemCategory(JsonElement element, string propertyName)
+    private static Domain.ValueObjects.ItemCategory? ParseItemCategory(JsonElement element, string propertyName)
     {
         if (!element.TryGetProperty(propertyName, out var prop))
             return null;
@@ -181,34 +181,34 @@ public class ReceiptResponseParser
 
         return categoryString.ToUpperInvariant() switch
         {
-            "UNCATEGORIZED" => ItemCategory.Uncategorized,
-            "FOOD" => ItemCategory.Food,
-            "BEVERAGE" => ItemCategory.Beverage,
-            "SNACK" => ItemCategory.Snack,
-            "FROZENFOOD" => ItemCategory.FrozenFood,
-            "DAIRYPRODUCT" => ItemCategory.DairyProduct,
-            "SEASONING" => ItemCategory.Seasoning,
-            "TOILETRIES" => ItemCategory.Toiletries,
-            "KITCHENSUPPLIES" => ItemCategory.KitchenSupplies,
-            "CLEANINGSUPPLIES" => ItemCategory.CleaningSupplies,
-            "LAUNDRYSUPPLIES" => ItemCategory.LaundrySupplies,
-            "STATIONERY" => ItemCategory.Stationery,
-            "MISCELLANEOUS" => ItemCategory.Miscellaneous,
-            "MEDICINE" => ItemCategory.Medicine,
-            "SUPPLEMENT" => ItemCategory.Supplement,
-            "COSMETICS" => ItemCategory.Cosmetics,
-            "CLOTHING" => ItemCategory.Clothing,
-            "SHOES" => ItemCategory.Shoes,
-            "ACCESSORIES" => ItemCategory.Accessories,
-            "ELECTRONICS" => ItemCategory.Electronics,
-            "BATTERY" => ItemCategory.Battery,
-            "PETSUPPLIES" => ItemCategory.PetSupplies,
-            "BABYPRODUCTS" => ItemCategory.BabyProducts,
-            "PACKAGING" => ItemCategory.Packaging,
-            "TOBACCO" => ItemCategory.Tobacco,
-            "BOOKS" => ItemCategory.Books,
-            "OTHER" => ItemCategory.Other,
-            _ => ItemCategory.Uncategorized
+            "UNCATEGORIZED" => Domain.ValueObjects.ItemCategory.Uncategorized,
+            "FOOD" => Domain.ValueObjects.ItemCategory.Food,
+            "BEVERAGE" => Domain.ValueObjects.ItemCategory.Beverage,
+            "SNACK" => Domain.ValueObjects.ItemCategory.Snack,
+            "FROZENFOOD" => Domain.ValueObjects.ItemCategory.FrozenFood,
+            "DAIRYPRODUCT" => Domain.ValueObjects.ItemCategory.DairyProduct,
+            "SEASONING" => Domain.ValueObjects.ItemCategory.Seasoning,
+            "TOILETRIES" => Domain.ValueObjects.ItemCategory.Toiletries,
+            "KITCHENSUPPLIES" => Domain.ValueObjects.ItemCategory.KitchenSupplies,
+            "CLEANINGSUPPLIES" => Domain.ValueObjects.ItemCategory.CleaningSupplies,
+            "LAUNDRYSUPPLIES" => Domain.ValueObjects.ItemCategory.LaundrySupplies,
+            "STATIONERY" => Domain.ValueObjects.ItemCategory.Stationery,
+            "MISCELLANEOUS" => Domain.ValueObjects.ItemCategory.Miscellaneous,
+            "MEDICINE" => Domain.ValueObjects.ItemCategory.Medicine,
+            "SUPPLEMENT" => Domain.ValueObjects.ItemCategory.Supplement,
+            "COSMETICS" => Domain.ValueObjects.ItemCategory.Cosmetics,
+            "CLOTHING" => Domain.ValueObjects.ItemCategory.Clothing,
+            "SHOES" => Domain.ValueObjects.ItemCategory.Shoes,
+            "ACCESSORIES" => Domain.ValueObjects.ItemCategory.Accessories,
+            "ELECTRONICS" => Domain.ValueObjects.ItemCategory.Electronics,
+            "BATTERY" => Domain.ValueObjects.ItemCategory.Battery,
+            "PETSUPPLIES" => Domain.ValueObjects.ItemCategory.PetSupplies,
+            "BABYPRODUCTS" => Domain.ValueObjects.ItemCategory.BabyProducts,
+            "PACKAGING" => Domain.ValueObjects.ItemCategory.Packaging,
+            "TOBACCO" => Domain.ValueObjects.ItemCategory.Tobacco,
+            "BOOKS" => Domain.ValueObjects.ItemCategory.Books,
+            "OTHER" => Domain.ValueObjects.ItemCategory.Other,
+            _ => Domain.ValueObjects.ItemCategory.Uncategorized
         };
     }
 

@@ -141,7 +141,7 @@ public class NormalizedItem
     /// 商品カテゴリ（LLMが推論）
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ItemCategory? Category { get; set; }
+    public Domain.ValueObjects.ItemCategory? Category { get; set; }
 }
 
 /// <summary>
