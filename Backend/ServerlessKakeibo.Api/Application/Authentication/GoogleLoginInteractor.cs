@@ -20,6 +20,8 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
     private readonly IUserExternalLoginRepository _externalLoginRepository;
     private readonly IJwtTokenService _jwtService;
     private readonly IPasswordHashService _passwordHashService;
+    private readonly IGenericWriteRepository<UserSettingsEntity> _userSettingsWriteRepository;
+    private readonly ICategoryInitializationService _categoryInitService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleLoginInteractor> _logger;
 
@@ -27,18 +29,22 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         ITransactionHelper transactionHelper,
         IGenericReadRepository<UserEntity> userReadRepository,
         IGenericWriteRepository<UserEntity> userWriteRepository,
+        IGenericWriteRepository<UserSettingsEntity> userSettingsWriteRepository,
         IUserExternalLoginRepository externalLoginRepository,
         IJwtTokenService jwtService,
         IPasswordHashService passwordHashService,
+        ICategoryInitializationService categoryInitService,
         IConfiguration configuration,
         ILogger<GoogleLoginInteractor> logger)
     {
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
         _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
+        _userSettingsWriteRepository = userSettingsWriteRepository ?? throw new ArgumentNullException(nameof(userSettingsWriteRepository)); // 追加
         _externalLoginRepository = externalLoginRepository ?? throw new ArgumentNullException(nameof(externalLoginRepository));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
         _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
+        _categoryInitService = categoryInitService ?? throw new ArgumentNullException(nameof(categoryInitService));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -174,18 +180,16 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
 
     /// <summary>
     /// 新規ユーザーを作成
+    /// TODO: オーケストレーターとして共通化を検討
     /// </summary>
     private async Task<UserEntity> CreateNewUserAsync(
-        GoogleJsonWebSignature.Payload payload,
-        CancellationToken cancellationToken)
+    GoogleJsonWebSignature.Payload payload,
+    CancellationToken cancellationToken)
     {
         var userId = Guid.NewGuid();
         var tenantId = GetDefaultTenantId();
-
-        // DisplayName の生成(null安全)
         var displayName = GetDisplayName(payload);
 
-        // ユーザーエンティティ作成
         var user = new UserEntity
         {
             Id = userId,
@@ -201,7 +205,6 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
 
         await _userWriteRepository.AddAsync(user, cancellationToken);
 
-        // 外部ログイン情報作成
         var externalLogin = new UserExternalLoginEntity
         {
             Id = Guid.NewGuid(),
@@ -216,6 +219,30 @@ public class GoogleLoginInteractor : IGoogleLoginUseCase
         };
 
         await _externalLoginRepository.CreateAsync(externalLogin, cancellationToken);
+
+        // UserSettings 作成
+        var userSettings = new UserSettingsEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TimeZone = "Asia/Tokyo",
+            CurrencyCode = "JPY",
+            TenantId = tenantId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = userId,
+            UpdatedBy = userId
+        };
+
+        await _userSettingsWriteRepository.AddAsync(userSettings, cancellationToken);
+        await _userSettingsWriteRepository.SaveChangesAsync(cancellationToken);
+
+        // カテゴリ初期化
+        await _categoryInitService.InitializeUserCategoriesAsync(
+            userSettings.Id,
+            userId,
+            tenantId,
+            cancellationToken);
 
         return user;
     }
