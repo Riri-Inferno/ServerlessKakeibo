@@ -156,6 +156,7 @@ builder.Services.AddScoped<ITransactionHelper, TransactionHelper>();
 builder.Services.AddScoped<IUserExternalLoginRepository, UserExternalLoginRepository>();
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<ICategoryMasterRepository, CategoryMasterRepository>();
+builder.Services.AddScoped<IUserTransactionCategoryRepository, UserTransactionCategoryRepository>();
 #endregion
 
 #region CORS settings
