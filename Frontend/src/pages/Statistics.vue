@@ -164,7 +164,11 @@ onMounted(async () => {
 
         <!-- カテゴリ別支出 -->
         <BaseCard
-          v-if="categoryBreakdown && categoryBreakdown.categories.length > 0"
+          v-if="
+            categoryBreakdown &&
+            Array.isArray(categoryBreakdown.categories) &&
+            categoryBreakdown.categories.length > 0
+          "
         >
           <div class="space-y-6">
             <div class="flex items-center gap-2">
@@ -173,7 +177,10 @@ onMounted(async () => {
             </div>
 
             <!-- 円グラフ -->
-            <CategoryPieChart :categories="categoryBreakdown.categories" />
+            <CategoryPieChart
+              :key="`chart-${currentYear}-${currentMonth}`"
+              :categories="categoryBreakdown.categories"
+            />
 
             <!-- カテゴリリスト -->
             <CategoryBreakdownList

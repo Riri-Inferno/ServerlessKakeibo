@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Pie } from "vue-chartjs";
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import {
   Chart as ChartJS,
   ArcElement,
   Tooltip,
   Legend,
   type ChartOptions,
+  type ChartData,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import type { CategorySummary } from "../../types/statistics";
@@ -19,12 +19,17 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const chartData = computed(() => {
-  const getCategoryColor = (index: number) => {
-    const hue = index * 137.5;
-    return `hsl(${hue % 360}, 70%, 50%)`;
-  };
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let chartInstance: ChartJS<"pie"> | null = null;
 
+// カテゴリごとの色を生成
+const getCategoryColor = (index: number): string => {
+  const hue = index * 137.5;
+  return `hsl(${hue % 360}, 70%, 50%)`;
+};
+
+// チャートデータを生成
+const generateChartData = (): ChartData<"pie"> => {
   return {
     labels: props.categories.map((c) => c.categoryName),
     datasets: [
@@ -36,8 +41,9 @@ const chartData = computed(() => {
       },
     ],
   };
-});
+};
 
+// チャートオプション
 const chartOptions: ChartOptions<"pie"> = {
   responsive: true,
   maintainAspectRatio: true,
@@ -97,10 +103,76 @@ const chartOptions: ChartOptions<"pie"> = {
     },
   },
 };
+
+// チャートを作成
+const createChart = () => {
+  if (!canvasRef.value) return;
+
+  // 既存のインスタンスを破棄
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+
+  // 新しいインスタンスを作成
+  chartInstance = new ChartJS(canvasRef.value, {
+    type: "pie",
+    data: generateChartData(),
+    options: chartOptions,
+  });
+};
+
+// チャートを更新
+const updateChart = () => {
+  if (!chartInstance) {
+    createChart();
+    return;
+  }
+
+  // データを更新
+  chartInstance.data = generateChartData();
+  chartInstance.update("none"); // アニメーションなしで更新
+};
+
+// propsの変更を監視
+watch(
+  () => props.categories,
+  async () => {
+    // データが空の場合は破棄のみ
+    if (!props.categories || props.categories.length === 0) {
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+      return;
+    }
+
+    // DOM更新を待ってからチャートを更新
+    await nextTick();
+    updateChart();
+  },
+  { deep: true, immediate: false },
+);
+
+// マウント時に作成
+onMounted(async () => {
+  if (props.categories && props.categories.length > 0) {
+    await nextTick();
+    createChart();
+  }
+});
+
+// アンマウント時に破棄
+onBeforeUnmount(() => {
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+});
 </script>
 
 <template>
   <div class="w-full" style="max-width: 400px; margin: 0 auto">
-    <Pie :data="chartData" :options="chartOptions" />
+    <canvas ref="canvasRef"></canvas>
   </div>
 </template>
