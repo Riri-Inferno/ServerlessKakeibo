@@ -13,6 +13,7 @@ import BaseSelect from "../components/atoms/BaseSelect.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 import TransactionDeleteConfirmModal from "../components/organisms/TransactionDeleteConfirmModal.vue";
+import CategoryManagementSection from "../components/organisms/CategoryManagementSection.vue";
 
 // 環境変数からバージョン情報を取得
 const appVersion = import.meta.env.VITE_APP_VERSION || "不明";
@@ -333,6 +334,9 @@ const closeDeleteModal = () => {
             </div>
           </div>
         </BaseCard>
+
+        <!-- カテゴリ管理 -->
+        <CategoryManagementSection />
 
         <!-- データ管理 -->
         <BaseCard>

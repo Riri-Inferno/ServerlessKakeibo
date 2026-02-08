@@ -161,12 +161,24 @@ export function useStatistics() {
 
   // 現在月のすべてのデータを取得
   const fetchCurrentMonth = async () => {
-    await Promise.all([
-      fetchMonthlyComparison(currentYear.value, currentMonth.value),
-      fetchCategoryBreakdown(currentYear.value, currentMonth.value),
-      fetchMonthlyTrend(6),
-      fetchHighlights(currentYear.value, currentMonth.value),
-    ]);
+    isLoading.value = true;
+    errorMessage.value = "";
+
+    try {
+      // 各APIを順次実行
+      await fetchMonthlyComparison(currentYear.value, currentMonth.value);
+      await fetchCategoryBreakdown(currentYear.value, currentMonth.value);
+      await fetchMonthlyTrend(6);
+      await fetchHighlights(currentYear.value, currentMonth.value);
+    } catch (error) {
+      console.error("統計データ取得エラー:", error);
+      errorMessage.value =
+        error instanceof Error
+          ? error.message
+          : "統計データの取得に失敗しました";
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   // 前月に移動
