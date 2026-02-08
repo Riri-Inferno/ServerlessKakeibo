@@ -27,7 +27,7 @@ defineEmits<{
     class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
   >
     <!-- ドラッグハンドル -->
-    <div class="cursor-move text-gray-400 hover:text-gray-600">
+    <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600">
       <BaseIcon name="bars-3" size="md" />
     </div>
 

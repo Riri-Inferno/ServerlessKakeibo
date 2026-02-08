@@ -53,8 +53,8 @@ const activeComposable = computed(() => {
 const displayCategories = computed({
   get: () => activeComposable.value.visibleCategories.value,
   set: () => {
-    // vuedraggableの双方向バインディング用
-    // 実際の更新はドラッグ終了時に行う
+    // vuedraggableがドラッグ中に配列を更新する
+    // 実際のAPI呼び出しはhandleDragEndで行う
   },
 });
 
@@ -75,10 +75,13 @@ onMounted(async () => {
 });
 
 // タブ切り替え
-const handleTabChange = (type: CategoryType) => {
+const handleTabChange = async (type: CategoryType) => {
   activeTab.value = type;
   activeComposable.value.clearError();
   activeComposable.value.clearSuccess();
+
+  // タブ切り替え時に削除済みカテゴリも含めて再取得
+  await activeComposable.value.fetchCategories(true);
 };
 
 // 作成モーダルを開く
@@ -118,6 +121,8 @@ const handleSave = async (data: any) => {
       });
     }
     closeModal();
+    // 削除済みを含めて再取得
+    await activeComposable.value.fetchCategories(true);
   } catch (error) {
     // エラーはcomposableで処理済み
   }
@@ -130,6 +135,8 @@ const handleDelete = async (id: string) => {
   // }
   try {
     await activeComposable.value.deleteCategory(id);
+    // 削除済みを含めて再取得
+    await activeComposable.value.fetchCategories(true);
   } catch (error) {
     // エラーはcomposableで処理済み
   }
@@ -139,6 +146,8 @@ const handleDelete = async (id: string) => {
 const handleRestore = async (id: string) => {
   try {
     await activeComposable.value.restoreCategory(id);
+    // 削除済みを含めて再取得
+    await activeComposable.value.fetchCategories(true);
   } catch (error) {
     // エラーはcomposableで処理済み
   }
@@ -146,23 +155,33 @@ const handleRestore = async (id: string) => {
 
 // マスタ設定に戻す
 const handleResetToMaster = async () => {
-  if (confirm("マスタ設定に戻しますか？\n（カスタムカテゴリは保持されます）")) {
-    try {
-      await activeComposable.value.resetToMaster();
-    } catch (error) {
-      // エラーはcomposableで処理済み
-    }
+  if (
+    !confirm("マスタ設定に戻しますか？\n（カスタムカテゴリは保持されます）")
+  ) {
+    return;
+  }
+
+  try {
+    await activeComposable.value.resetToMaster();
+    // リセット後、削除済みを含めて再取得
+    await activeComposable.value.fetchCategories(true);
+  } catch (error) {
+    // エラーはcomposableで処理済み
   }
 };
 
 // ドラッグ&ドロップ終了時の処理
 const handleDragEnd = async () => {
+  // eventから新しい順序を取得
+  const reordered = displayCategories.value;
+
   try {
-    await activeComposable.value.updateDisplayOrders(
-      displayCategories.value as any,
-    );
+    await activeComposable.value.updateDisplayOrders(reordered as any);
+    // 更新後、削除済みを含めて再取得
+    await activeComposable.value.fetchCategories(true);
   } catch (error) {
-    // エラーはcomposableで処理済み
+    // エラー時は元に戻す
+    await activeComposable.value.fetchCategories(true);
   }
 };
 
@@ -251,10 +270,10 @@ const toggleHiddenCategories = () => {
         <draggable
           v-model="displayCategories"
           item-key="id"
-          handle=".cursor-move"
+          handle=".drag-handle"
           @end="handleDragEnd"
+          animation="150"
           class="space-y-2"
-          tag="div"
         >
           <template #item="{ element }">
             <CategoryListItem

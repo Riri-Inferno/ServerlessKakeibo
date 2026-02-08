@@ -52,6 +52,9 @@ const formData = ref({
   isIncome: false,
 });
 
+// カスタム色入力
+const customColorInput = ref("");
+
 const isSaving = ref(false);
 const validationError = ref("");
 
@@ -76,28 +79,48 @@ const shouldShowIncomeToggle = computed(
   () => isTransactionCategory.value && props.mode === "create",
 );
 
-// 初期データの監視
+// isOpenの変化を監視してフォームをリセット（タブ切り替え時の状態共有を防ぐ）
 watch(
-  () => props.initialData,
-  (newData) => {
-    if (props.mode === "edit" && newData) {
+  () => props.isOpen,
+  (newIsOpen) => {
+    if (!newIsOpen) {
+      // モーダルが閉じられた時はリセットしない（閉じるアニメーション中）
+      return;
+    }
+
+    // モーダルが開かれた時にリセット
+    if (props.mode === "edit" && props.initialData) {
       formData.value = {
-        name: newData.name ?? "",
-        colorCode: newData.colorCode ?? presetColors[0],
-        isIncome: "isIncome" in newData ? newData.isIncome : false,
+        name: props.initialData.name ?? "",
+        colorCode: props.initialData.colorCode ?? presetColors[0],
+        isIncome:
+          "isIncome" in props.initialData ? props.initialData.isIncome : false,
       };
+      customColorInput.value = "";
     } else {
-      // 作成モードの場合はリセット
+      // 作成モードの場合は完全リセット
       formData.value = {
         name: "",
         colorCode: presetColors[0],
         isIncome: false,
       };
+      customColorInput.value = "";
     }
     validationError.value = "";
   },
   { immediate: true },
 );
+
+// カスタム色を適用
+const applyCustomColor = () => {
+  const color = customColorInput.value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+    formData.value.colorCode = color;
+    validationError.value = "";
+  } else {
+    validationError.value = "カラーコードは #RRGGBB 形式で入力してください";
+  }
+};
 
 // バリデーション
 const validate = (): boolean => {
@@ -129,7 +152,6 @@ const handleSave = async () => {
 
   try {
     emit("save", { ...formData.value });
-    emit("close");
   } catch (error) {
     // エラーは親で処理される
   } finally {
@@ -149,15 +171,8 @@ const handleClose = () => {
   <BaseModal :is-open="isOpen" @close="handleClose">
     <div class="space-y-6">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between">
+      <div>
         <BaseText variant="h2">{{ modalTitle }}</BaseText>
-        <button
-          @click="handleClose"
-          :disabled="isSaving"
-          class="text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          <BaseIcon name="x-mark" size="md" />
-        </button>
       </div>
 
       <!-- エラーメッセージ -->
@@ -229,7 +244,9 @@ const handleClose = () => {
           <BaseText variant="caption" color="gray" class="mb-2">
             表示色
           </BaseText>
-          <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+
+          <!-- プリセット色 -->
+          <div class="grid grid-cols-5 sm:grid-cols-10 gap-2 mb-3">
             <button
               v-for="color in presetColors"
               :key="color"
@@ -243,6 +260,29 @@ const handleClose = () => {
                   : 'border-gray-300'
               "
             />
+          </div>
+
+          <!-- カスタム色入力 -->
+          <div class="space-y-2">
+            <BaseText variant="caption" color="gray">
+              カスタムカラー（#RRGGBB形式）
+            </BaseText>
+            <div class="flex gap-2">
+              <BaseInput
+                v-model="customColorInput"
+                placeholder="#FF5733"
+                :disabled="isSaving"
+                class="flex-1"
+              />
+              <BaseButton
+                variant="outline"
+                size="sm"
+                @click="applyCustomColor"
+                :disabled="isSaving"
+              >
+                適用
+              </BaseButton>
+            </div>
           </div>
 
           <!-- 選択中の色プレビュー -->
