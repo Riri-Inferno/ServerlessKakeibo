@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-// import { VueDraggableNext } from "vuedraggable";
+import draggable from "vuedraggable";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseButton from "../atoms/BaseButton.vue";
@@ -245,20 +245,22 @@ const toggleHiddenCategories = () => {
       <!-- カテゴリリスト -->
       <div v-else class="space-y-4">
         <!-- ドラッグ可能リスト -->
-        <VueDraggableNext
+        <draggable
           v-model="displayCategories"
+          item-key="id"
           handle=".cursor-move"
           @end="handleDragEnd"
           class="space-y-2"
+          tag="div"
         >
-          <CategoryListItem
-            v-for="category in displayCategories"
-            :key="category.id"
-            :category="category"
-            @edit="openEditModal"
-            @delete="handleDelete"
-          />
-        </VueDraggableNext>
+          <template #item="{ element }">
+            <CategoryListItem
+              :category="element"
+              @edit="openEditModal"
+              @delete="handleDelete"
+            />
+          </template>
+        </draggable>
 
         <!-- カテゴリが0件の場合 -->
         <div
