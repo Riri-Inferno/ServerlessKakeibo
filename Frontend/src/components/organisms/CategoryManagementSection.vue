@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import draggable from "vuedraggable";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -37,6 +37,9 @@ const editingCategory = ref<CategoryDto | null>(null);
 // 削除済みカテゴリ表示フラグ
 const showHiddenCategories = ref(false);
 
+// ドラッグ用のローカル配列
+const localCategories = ref<CategoryDto[]>([]);
+
 // アクティブなcomposableを取得
 const activeComposable = computed(() => {
   switch (activeTab.value) {
@@ -49,14 +52,14 @@ const activeComposable = computed(() => {
   }
 });
 
-// 表示用カテゴリリスト
-const displayCategories = computed({
-  get: () => activeComposable.value.visibleCategories.value,
-  set: () => {
-    // vuedraggableがドラッグ中に配列を更新する
-    // 実際のAPI呼び出しはhandleDragEndで行う
+// visibleCategoriesの変更をlocalCategoriesに同期
+watch(
+  () => activeComposable.value.visibleCategories.value,
+  (newValue) => {
+    localCategories.value = [...newValue];
   },
-});
+  { immediate: true, deep: true },
+);
 
 // タブラベル
 const tabLabels: Record<CategoryType, string> = {
@@ -130,9 +133,6 @@ const handleSave = async (data: any) => {
 
 // 削除処理
 const handleDelete = async (id: string) => {
-  // if (!confirm("このカテゴリを削除しますか？")) {
-  //   return;
-  // }
   try {
     await activeComposable.value.deleteCategory(id);
     // 削除済みを含めて再取得
@@ -172,16 +172,14 @@ const handleResetToMaster = async () => {
 
 // ドラッグ&ドロップ終了時の処理
 const handleDragEnd = async () => {
-  // eventから新しい順序を取得
-  const reordered = displayCategories.value;
+  // localCategoriesから取得（ドラッグ後の順序）
+  const reordered = localCategories.value;
 
   try {
     await activeComposable.value.updateDisplayOrders(reordered as any);
-    // 更新後、削除済みを含めて再取得
-    await activeComposable.value.fetchCategories(true);
   } catch (error) {
     // エラー時は元に戻す
-    await activeComposable.value.fetchCategories(true);
+    localCategories.value = [...activeComposable.value.visibleCategories.value];
   }
 };
 
@@ -268,7 +266,7 @@ const toggleHiddenCategories = () => {
       <div v-else class="space-y-4">
         <!-- ドラッグ可能リスト -->
         <draggable
-          v-model="displayCategories"
+          v-model="localCategories"
           item-key="id"
           handle=".drag-handle"
           @end="handleDragEnd"
@@ -286,7 +284,7 @@ const toggleHiddenCategories = () => {
 
         <!-- カテゴリが0件の場合 -->
         <div
-          v-if="displayCategories.length === 0"
+          v-if="localCategories.length === 0"
           class="text-center py-8 text-gray-500"
         >
           <BaseIcon name="tag" size="lg" class="mx-auto mb-2 opacity-50" />

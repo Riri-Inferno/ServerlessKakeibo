@@ -17,11 +17,13 @@ export function useTransactionCategories() {
   /**
    * 表示用カテゴリ（非表示を除外、displayOrderでソート）
    */
-  const visibleCategories = computed(() =>
-    categories.value
+  const visibleCategories = computed(() => {
+    const result = categories.value
       .filter((c) => !c.isHidden)
-      .sort((a, b) => a.displayOrder - b.displayOrder),
-  );
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+
+    return result;
+  });
 
   /**
    * 非表示カテゴリ（復元用）
@@ -216,10 +218,8 @@ export function useTransactionCategories() {
         })),
       );
 
-      // レスポンスで直接更新（fetchは不要なはず）
       categories.value = result.categories;
 
-      // TODO:更新されないので仕方なくfetch
       await fetchCategories(true);
 
       successMessage.value = "並び順を更新しました";
