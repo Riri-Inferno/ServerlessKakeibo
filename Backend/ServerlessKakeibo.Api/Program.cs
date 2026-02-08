@@ -148,6 +148,7 @@ builder.Services.AddScoped<IUpdateTransactionCategoryUseCase, UpdateTransactionC
 builder.Services.AddScoped<IDeleteTransactionCategoryUseCase, DeleteTransactionCategoryInteractor>();
 builder.Services.AddScoped<IRestoreTransactionCategoryUseCase, RestoreTransactionCategoryInteractor>();
 builder.Services.AddScoped<IResetTransactionCategoriesToMasterUseCase, ResetTransactionCategoriesToMasterInteractor>();
+builder.Services.AddScoped<IUpdateTransactionCategoryOrderUseCase, UpdateTransactionCategoryOrderInteractor>();
 builder.Services.AddScoped<IGetItemCategoriesUseCase, GetItemCategoriesInteractor>();
 builder.Services.AddScoped<ICreateItemCategoryUseCase, CreateItemCategoryInteractor>();
 builder.Services.AddScoped<IUpdateItemCategoryUseCase, UpdateItemCategoryInteractor>();
