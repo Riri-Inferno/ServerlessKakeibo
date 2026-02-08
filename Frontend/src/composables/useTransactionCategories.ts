@@ -15,10 +15,12 @@ export function useTransactionCategories() {
   const successMessage = ref("");
 
   /**
-   * 表示用カテゴリ（非表示を除外）
+   * 表示用カテゴリ（非表示を除外、displayOrderでソート）
    */
   const visibleCategories = computed(() =>
-    categories.value.filter((c) => !c.isHidden),
+    categories.value
+      .filter((c) => !c.isHidden)
+      .sort((a, b) => a.displayOrder - b.displayOrder),
   );
 
   /**
@@ -206,23 +208,28 @@ export function useTransactionCategories() {
     successMessage.value = "";
 
     try {
-      // 各カテゴリの displayOrder を更新
-      const promises = reorderedCategories.map((category, index) =>
-        transactionCategoryRepository.updateCategory(category.id, {
-          name: category.name,
-          colorCode: category.colorCode,
+      // 一括更新APIを呼び出し
+      const result = await transactionCategoryRepository.updateCategoryOrders(
+        reorderedCategories.map((category, index) => ({
+          id: category.id,
           displayOrder: index + 1,
-        }),
+        })),
       );
-      await Promise.all(promises);
+
+      // レスポンスで直接更新（fetchは不要なはず）
+      categories.value = result.categories;
+
+      // TODO:更新されないので仕方なくfetch
+      await fetchCategories(true);
 
       successMessage.value = "並び順を更新しました";
-      // 再取得
-      await fetchCategories(false);
     } catch (error) {
       console.error("並び順更新エラー:", error);
       errorMessage.value =
         error instanceof Error ? error.message : "並び順の更新に失敗しました";
+
+      // エラー時のみ再取得
+      await fetchCategories(true);
       throw error;
     } finally {
       isSaving.value = false;
