@@ -124,7 +124,7 @@ onMounted(async () => {
         </div>
 
         <BaseText variant="caption" color="gray">
-          {{ currentPeriodLabel }}の収支状況
+          {{ currentPeriodLabel }}
         </BaseText>
       </div>
 
