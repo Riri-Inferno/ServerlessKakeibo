@@ -69,6 +69,7 @@ type IconName =
   | "plus"
   | "minus"
   | "x"
+  | "x-mark"
   | "user"
   | "home"
   | "cart"
@@ -84,6 +85,7 @@ type IconName =
   | "trash"
   | "check"
   | "warning"
+  | "exclamation-triangle"
   | "info"
   | "alert"
   | "currency-yen"
@@ -92,6 +94,7 @@ type IconName =
   | "document"
   | "download"
   | "refresh"
+  | "arrow-path"
   | "calendar"
   | "tag"
   | "banknotes"
@@ -124,6 +127,7 @@ const iconMapOutline: Record<IconName, Component> = {
   plus: PlusIcon,
   minus: MinusIcon,
   x: XMarkIcon,
+  "x-mark": XMarkIcon,
   user: UserIcon,
   home: HomeIcon,
   cart: ShoppingCartIcon,
@@ -139,6 +143,7 @@ const iconMapOutline: Record<IconName, Component> = {
   trash: TrashIcon,
   check: CheckIcon,
   warning: ExclamationTriangleIcon,
+  "exclamation-triangle": ExclamationTriangleIcon,
   info: InformationCircleIcon,
   "currency-yen": CurrencyYenIcon,
   folder: FolderIcon,
@@ -146,6 +151,7 @@ const iconMapOutline: Record<IconName, Component> = {
   document: DocumentTextIcon,
   download: ArrowDownTrayIcon,
   refresh: ArrowPathIcon,
+  "arrow-path": ArrowPathIcon,
   calendar: CalendarIcon,
   tag: TagIcon,
   banknotes: BanknotesIcon,
@@ -161,6 +167,7 @@ const iconMapOutline: Record<IconName, Component> = {
 // Solid (24x24) - 必要に応じて追加
 const iconMapSolid: Record<IconName, Component> = {
   warning: ExclamationTriangleIconSolid,
+  "exclamation-triangle": ExclamationTriangleIconSolid,
   "check-circle": CheckCircleIconSolid,
   info: InformationCircleIconSolid,
   photo: PhotoIconSolid,
@@ -168,6 +175,7 @@ const iconMapSolid: Record<IconName, Component> = {
   plus: PlusIcon,
   minus: MinusIcon,
   x: XMarkIcon,
+  "x-mark": XMarkIcon,
   user: UserIcon,
   home: HomeIcon,
   cart: ShoppingCartIcon,
@@ -186,6 +194,7 @@ const iconMapSolid: Record<IconName, Component> = {
   document: DocumentTextIcon,
   download: ArrowDownTrayIcon,
   refresh: ArrowPathIcon,
+  "arrow-path": ArrowPathIcon,
   calendar: CalendarIcon,
   tag: TagIcon,
   banknotes: BanknotesIcon,
@@ -200,11 +209,13 @@ const iconMapSolid: Record<IconName, Component> = {
 // Mini (20x20) - よく使うものだけ
 const iconMapMini: Record<IconName, Component> = {
   warning: ExclamationTriangleIconMini,
+  "exclamation-triangle": ExclamationTriangleIconMini,
   "check-circle": CheckCircleIconMini,
   info: InformationCircleIconMini,
   plus: PlusIcon,
   minus: MinusIcon,
   x: XMarkIcon,
+  "x-mark": XMarkIcon,
   user: UserIcon,
   home: HomeIcon,
   cart: ShoppingCartIcon,
@@ -225,6 +236,7 @@ const iconMapMini: Record<IconName, Component> = {
   document: DocumentTextIcon,
   download: ArrowDownTrayIcon,
   refresh: ArrowPathIcon,
+  "arrow-path": ArrowPathIcon,
   calendar: CalendarIcon,
   tag: TagIcon,
   banknotes: BanknotesIcon,
