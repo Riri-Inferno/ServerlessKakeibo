@@ -174,6 +174,7 @@ builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<ICategoryMasterRepository, CategoryMasterRepository>();
 builder.Services.AddScoped<IUserTransactionCategoryRepository, UserTransactionCategoryRepository>();
 builder.Services.AddScoped<IUserItemCategoryRepository, UserItemCategoryRepository>();
+builder.Services.AddScoped<IUserIncomeItemCategoryRepository, UserIncomeItemCategoryRepository>();
 #endregion
 
 #region CORS settings
