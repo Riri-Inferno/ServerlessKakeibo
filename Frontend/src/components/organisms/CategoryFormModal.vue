@@ -6,11 +6,7 @@ import BaseInput from "../atoms/BaseInput.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
-import type {
-  TransactionCategoryDto,
-  // CreateTransactionCategoryRequest,
-  // UpdateTransactionCategoryRequest,
-} from "../../types/transactionCategory";
+import type { TransactionCategoryDto } from "../../types/transactionCategory";
 import type { ItemCategoryDto } from "../../types/itemCategory";
 import type { IncomeItemCategoryDto } from "../../types/incomeItemCategory";
 
@@ -73,6 +69,11 @@ const modalTitle = computed(() => {
 // 取引カテゴリかどうか
 const isTransactionCategory = computed(
   () => props.categoryType === "transaction",
+);
+
+// 収入/支出選択を表示するか（取引カテゴリの新規作成時のみ）
+const shouldShowIncomeToggle = computed(
+  () => isTransactionCategory.value && props.mode === "create",
 );
 
 // 初期データの監視
@@ -190,8 +191,8 @@ const handleClose = () => {
           />
         </div>
 
-        <!-- 収入/支出選択（取引カテゴリのみ） -->
-        <div v-if="isTransactionCategory && mode === 'create'">
+        <!-- 収入/支出選択（取引カテゴリの新規作成時のみ） -->
+        <div v-if="shouldShowIncomeToggle">
           <BaseText variant="caption" color="gray" class="mb-2">
             種別
           </BaseText>

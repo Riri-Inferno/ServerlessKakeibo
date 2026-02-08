@@ -68,9 +68,9 @@ const tabLabels: Record<CategoryType, string> = {
 // 初期化
 onMounted(async () => {
   await Promise.all([
-    transactionCategories.fetchCategories(),
-    itemCategories.fetchCategories(),
-    incomeItemCategories.fetchCategories(),
+    transactionCategories.fetchCategories(true),
+    itemCategories.fetchCategories(true),
+    incomeItemCategories.fetchCategories(true),
   ]);
 });
 
@@ -125,6 +125,9 @@ const handleSave = async (data: any) => {
 
 // 削除処理
 const handleDelete = async (id: string) => {
+  // if (!confirm("このカテゴリを削除しますか？")) {
+  //   return;
+  // }
   try {
     await activeComposable.value.deleteCategory(id);
   } catch (error) {
