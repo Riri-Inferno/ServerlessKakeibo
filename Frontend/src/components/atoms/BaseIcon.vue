@@ -35,6 +35,7 @@ import {
   ArrowDownIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  Bars3Icon,
 } from "@heroicons/vue/24/outline";
 
 // ===== Solid (24x24) =====
@@ -78,6 +79,7 @@ type IconName =
   | "arrow-left"
   | "chevron-down"
   | "chevron-up"
+  | "bars-3"
   | "pencil"
   | "trash"
   | "check"
@@ -132,6 +134,7 @@ const iconMapOutline: Record<IconName, Component> = {
   "arrow-left": ArrowLeftIcon,
   "chevron-down": ChevronDownIcon,
   "chevron-up": ChevronUpIcon,
+  "bars-3": Bars3Icon,
   pencil: PencilIcon,
   trash: TrashIcon,
   check: CheckIcon,
@@ -175,6 +178,7 @@ const iconMapSolid: Record<IconName, Component> = {
   "arrow-left": ArrowLeftIcon,
   "chevron-down": ChevronDownIcon,
   "chevron-up": ChevronUpIcon,
+  "bars-3": Bars3Icon,
   pencil: PencilIcon,
   trash: TrashIcon,
   check: CheckIcon,
@@ -211,6 +215,7 @@ const iconMapMini: Record<IconName, Component> = {
   "arrow-left": ArrowLeftIcon,
   "chevron-down": ChevronDownIcon,
   "chevron-up": ChevronUpIcon,
+  "bars-3": Bars3Icon,
   pencil: PencilIcon,
   trash: TrashIcon,
   check: CheckIcon,
