@@ -83,4 +83,13 @@ public class UserItemCategoryRepository : IUserItemCategoryRepository
 
         await _context.UserItemCategories.AddRangeAsync(newCategories, cancellationToken);
     }
+
+    public async Task<List<UserItemCategoryEntity>> GetByIdsAsync(
+    List<Guid> ids,
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.UserItemCategories
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync(cancellationToken);
+    }
 }
