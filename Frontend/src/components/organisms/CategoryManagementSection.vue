@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import draggable from "vuedraggable";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -40,6 +40,9 @@ const showHiddenCategories = ref(false);
 // ドラッグ用のローカル配列
 const localCategories = ref<CategoryDto[]>([]);
 
+// ドラッグ中フラグ
+const isDragging = ref(false);
+
 // アクティブなcomposableを取得
 const activeComposable = computed(() => {
   switch (activeTab.value) {
@@ -52,11 +55,20 @@ const activeComposable = computed(() => {
   }
 });
 
-// visibleCategoriesの変更をlocalCategoriesに同期
+// ドラッグ中はwatchをスキップ
 watch(
-  () => activeComposable.value.visibleCategories.value,
-  (newValue) => {
-    localCategories.value = [...newValue];
+  [
+    () => transactionCategories.visibleCategories.value,
+    () => itemCategories.visibleCategories.value,
+    () => incomeItemCategories.visibleCategories.value,
+    activeTab,
+  ],
+  () => {
+    if (!isDragging.value) {
+      localCategories.value = [
+        ...activeComposable.value.visibleCategories.value,
+      ];
+    }
   },
   { immediate: true, deep: true },
 );
@@ -170,6 +182,11 @@ const handleResetToMaster = async () => {
   }
 };
 
+// ドラッグ開始
+const handleDragStart = () => {
+  isDragging.value = true;
+};
+
 // ドラッグ&ドロップ終了時の処理
 const handleDragEnd = async () => {
   // localCategoriesから取得（ドラッグ後の順序）
@@ -177,9 +194,14 @@ const handleDragEnd = async () => {
 
   try {
     await activeComposable.value.updateDisplayOrders(reordered as any);
+    await nextTick();
+
+    localCategories.value = [...activeComposable.value.visibleCategories.value];
   } catch (error) {
     // エラー時は元に戻す
     localCategories.value = [...activeComposable.value.visibleCategories.value];
+  } finally {
+    isDragging.value = false;
   }
 };
 
@@ -269,6 +291,7 @@ const toggleHiddenCategories = () => {
           v-model="localCategories"
           item-key="id"
           handle=".drag-handle"
+          @start="handleDragStart"
           @end="handleDragEnd"
           animation="150"
           class="space-y-2"

@@ -219,9 +219,6 @@ export function useTransactionCategories() {
       );
 
       categories.value = result.categories;
-
-      await fetchCategories(true);
-
       successMessage.value = "並び順を更新しました";
     } catch (error) {
       console.error("並び順更新エラー:", error);
