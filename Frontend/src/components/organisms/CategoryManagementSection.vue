@@ -5,7 +5,6 @@ import BaseCard from "../atoms/BaseCard.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
-import BaseSpinner from "../atoms/BaseSpinner.vue";
 import CategoryListItem from "../molecules/CategoryListItem.vue";
 import CategoryFormModal from "../organisms/CategoryFormModal.vue";
 import { useTransactionCategories } from "../../composables/useTransactionCategories";
@@ -271,16 +270,12 @@ const toggleHiddenCategories = () => {
         </div>
       </div>
 
-      <!-- ローディング -->
-      <div
-        v-if="activeComposable.isLoading.value"
-        class="flex justify-center py-8"
-      >
-        <BaseSpinner
-          icon="refresh"
-          size="lg"
-          color="primary"
-          label="読み込み中"
+      <!-- ローディング: スケルトン表示 -->
+      <div v-if="activeComposable.isLoading.value" class="space-y-2">
+        <div
+          v-for="i in 5"
+          :key="i"
+          class="h-16 bg-gray-100 rounded-lg animate-pulse"
         />
       </div>
 
@@ -288,6 +283,7 @@ const toggleHiddenCategories = () => {
       <div v-else class="space-y-4">
         <!-- ドラッグ可能リスト -->
         <draggable
+          v-if="localCategories.length > 0"
           v-model="localCategories"
           item-key="id"
           handle=".drag-handle"
@@ -306,10 +302,7 @@ const toggleHiddenCategories = () => {
         </draggable>
 
         <!-- カテゴリが0件の場合 -->
-        <div
-          v-if="localCategories.length === 0"
-          class="text-center py-8 text-gray-500"
-        >
+        <div v-else class="text-center py-8 text-gray-500">
           <BaseIcon name="tag" size="lg" class="mx-auto mb-2 opacity-50" />
           <BaseText variant="body" color="gray">
             カテゴリがありません
