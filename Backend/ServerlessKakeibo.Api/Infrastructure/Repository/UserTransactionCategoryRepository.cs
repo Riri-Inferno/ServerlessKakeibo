@@ -95,4 +95,16 @@ public class UserTransactionCategoryRepository : IUserTransactionCategoryReposit
 
         await _context.UserTransactionCategories.AddRangeAsync(newCategories, cancellationToken);
     }
+
+    /// <summary>
+    /// 複数IDでカテゴリを取得
+    /// </summary>
+    public async Task<List<UserTransactionCategoryEntity>> GetByIdsAsync(
+        List<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.UserTransactionCategories
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync(cancellationToken);
+    }
 }

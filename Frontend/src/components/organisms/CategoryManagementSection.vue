@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import draggable from "vuedraggable";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
-import BaseSpinner from "../atoms/BaseSpinner.vue";
 import CategoryListItem from "../molecules/CategoryListItem.vue";
 import CategoryFormModal from "../organisms/CategoryFormModal.vue";
 import { useTransactionCategories } from "../../composables/useTransactionCategories";
@@ -37,6 +36,12 @@ const editingCategory = ref<CategoryDto | null>(null);
 // 削除済みカテゴリ表示フラグ
 const showHiddenCategories = ref(false);
 
+// ドラッグ用のローカル配列
+const localCategories = ref<CategoryDto[]>([]);
+
+// ドラッグ中フラグ
+const isDragging = ref(false);
+
 // アクティブなcomposableを取得
 const activeComposable = computed(() => {
   switch (activeTab.value) {
@@ -49,14 +54,23 @@ const activeComposable = computed(() => {
   }
 });
 
-// 表示用カテゴリリスト
-const displayCategories = computed({
-  get: () => activeComposable.value.visibleCategories.value,
-  set: () => {
-    // vuedraggableがドラッグ中に配列を更新する
-    // 実際のAPI呼び出しはhandleDragEndで行う
+// ドラッグ中はwatchをスキップ
+watch(
+  [
+    () => transactionCategories.visibleCategories.value,
+    () => itemCategories.visibleCategories.value,
+    () => incomeItemCategories.visibleCategories.value,
+    activeTab,
+  ],
+  () => {
+    if (!isDragging.value) {
+      localCategories.value = [
+        ...activeComposable.value.visibleCategories.value,
+      ];
+    }
   },
-});
+  { immediate: true, deep: true },
+);
 
 // タブラベル
 const tabLabels: Record<CategoryType, string> = {
@@ -130,9 +144,6 @@ const handleSave = async (data: any) => {
 
 // 削除処理
 const handleDelete = async (id: string) => {
-  // if (!confirm("このカテゴリを削除しますか？")) {
-  //   return;
-  // }
   try {
     await activeComposable.value.deleteCategory(id);
     // 削除済みを含めて再取得
@@ -170,18 +181,26 @@ const handleResetToMaster = async () => {
   }
 };
 
+// ドラッグ開始
+const handleDragStart = () => {
+  isDragging.value = true;
+};
+
 // ドラッグ&ドロップ終了時の処理
 const handleDragEnd = async () => {
-  // eventから新しい順序を取得
-  const reordered = displayCategories.value;
+  // localCategoriesから取得（ドラッグ後の順序）
+  const reordered = localCategories.value;
 
   try {
     await activeComposable.value.updateDisplayOrders(reordered as any);
-    // 更新後、削除済みを含めて再取得
-    await activeComposable.value.fetchCategories(true);
+    await nextTick();
+
+    localCategories.value = [...activeComposable.value.visibleCategories.value];
   } catch (error) {
     // エラー時は元に戻す
-    await activeComposable.value.fetchCategories(true);
+    localCategories.value = [...activeComposable.value.visibleCategories.value];
+  } finally {
+    isDragging.value = false;
   }
 };
 
@@ -251,16 +270,12 @@ const toggleHiddenCategories = () => {
         </div>
       </div>
 
-      <!-- ローディング -->
-      <div
-        v-if="activeComposable.isLoading.value"
-        class="flex justify-center py-8"
-      >
-        <BaseSpinner
-          icon="refresh"
-          size="lg"
-          color="primary"
-          label="読み込み中"
+      <!-- ローディング: スケルトン表示 -->
+      <div v-if="activeComposable.isLoading.value" class="space-y-2">
+        <div
+          v-for="i in 5"
+          :key="i"
+          class="h-16 bg-gray-100 rounded-lg animate-pulse"
         />
       </div>
 
@@ -268,9 +283,11 @@ const toggleHiddenCategories = () => {
       <div v-else class="space-y-4">
         <!-- ドラッグ可能リスト -->
         <draggable
-          v-model="displayCategories"
+          v-if="localCategories.length > 0"
+          v-model="localCategories"
           item-key="id"
           handle=".drag-handle"
+          @start="handleDragStart"
           @end="handleDragEnd"
           animation="150"
           class="space-y-2"
@@ -285,10 +302,7 @@ const toggleHiddenCategories = () => {
         </draggable>
 
         <!-- カテゴリが0件の場合 -->
-        <div
-          v-if="displayCategories.length === 0"
-          class="text-center py-8 text-gray-500"
-        >
+        <div v-else class="text-center py-8 text-gray-500">
           <BaseIcon name="tag" size="lg" class="mx-auto mb-2 opacity-50" />
           <BaseText variant="body" color="gray">
             カテゴリがありません

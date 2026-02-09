@@ -30,4 +30,11 @@ public interface IUserItemCategoryRepository
         Guid userId,
         Guid tenantId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 複数IDでカテゴリを取得
+    /// </summary>
+    Task<List<UserItemCategoryEntity>> GetByIdsAsync(
+        List<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

@@ -201,4 +201,41 @@ public class ItemCategoryController : ControllerBase
                 ApiResponse<ItemCategoryListResult>.Fail(ApiStatus.InternalError));
         }
     }
+
+    /// <summary>
+    /// 商品カテゴリの並び順を一括更新
+    /// </summary>
+    [HttpPut("order")]
+    [SwaggerOperation(
+        Summary = "並び順一括更新",
+        Description = "複数の商品カテゴリの表示順序を一括で更新します。")]
+    [ProducesResponseType(typeof(ApiResponse<ItemCategoryListResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ItemCategoryListResult>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<ItemCategoryListResult>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<ItemCategoryListResult>>> UpdateCategoryOrderAsync(
+        [FromServices] IUpdateItemCategoryOrderUseCase useCase,
+        [FromBody] UpdateItemCategoryOrderRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+            var result = await useCase.ExecuteAsync(userId, request, cancellationToken);
+            return Ok(ApiResponse<ItemCategoryListResult>.Success(result));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<ItemCategoryListResult>.Fail(ApiStatus.NotFound, ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ApiResponse<ItemCategoryListResult>.Fail(ApiStatus.Unauthorized, ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "並び順更新中にエラーが発生しました");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                ApiResponse<ItemCategoryListResult>.Fail(ApiStatus.InternalError));
+        }
+    }
 }

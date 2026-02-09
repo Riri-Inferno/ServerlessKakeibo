@@ -137,4 +137,23 @@ export const transactionCategoryRepository = {
 
     return response.data.data;
   },
+
+  /**
+   * カテゴリの並び順を一括更新
+   */
+  async updateCategoryOrders(
+    orders: Array<{ id: string; displayOrder: number }>,
+  ): Promise<TransactionCategoryListResult> {
+    const response = await apiClient.put<
+      ApiResponse<TransactionCategoryListResult>
+    >("/api/categories/transaction/order", {
+      orders,
+    });
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "並び順の更新に失敗しました");
+    }
+
+    return response.data.data;
+  },
 };
