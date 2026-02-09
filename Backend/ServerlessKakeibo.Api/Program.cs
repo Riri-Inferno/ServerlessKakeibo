@@ -155,12 +155,14 @@ builder.Services.AddScoped<IUpdateItemCategoryUseCase, UpdateItemCategoryInterac
 builder.Services.AddScoped<IDeleteItemCategoryUseCase, DeleteItemCategoryInteractor>();
 builder.Services.AddScoped<IRestoreItemCategoryUseCase, RestoreItemCategoryInteractor>();
 builder.Services.AddScoped<IResetItemCategoriesToMasterUseCase, ResetItemCategoriesToMasterInteractor>();
+builder.Services.AddScoped<IUpdateItemCategoryOrderUseCase, UpdateItemCategoryOrderInteractor>();
 builder.Services.AddScoped<IGetIncomeItemCategoriesUseCase, GetIncomeItemCategoriesInteractor>();
 builder.Services.AddScoped<ICreateIncomeItemCategoryUseCase, CreateIncomeItemCategoryInteractor>();
 builder.Services.AddScoped<IUpdateIncomeItemCategoryUseCase, UpdateIncomeItemCategoryInteractor>();
 builder.Services.AddScoped<IDeleteIncomeItemCategoryUseCase, DeleteIncomeItemCategoryInteractor>();
 builder.Services.AddScoped<IRestoreIncomeItemCategoryUseCase, RestoreIncomeItemCategoryInteractor>();
 builder.Services.AddScoped<IResetIncomeItemCategoriesToMasterUseCase, ResetIncomeItemCategoriesToMasterInteractor>();
+builder.Services.AddScoped<IUpdateIncomeItemCategoryOrderUseCase, UpdateIncomeItemCategoryOrderInteractor>();
 #endregion
 
 #region DomainServices

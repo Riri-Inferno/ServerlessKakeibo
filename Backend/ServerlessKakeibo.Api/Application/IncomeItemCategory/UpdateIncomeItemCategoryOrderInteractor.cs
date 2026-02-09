@@ -1,30 +1,30 @@
-using ServerlessKakeibo.Api.Application.TransactionCategory.Dto;
-using ServerlessKakeibo.Api.Application.TransactionCategory.Mappers;
-using ServerlessKakeibo.Api.Application.TransactionCategory.Usecases;
+using ServerlessKakeibo.Api.Application.IncomeItemCategory.Dto;
+using ServerlessKakeibo.Api.Application.IncomeItemCategory.Mappers;
+using ServerlessKakeibo.Api.Application.IncomeItemCategory.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 using ServerlessKakeibo.Api.Infrastructure.Data.Interfaces;
 using ServerlessKakeibo.Api.Infrastructure.Repository.Interfaces;
 
-namespace ServerlessKakeibo.Api.Application.TransactionCategory;
+namespace ServerlessKakeibo.Api.Application.IncomeItemCategory;
 
 /// <summary>
-/// 取引カテゴリ並び順一括更新インタラクター
+/// 給与項目カテゴリ並び順一括更新インタラクター
 /// </summary>
-public class UpdateTransactionCategoryOrderInteractor : IUpdateTransactionCategoryOrderUseCase
+public class UpdateIncomeItemCategoryOrderInteractor : IUpdateIncomeItemCategoryOrderUseCase
 {
     private readonly ITransactionHelper _transactionHelper;
     private readonly IUserSettingsRepository _userSettingsRepository;
-    private readonly IUserTransactionCategoryRepository _categoryRepository;
-    private readonly IGenericWriteRepository<UserTransactionCategoryEntity> _categoryWriteRepository;
-    private readonly ILogger<UpdateTransactionCategoryOrderInteractor> _logger;
+    private readonly IUserIncomeItemCategoryRepository _categoryRepository;
+    private readonly IGenericWriteRepository<UserIncomeItemCategoryEntity> _categoryWriteRepository;
+    private readonly ILogger<UpdateIncomeItemCategoryOrderInteractor> _logger;
 
-    public UpdateTransactionCategoryOrderInteractor(
+    public UpdateIncomeItemCategoryOrderInteractor(
         ITransactionHelper transactionHelper,
         IUserSettingsRepository userSettingsRepository,
-        IUserTransactionCategoryRepository categoryRepository,
-        IGenericWriteRepository<UserTransactionCategoryEntity> categoryWriteRepository,
-        ILogger<UpdateTransactionCategoryOrderInteractor> logger)
+        IUserIncomeItemCategoryRepository categoryRepository,
+        IGenericWriteRepository<UserIncomeItemCategoryEntity> categoryWriteRepository,
+        ILogger<UpdateIncomeItemCategoryOrderInteractor> logger)
     {
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _userSettingsRepository = userSettingsRepository ?? throw new ArgumentNullException(nameof(userSettingsRepository));
@@ -33,13 +33,13 @@ public class UpdateTransactionCategoryOrderInteractor : IUpdateTransactionCatego
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<TransactionCategoryListResult> ExecuteAsync(
+    public async Task<IncomeItemCategoryListResult> ExecuteAsync(
         Guid userId,
-        UpdateTransactionCategoryOrderRequest request,
+        UpdateIncomeItemCategoryOrderRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
-            "取引カテゴリ並び順一括更新を開始します。UserId: {UserId}, 対象件数: {Count}",
+            "給与項目カテゴリ並び順一括更新を開始します。UserId: {UserId}, 対象件数: {Count}",
             userId, request.Orders.Count);
 
         Guid userSettingsId = Guid.Empty;
@@ -94,7 +94,7 @@ public class UpdateTransactionCategoryOrderInteractor : IUpdateTransactionCatego
             await _categoryWriteRepository.UpdateRangeAsync(categories, cancellationToken);
 
             _logger.LogInformation(
-                "取引カテゴリ並び順を更新しました。対象件数: {Count}",
+                "給与項目カテゴリ並び順を更新しました。対象件数: {Count}",
                 categories.Count);
         });
 
@@ -104,11 +104,11 @@ public class UpdateTransactionCategoryOrderInteractor : IUpdateTransactionCatego
             includeHidden: false,
             cancellationToken);
 
-        return new TransactionCategoryListResult
+        return new IncomeItemCategoryListResult
         {
             Categories = allCategories
                 .OrderBy(c => c.DisplayOrder)
-                .Select(TransactionCategoryMapper.ToDto)
+                .Select(IncomeItemCategoryMapper.ToDto)
                 .ToList(),
             TotalCount = allCategories.Count
         };
