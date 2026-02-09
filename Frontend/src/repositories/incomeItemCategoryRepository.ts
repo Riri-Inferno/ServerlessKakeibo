@@ -138,4 +138,23 @@ export const incomeItemCategoryRepository = {
 
     return response.data.data;
   },
+
+  /**
+   * 給与項目カテゴリの並び順を一括更新
+   */
+  async updateCategoryOrders(
+    orders: Array<{ id: string; displayOrder: number }>,
+  ): Promise<IncomeItemCategoryListResult> {
+    const response = await apiClient.put<
+      ApiResponse<IncomeItemCategoryListResult>
+    >("/api/categories/income-item/order", {
+      orders,
+    });
+
+    if (response.data.status !== "Success") {
+      throw new Error(response.data.message || "並び順の更新に失敗しました");
+    }
+
+    return response.data.data;
+  },
 };
