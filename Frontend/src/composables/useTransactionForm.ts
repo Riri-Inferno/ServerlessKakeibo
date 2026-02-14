@@ -8,15 +8,12 @@ import type {
   ShopDetails,
   TransactionDetail,
   UpdateTransactionRequest,
-  TransactionCategory,
 } from "../types/transaction";
 import type {
   ReceiptParseResult,
   AmountValidationResult,
 } from "../types/receipt";
-import type { TransactionCategoryDto } from "../types/transactionCategory";
-import type { ItemCategoryDto } from "../types/itemCategory";
-import { TransactionType } from "../types/transaction";
+import { TransactionType, TransactionCategory } from "../types/transaction";
 
 export function useTransactionForm() {
   const isLoading = ref(false);
@@ -27,7 +24,7 @@ export function useTransactionForm() {
   const amountTotal = ref<number | null>(null);
   const payee = ref("");
   const payer = ref("");
-  const category = ref<string | null>(null); // Guid（UserTransactionCategoryId）を保持
+  const category = ref<TransactionCategory>(TransactionCategory.Uncategorized);
   const paymentMethod = ref("");
   const notes = ref("");
   const taxInclusionType = ref<TaxInclusionType | undefined>(undefined);
@@ -78,17 +75,7 @@ export function useTransactionForm() {
     }
   });
 
-  /**
-   * OCR結果からフォームにセット
-   * @param result OCR解析結果
-   * @param transactionCategories 取引カテゴリ一覧
-   * @param itemCategories 商品カテゴリ一覧
-   */
-  const setFromOcrResult = (
-    result: ReceiptParseResult,
-    transactionCategories: TransactionCategoryDto[],
-    itemCategories: ItemCategoryDto[],
-  ) => {
+  const setFromOcrResult = (result: ReceiptParseResult) => {
     const normalized = result.normalized;
 
     type.value = TransactionType.Expense;
@@ -101,19 +88,12 @@ export function useTransactionForm() {
     }
 
     amountTotal.value = normalized.amountTotal || null;
-    payer.value = "";
+    payer.value = ""; // OCR対応ではない
     payee.value = normalized.payee || "";
+    category.value =
+      (normalized.category as TransactionCategory) ||
+      TransactionCategory.Uncategorized;
     paymentMethod.value = (normalized.paymentMethod as string) || "";
-
-    // CategoryCode → UserTransactionCategoryId 変換
-    if (normalized.categoryCode) {
-      const foundCategory = transactionCategories.find(
-        (c) => c.code === normalized.categoryCode,
-      );
-      category.value = foundCategory?.id || null;
-    } else {
-      category.value = null;
-    }
 
     // 先に税区分を設定
     if (normalized.amountValidation) {
@@ -124,27 +104,7 @@ export function useTransactionForm() {
       taxInclusionType.value = undefined;
     }
 
-    // Items の変換（CategoryCode → userItemCategoryId）
-    items.value = (normalized.items || []).map((item) => {
-      let userItemCategoryId: string | null = null;
-
-      if (item.categoryCode) {
-        const foundItemCategory = itemCategories.find(
-          (c) => c.code === item.categoryCode,
-        );
-        userItemCategoryId = foundItemCategory?.id || null;
-      }
-
-      return {
-        name: item.name || "",
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        amount: item.amount,
-        category: item.category || "Uncategorized", // 後方互換
-        userItemCategoryId,
-      };
-    });
-
+    items.value = normalized.items || [];
     taxes.value = normalized.taxes || [];
     shopDetails.value = normalized.shopDetails || null;
   };
@@ -186,7 +146,7 @@ export function useTransactionForm() {
     amountTotal.value = transaction.amountTotal;
     payer.value = transaction.payer || "";
     payee.value = transaction.payee || "";
-    category.value = transaction.category; // TODO: 将来的に UserTransactionCategoryId に
+    category.value = transaction.category;
     paymentMethod.value = transaction.paymentMethod || "";
     notes.value = transaction.notes || "";
     taxInclusionType.value = transaction.taxInclusionType;
@@ -198,7 +158,7 @@ export function useTransactionForm() {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       amount: item.amount,
-      category: item.category, // TODO: 将来的に変更
+      category: item.category,
     }));
 
     // 税情報を復元（idを保持）
@@ -232,8 +192,7 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
-        userTransactionCategoryId: category.value || undefined,
+        category: category.value,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
         items: items.value.length > 0 ? items.value : undefined,
@@ -259,7 +218,7 @@ export function useTransactionForm() {
     amountTotal.value = null;
     payer.value = "";
     payee.value = "";
-    category.value = null;
+    category.value = TransactionCategory.Uncategorized;
     paymentMethod.value = "";
     notes.value = "";
     taxInclusionType.value = undefined;
@@ -330,8 +289,7 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
-        userTransactionCategoryId: category.value || undefined,
+        category: category.value,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
         items: items.value.length > 0 ? items.value : undefined,
@@ -341,6 +299,7 @@ export function useTransactionForm() {
 
       const result = await transactionRepository.create(request);
 
+      // 成功時に transactionId を返す
       return { success: true, transactionId: result.transactionId };
     } catch (error) {
       console.error("取引登録エラー:", error);
@@ -358,8 +317,7 @@ export function useTransactionForm() {
       quantity: 1,
       unitPrice: null,
       amount: 0,
-      category: "Uncategorized", // 後方互換
-      userItemCategoryId: null,
+      category: "Uncategorized",
     });
   };
 

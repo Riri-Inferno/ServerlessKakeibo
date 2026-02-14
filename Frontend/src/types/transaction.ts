@@ -11,7 +11,6 @@ export type TransactionType =
 
 /**
  * 取引カテゴリ
- * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
  */
 export const TransactionCategory = {
   Uncategorized: "Uncategorized",
@@ -35,7 +34,6 @@ export type TransactionCategory =
 
 /**
  * カテゴリ名の日本語マッピング
- * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
  */
 export const CategoryLabels: Record<string, string> = {
   Uncategorized: "未分類",
@@ -200,8 +198,7 @@ export interface CreateTransactionItem {
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string; // 後方互換
-  userItemCategoryId?: string | null; // 新規追加
+  category: string;
 }
 
 /**
@@ -236,8 +233,7 @@ export interface CreateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory; // 後方互換
-  userTransactionCategoryId?: string | null; // 新規追加
+  category: TransactionCategory;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: CreateTransactionItem[];
@@ -272,8 +268,7 @@ export interface UpdateTransactionItem {
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string; // 後方互換
-  userItemCategoryId?: string | null; // 新規追加
+  category: string;
 }
 
 /**
@@ -308,8 +303,7 @@ export interface UpdateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory; // 後方互換
-  userTransactionCategoryId?: string | null; // 新規追加
+  category: TransactionCategory;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: UpdateTransactionItem[];

@@ -22,9 +22,6 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
     private readonly IGoogleAiStudioService _googleAiStudioService;
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<ReceiptParsingInteractor> _logger;
-    private readonly IUserSettingsRepository _userSettingsRepository;
-    private readonly IUserTransactionCategoryRepository _transactionCategoryRepository;
-    private readonly IUserItemCategoryRepository _itemCategoryRepository;
 
     /// <summary>
     /// コンストラクタ
@@ -34,19 +31,13 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
         IGenericReadRepository<UserEntity> userRepository,
         IGoogleAiStudioService googleAiStudioService,
         IWebHostEnvironment environment,
-        ILogger<ReceiptParsingInteractor> logger,
-        IUserSettingsRepository userSettingsRepository,
-        IUserTransactionCategoryRepository transactionCategoryRepository,
-        IUserItemCategoryRepository itemCategoryRepository)
+        ILogger<ReceiptParsingInteractor> logger)
     {
         _vertexAiService = vertexAiService ?? throw new ArgumentNullException(nameof(vertexAiService));
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _googleAiStudioService = googleAiStudioService ?? throw new ArgumentNullException(nameof(googleAiStudioService));
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _userSettingsRepository = userSettingsRepository ?? throw new ArgumentNullException(nameof(userSettingsRepository));
-        _transactionCategoryRepository = transactionCategoryRepository ?? throw new ArgumentNullException(nameof(transactionCategoryRepository));
-        _itemCategoryRepository = itemCategoryRepository ?? throw new ArgumentNullException(nameof(itemCategoryRepository));
     }
 
     /// <summary>
@@ -63,8 +54,8 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
         }
 
         // ユーザーの存在確認
-        var userExists = await _userRepository.ExistsAsync(userId);
-        if (!userExists)
+        var user = await _userRepository.ExistsAsync(userId);
+        if (!user)
         {
             throw new UnauthorizedAccessException("指定されたユーザーが存在しません");
         }
@@ -81,35 +72,15 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 throw new ArgumentException(errorMessage);
             }
 
-            // 2. ユーザー設定とカテゴリを取得
-            var userSettings = await _userSettingsRepository.GetByUserIdAsync(userId);
-            if (userSettings == null)
-            {
-                throw new InvalidOperationException("ユーザー設定が見つかりません");
-            }
-
-            var transactionCategories = await _transactionCategoryRepository
-                .GetByUserSettingsIdAsync(userSettings.Id, includeHidden: false);
-
-            var itemCategories = await _itemCategoryRepository
-                .GetByUserSettingsIdAsync(userSettings.Id, includeHidden: false);
-
-            _logger.LogDebug("取引カテゴリ: {Count}件、商品カテゴリ: {ItemCount}件を取得",
-                transactionCategories.Count, itemCategories.Count);
-
-            // 3. 画像をBase64に変換
+            // 2. 画像をBase64に変換
             var base64Image = await ImageHelper.ConvertToBase64Async(request.File);
             var mimeType = request.File.ContentType;
 
-            // 4. プロンプトの構築（ユーザーのカテゴリを注入）
-            var systemPrompt = BuildSystemPromptFactory.BuildSystemPrompt(
-                request.Options?.ExpectedReceiptType,
-                transactionCategories,
-                itemCategories);
-
+            // 3. プロンプトの構築
+            var systemPrompt = BuildSystemPromptFactory.BuildSystemPrompt(request.Options?.ExpectedReceiptType);
             var userPrompt = TextHelper.SanitizeCustomPrompt(request.CustomPrompt);
 
-            // 5. VertexAI呼び出し用の画像リスト作成
+            // 4. VertexAI呼び出し用の画像リスト作成
             var images = new List<ImageAttachment>
             {
                 new ImageAttachment
@@ -119,7 +90,7 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 }
             };
 
-            // 6. LLM API呼び出し
+            // 5. LLM API呼び出し
             #region Call External LLM Service
             string llmResponse;
 
@@ -145,7 +116,7 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
             }
             #endregion
 
-            // 7. レスポンスのJSONを検証・クリーニング
+            // 6. レスポンスのJSONを検証・クリーニング
             var (isJsonValid, cleanedJson, jsonError) = JsonHelper.ExtractAndValidateLlmJson(llmResponse);
             if (!isJsonValid)
             {
@@ -153,10 +124,10 @@ public class ReceiptParsingInteractor : IReceiptParsingUseCase
                 throw new InvalidOperationException($"LLMレスポンスの解析に失敗しました: {jsonError}");
             }
 
-            // 8. JSONをパースして結果オブジェクトに変換
+            // 7. JSONをパースして結果オブジェクトに変換
             var result = ReceiptResponseParser.ParseLlmResponse(cleanedJson!, request.Options?.IncludeRaw ?? true);
 
-            // 9. 結果の評価とエンリッチ
+            // 8. 結果の評価とエンリッチ
             result = ReceiptEvaluatorService.EvaluateAndEnrichResult(result);
 
             _logger.LogInformation("領収書解析が完了。ステータス: {Status}, 種別: {Type}, 信頼度: {Confidence}",

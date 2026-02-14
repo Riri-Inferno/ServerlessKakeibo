@@ -1,4 +1,8 @@
-import type { CreateTaxDetail, ShopDetails } from "./transaction";
+import type {
+  CreateTransactionItem,
+  CreateTaxDetail,
+  ShopDetails,
+} from "./transaction";
 
 /**
  * 領収書タイプ
@@ -75,23 +79,10 @@ export interface NormalizedTransaction {
   payee: string | null;
   paymentMethod: PaymentMethod | null;
   taxes: CreateTaxDetail[];
-  items: NormalizedTransactionItem[];
+  items: CreateTransactionItem[];
   shopDetails: ShopDetails | null;
   category: string | null;
-  categoryCode?: string | null;
   amountValidation?: AmountValidationResult;
-}
-
-/**
- * OCR解析結果の取引項目（NormalizedItem → NormalizedTransactionItem に改名）
- */
-export interface NormalizedTransactionItem {
-  name: string | null;
-  quantity: number;
-  unitPrice: number | null;
-  amount: number;
-  category: string | null; // 既存（後方互換、Enum文字列）
-  categoryCode?: string | null; // 新規追加（Code文字列）
 }
 
 /**
@@ -109,7 +100,6 @@ export interface ReceiptParseResult {
 
 /**
  * 商品カテゴリの日本語ラベル
- * TODO: カスタムカテゴリ対応後は削除予定
  */
 export const ItemCategoryLabels: Record<string, string> = {
   Uncategorized: "未分類",
