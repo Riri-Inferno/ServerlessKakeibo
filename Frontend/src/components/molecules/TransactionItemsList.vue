@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { CreateTransactionItem } from "../../types/transaction";
-import { ItemCategoryLabels } from "../../types/receipt";
+import type { ItemCategoryDto } from "../../types/itemCategory";
 import BaseText from "../atoms/BaseText.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
@@ -12,6 +12,7 @@ import BaseCard from "../atoms/BaseCard.vue";
 
 interface Props {
   items: CreateTransactionItem[];
+  itemCategories: ItemCategoryDto[];
 }
 
 const props = defineProps<Props>();
@@ -22,11 +23,12 @@ const emit = defineEmits<{
   remove: [index: number];
 }>();
 
-const itemCategoryOptions = Object.entries(ItemCategoryLabels).map(
-  ([key, label]) => ({
-    value: key,
-    label,
-  }),
+// カテゴリオプションを動的生成
+const itemCategoryOptions = computed(() =>
+  props.itemCategories.map((cat) => ({
+    value: cat.id,
+    label: cat.name,
+  })),
 );
 
 const updateItem = (
@@ -40,12 +42,14 @@ const updateItem = (
   if (!currentItem) return;
 
   newItems[index] = {
-    name: field === "name" ? value : currentItem.name,
-    quantity: field === "quantity" ? value : currentItem.quantity,
-    unitPrice: field === "unitPrice" ? value : currentItem.unitPrice,
-    amount: field === "amount" ? value : currentItem.amount,
-    category: field === "category" ? value : currentItem.category,
+    ...currentItem,
+    [field]: value,
   };
+
+  // userItemCategoryId が更新された場合、category（後方互換）も更新
+  if (field === "userItemCategoryId") {
+    newItems[index].category = value || "Uncategorized";
+  }
 
   if (field === "quantity" || field === "unitPrice") {
     const quantity = field === "quantity" ? value : newItems[index].quantity;
@@ -164,11 +168,16 @@ const itemTotal = computed(() => {
               >カテゴリ</BaseText
             >
             <BaseSelect
-              :model-value="item.category"
+              :model-value="item.userItemCategoryId || ''"
               @update:model-value="
-                updateItem(index, 'category', $event as string)
+                updateItem(
+                  index,
+                  'userItemCategoryId',
+                  $event ? ($event as string) : null,
+                )
               "
               :options="itemCategoryOptions"
+              placeholder="選択してください"
               size="sm"
             />
           </div>
