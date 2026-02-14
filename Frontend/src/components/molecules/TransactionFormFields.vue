@@ -2,12 +2,11 @@
 import { computed } from "vue";
 import {
   TransactionType,
-  TransactionCategory,
-  CategoryLabels,
   TaxInclusionType,
   TaxInclusionTypeLabels,
 } from "../../types/transaction";
 import { PaymentMethodLabels } from "../../types/receipt";
+import type { TransactionCategoryDto } from "../../types/transactionCategory";
 import BaseText from "../atoms/BaseText.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
@@ -20,13 +19,14 @@ interface Props {
   amountTotal: number | null;
   payer: string;
   payee: string;
-  category: TransactionCategory;
+  category: string | null;
   paymentMethod: string;
   notes: string;
   taxInclusionType?: TaxInclusionType;
   calculatedTotal: number;
   isAutoCalculate: boolean;
   isTypeReadonly?: boolean;
+  transactionCategories: TransactionCategoryDto[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,7 +40,7 @@ const emit = defineEmits<{
   "update:amountTotal": [value: number | null];
   "update:payer": [value: string];
   "update:payee": [value: string];
-  "update:category": [value: TransactionCategory];
+  "update:category": [value: string | null];
   "update:paymentMethod": [value: string];
   "update:notes": [value: string];
   "update:taxInclusionType": [value: TaxInclusionType | undefined];
@@ -52,10 +52,13 @@ const typeOptions = [
   { value: TransactionType.Income, label: "収入" },
 ];
 
-const categoryOptions = Object.entries(CategoryLabels).map(([key, label]) => ({
-  value: key,
-  label,
-}));
+// カテゴリオプションを動的生成
+const categoryOptions = computed(() =>
+  props.transactionCategories.map((cat) => ({
+    value: cat.id,
+    label: cat.name,
+  })),
+);
 
 const paymentMethodOptions = Object.entries(PaymentMethodLabels).map(
   ([key, label]) => ({
@@ -197,11 +200,12 @@ const autoCalculate = computed({
     <div>
       <BaseText variant="caption" color="gray" class="mb-1">カテゴリ</BaseText>
       <BaseSelect
-        :model-value="category"
+        :model-value="category || ''"
         @update:model-value="
-          emit('update:category', $event as TransactionCategory)
+          emit('update:category', $event ? ($event as string) : null)
         "
         :options="categoryOptions"
+        placeholder="選択してください"
         size="md"
       />
     </div>

@@ -10,8 +10,6 @@ using ServerlessKakeibo.Api.Application.Authentication;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.UseCase;
-using ServerlessKakeibo.Api.Application.RegistReceiptDetails;
-using ServerlessKakeibo.Api.Application.RegistReceiptDetails.Usecases;
 using ServerlessKakeibo.Api.Application.Transaction;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Application.TransactionQuery;
@@ -126,7 +124,6 @@ builder.Services.AddScoped<ICategoryInitializationService, CategoryInitializatio
 
 #region UseCases
 builder.Services.AddScoped<IReceiptParsingUseCase, ReceiptParsingInteractor>();
-builder.Services.AddScoped<IRegistReceiptDetailsUseCase, RegistReceiptDetailsInteractor>();
 builder.Services.AddScoped<ITransactionQueryUseCase, TransactionQueryInteractor>();
 builder.Services.AddScoped<ITransactionCreateUseCase, TransactionCreateInteractor>();
 builder.Services.AddScoped<ITransactionUpdateUseCase, TransactionUpdateInteractor>();

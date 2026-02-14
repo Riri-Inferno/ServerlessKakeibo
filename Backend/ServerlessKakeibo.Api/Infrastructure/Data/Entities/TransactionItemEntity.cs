@@ -59,7 +59,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// </summary>
         public UserItemCategoryEntity? UserItemCategory { get; set; }
 
-        // 【追加】新しい外部キー（収入用）
         /// <summary>
         /// ユーザー給与項目カテゴリID（収入用、外部キー）
         /// </summary>
