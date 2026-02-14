@@ -152,9 +152,14 @@ public class CreateTransactionItemRequest
     public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
 
     /// <summary>
-    /// ユーザー商品カテゴリID（カスタムカテゴリ対応）
+    /// ユーザー商品カテゴリID（支出用・カスタムカテゴリ対応）
     /// </summary>
     public Guid? UserItemCategoryId { get; set; }
+
+    /// <summary>
+    /// ユーザー収入項目カテゴリID（収入用・カスタムカテゴリ対応）
+    /// </summary>
+    public Guid? UserIncomeItemCategoryId { get; set; }
 }
 
 /// <summary>
