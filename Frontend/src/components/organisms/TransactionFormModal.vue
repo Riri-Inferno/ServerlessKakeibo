@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { watch, computed, ref } from "vue";
+import { watch, computed, ref, onMounted } from "vue";
 import { useTransactionForm } from "../../composables/useTransactionForm";
 import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import { useReceiptOcr } from "../../composables/useReceiptOcr";
+import { useTransactionCategories } from "../../composables/useTransactionCategories";
+import { useItemCategories } from "../../composables/useItemCategories";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -12,6 +14,7 @@ import TransactionItemsList from "../molecules/TransactionItemsList.vue";
 import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
 import ReceiptUploadArea from "../molecules/ReceiptUploadArea.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
+import { useIncomeItemCategories } from "../../composables/useIncomeItemCategories";
 
 interface Props {
   isOpen: boolean;
@@ -68,10 +71,48 @@ const {
   attachReceipt,
 } = useTransactionDetail();
 
+// カテゴリ管理
+const {
+  categories: transactionCategories,
+  expenseCategories,
+  incomeCategories,
+  isLoading: isCategoriesLoading,
+  fetchCategories: fetchTransactionCategories,
+} = useTransactionCategories();
+
+const {
+  categories: itemCategories,
+  isLoading: isItemCategoriesLoading,
+  fetchCategories: fetchItemCategories,
+} = useItemCategories();
+
+const {
+  categories: incomeItemCategories,
+  isLoading: isIncomeItemCategoriesLoading,
+  fetchCategories: fetchIncomeItemCategories,
+} = useIncomeItemCategories();
+
+// 取引種別に応じた明細カテゴリ
+const availableItemCategories = computed(() => {
+  if (type.value === "Income") {
+    return incomeItemCategories.value;
+  }
+  return itemCategories.value;
+});
+
 const isEditMode = computed(() => !!props.transactionId);
 const modalTitle = computed(() => {
   if (isEditMode.value) return "取引を編集";
   return props.mode === "receipt" ? "レシート読み取り" : "手動入力";
+});
+
+// モーダルが開いたらカテゴリを取得
+onMounted(async () => {
+  await Promise.all([
+    fetchTransactionCategories(false),
+    fetchItemCategories(false),
+    fetchIncomeItemCategories(false),
+  ]);
 });
 
 // 編集モード時に既存データを読み込む
@@ -98,7 +139,8 @@ const isTypeReadonly = computed(() => isOcrMode.value || isEditMode.value);
 const handleReceiptUpload = async (file: File) => {
   const result = await parseReceipt(file);
   if (result) {
-    setFromOcrResult(result);
+    // カテゴリリストを渡して変換
+    setFromOcrResult(result, transactionCategories.value, itemCategories.value);
     isOcrCompleted.value = true;
   }
 };
@@ -147,6 +189,14 @@ const handleClose = () => {
   isOcrCompleted.value = false;
   emit("close");
 };
+
+// 取引種別に応じたカテゴリを返す
+const availableCategories = computed(() => {
+  if (type.value === "Income") {
+    return incomeCategories.value;
+  }
+  return expenseCategories.value;
+});
 </script>
 
 <template>
@@ -178,44 +228,66 @@ const handleClose = () => {
 
       <!-- フォーム（手動入力 or OCR完了後 or 編集モード） -->
       <div v-if="!isOcrMode || isOcrCompleted || isEditMode" class="space-y-6">
-        <TransactionFormFields
-          :type="type"
-          :transaction-date="transactionDate"
-          :amount-total="amountTotal"
-          :payer="payer"
-          :payee="payee"
-          :category="category"
-          :payment-method="paymentMethod"
-          :notes="notes"
-          :tax-inclusion-type="taxInclusionType"
-          :calculated-total="calculatedTotal"
-          :is-auto-calculate="isAutoCalculate"
-          :is-type-readonly="isTypeReadonly"
-          @update:type="type = $event"
-          @update:transaction-date="transactionDate = $event"
-          @update:amount-total="amountTotal = $event"
-          @update:payer="payer = $event"
-          @update:payee="payee = $event"
-          @update:category="category = $event"
-          @update:payment-method="paymentMethod = $event"
-          @update:notes="notes = $event"
-          @update:tax-inclusion-type="taxInclusionType = $event"
-          @update:is-auto-calculate="isAutoCalculate = $event"
-        />
+        <!-- カテゴリ読み込み中 -->
+        <div
+          v-if="
+            isCategoriesLoading ||
+            isItemCategoriesLoading ||
+            isIncomeItemCategoriesLoading
+          "
+          class="text-center py-4"
+        >
+          <BaseSpinner
+            icon="settings"
+            size="md"
+            color="primary"
+            label="カテゴリ読み込み中"
+          />
+        </div>
 
-        <TransactionItemsList
-          :items="items"
-          @update:items="items = $event"
-          @add="addItem"
-          @remove="removeItem"
-        />
+        <!-- フォーム本体 -->
+        <div v-else>
+          <TransactionFormFields
+            :type="type"
+            :transaction-date="transactionDate"
+            :amount-total="amountTotal"
+            :payer="payer"
+            :payee="payee"
+            :category="category"
+            :payment-method="paymentMethod"
+            :notes="notes"
+            :tax-inclusion-type="taxInclusionType"
+            :calculated-total="calculatedTotal"
+            :is-auto-calculate="isAutoCalculate"
+            :is-type-readonly="isTypeReadonly"
+            :transaction-categories="availableCategories"
+            @update:type="type = $event"
+            @update:transaction-date="transactionDate = $event"
+            @update:amount-total="amountTotal = $event"
+            @update:payer="payer = $event"
+            @update:payee="payee = $event"
+            @update:category="category = $event"
+            @update:payment-method="paymentMethod = $event"
+            @update:notes="notes = $event"
+            @update:tax-inclusion-type="taxInclusionType = $event"
+            @update:is-auto-calculate="isAutoCalculate = $event"
+          />
 
-        <TransactionTaxesList
-          :taxes="taxes"
-          @update:taxes="taxes = $event"
-          @add="addTax"
-          @remove="removeTax"
-        />
+          <TransactionItemsList
+            :items="items"
+            :item-categories="availableItemCategories"
+            @update:items="items = $event"
+            @add="addItem"
+            @remove="removeItem"
+          />
+
+          <TransactionTaxesList
+            :taxes="taxes"
+            @update:taxes="taxes = $event"
+            @add="addTax"
+            @remove="removeTax"
+          />
+        </div>
 
         <!-- 画像保存オプション（レシートモード & 新規作成のみ） -->
         <div
@@ -242,7 +314,9 @@ const handleClose = () => {
           </BaseButton>
           <BaseButton
             variant="primary"
-            :disabled="isSubmitting"
+            :disabled="
+              isSubmitting || isCategoriesLoading || isItemCategoriesLoading
+            "
             @click="handleSubmit"
             class="flex-1"
           >
