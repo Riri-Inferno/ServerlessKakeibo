@@ -8,7 +8,7 @@ import type {
   ShopDetails,
   TransactionDetail,
   UpdateTransactionRequest,
-  TransactionCategory,
+  // TransactionCategory, // 後方互換一掃時に消す
 } from "../types/transaction";
 import type {
   ReceiptParseResult,
@@ -232,8 +232,8 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
-        userTransactionCategoryId: category.value || undefined,
+        category: "Uncategorized", // 後方互換用に固定値
+        userTransactionCategoryId: category.value || undefined, // 実際のGuid
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
         items: items.value.length > 0 ? items.value : undefined,
@@ -330,8 +330,8 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
-        userTransactionCategoryId: category.value || undefined,
+        category: "Uncategorized", // 後方互換用に固定値
+        userTransactionCategoryId: category.value || undefined, // 実際のGuid
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
         items: items.value.length > 0 ? items.value : undefined,

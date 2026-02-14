@@ -48,7 +48,8 @@ const updateItem = (
 
   // userItemCategoryId が更新された場合、category（後方互換）も更新
   if (field === "userItemCategoryId") {
-    newItems[index].category = value || "Uncategorized";
+    newItems[index].category = "Uncategorized"; // 後方互換用に固定値
+    newItems[index].userItemCategoryId = value;
   }
 
   if (field === "quantity" || field === "unitPrice") {
