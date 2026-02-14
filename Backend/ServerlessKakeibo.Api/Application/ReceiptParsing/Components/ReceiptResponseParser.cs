@@ -3,7 +3,6 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
-using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Components;
 
@@ -43,7 +42,7 @@ public class ReceiptResponseParser
                     Payer = JsonHelper.GetStringOrNull(root, "payer"),
                     Payee = JsonHelper.GetStringOrNull(root, "payee"),
                     PaymentMethod = ParsePaymentMethod(root, "payment_method"),
-                    Category = ParseTransactionCategory(root, "category"),
+                    CategoryCode = JsonHelper.GetStringOrNull(root, "category"),  // Code文字列をそのまま取得
                     Taxes = ParseTaxes(root),
                     Items = ParseItems(root),
                     ShopDetails = ParseShopDetails(root)
@@ -138,81 +137,6 @@ public class ReceiptResponseParser
     }
 
     /// <summary>
-    /// 取引カテゴリをパース
-    /// </summary>
-    private static Domain.ValueObjects.TransactionCategory? ParseTransactionCategory(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var prop))
-            return null;
-
-        var categoryString = prop.GetString();
-        if (string.IsNullOrWhiteSpace(categoryString))
-            return null;
-
-        return categoryString.ToUpperInvariant() switch
-        {
-            "UNCATEGORIZED" => Domain.ValueObjects.TransactionCategory.Uncategorized,
-            "FOOD" => Domain.ValueObjects.TransactionCategory.Food,
-            "DININGOUT" => Domain.ValueObjects.TransactionCategory.DiningOut,
-            "DAILYNECESSITIES" => Domain.ValueObjects.TransactionCategory.DailyNecessities,
-            "TRANSPORTATION" => Domain.ValueObjects.TransactionCategory.Transportation,
-            "EDUCATION" => Domain.ValueObjects.TransactionCategory.Education,
-            "MEDICAL" => Domain.ValueObjects.TransactionCategory.Medical,
-            "ENTERTAINMENT" => Domain.ValueObjects.TransactionCategory.Entertainment,
-            "FASHION" => Domain.ValueObjects.TransactionCategory.Fashion,
-            "UTILITIES" => Domain.ValueObjects.TransactionCategory.Utilities,
-            "COMMUNICATION" => Domain.ValueObjects.TransactionCategory.Communication,
-            "OTHER" => Domain.ValueObjects.TransactionCategory.Other,
-            _ => Domain.ValueObjects.TransactionCategory.Uncategorized
-        };
-    }
-
-    /// <summary>
-    /// 商品カテゴリをパース
-    /// </summary>
-    private static Domain.ValueObjects.ItemCategory? ParseItemCategory(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var prop))
-            return null;
-
-        var categoryString = prop.GetString();
-        if (string.IsNullOrWhiteSpace(categoryString))
-            return null;
-
-        return categoryString.ToUpperInvariant() switch
-        {
-            "UNCATEGORIZED" => Domain.ValueObjects.ItemCategory.Uncategorized,
-            "FOOD" => Domain.ValueObjects.ItemCategory.Food,
-            "BEVERAGE" => Domain.ValueObjects.ItemCategory.Beverage,
-            "SNACK" => Domain.ValueObjects.ItemCategory.Snack,
-            "FROZENFOOD" => Domain.ValueObjects.ItemCategory.FrozenFood,
-            "DAIRYPRODUCT" => Domain.ValueObjects.ItemCategory.DairyProduct,
-            "SEASONING" => Domain.ValueObjects.ItemCategory.Seasoning,
-            "TOILETRIES" => Domain.ValueObjects.ItemCategory.Toiletries,
-            "KITCHENSUPPLIES" => Domain.ValueObjects.ItemCategory.KitchenSupplies,
-            "CLEANINGSUPPLIES" => Domain.ValueObjects.ItemCategory.CleaningSupplies,
-            "LAUNDRYSUPPLIES" => Domain.ValueObjects.ItemCategory.LaundrySupplies,
-            "STATIONERY" => Domain.ValueObjects.ItemCategory.Stationery,
-            "MISCELLANEOUS" => Domain.ValueObjects.ItemCategory.Miscellaneous,
-            "MEDICINE" => Domain.ValueObjects.ItemCategory.Medicine,
-            "SUPPLEMENT" => Domain.ValueObjects.ItemCategory.Supplement,
-            "COSMETICS" => Domain.ValueObjects.ItemCategory.Cosmetics,
-            "CLOTHING" => Domain.ValueObjects.ItemCategory.Clothing,
-            "SHOES" => Domain.ValueObjects.ItemCategory.Shoes,
-            "ACCESSORIES" => Domain.ValueObjects.ItemCategory.Accessories,
-            "ELECTRONICS" => Domain.ValueObjects.ItemCategory.Electronics,
-            "BATTERY" => Domain.ValueObjects.ItemCategory.Battery,
-            "PETSUPPLIES" => Domain.ValueObjects.ItemCategory.PetSupplies,
-            "BABYPRODUCTS" => Domain.ValueObjects.ItemCategory.BabyProducts,
-            "PACKAGING" => Domain.ValueObjects.ItemCategory.Packaging,
-            "TOBACCO" => Domain.ValueObjects.ItemCategory.Tobacco,
-            "BOOKS" => Domain.ValueObjects.ItemCategory.Books,
-            "OTHER" => Domain.ValueObjects.ItemCategory.Other,
-            _ => Domain.ValueObjects.ItemCategory.Uncategorized
-        };
-    }
-
-    /// <summary>
     /// 税情報リストをパース（DTO用）
     /// </summary>
     private static List<TaxInfo> ParseTaxes(JsonElement root)
@@ -278,7 +202,7 @@ public class ReceiptResponseParser
                 Quantity = JsonHelper.ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
                 UnitPrice = JsonHelper.ParseDecimalFromJson(itemElement, "unit_price"),
                 Amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount"),
-                Category = ParseItemCategory(itemElement, "category")
+                CategoryCode = JsonHelper.GetStringOrNull(itemElement, "category")  // Code文字列をそのまま取得
             };
 
             items.Add(item);
