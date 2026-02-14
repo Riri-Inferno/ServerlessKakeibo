@@ -40,11 +40,17 @@ public class UpdateTransactionRequest
     public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// カテゴリ
+    /// カテゴリ（Enum）
+    /// TODO: カスタムカテゴリに置き換え後削除
     /// </summary>
     [Required(ErrorMessage = "カテゴリは必須です")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public TransactionCategory Category { get; set; }
+
+    /// <summary>
+    /// ユーザー取引カテゴリID（カスタムカテゴリ対応）
+    /// </summary>
+    public Guid? UserTransactionCategoryId { get; set; }
 
     /// <summary>
     /// メモ・備考
@@ -111,10 +117,16 @@ public class UpdateTransactionItemRequest
     public decimal Amount { get; set; }
 
     /// <summary>
-    /// 商品カテゴリ
+    /// 商品カテゴリ（Enum）
+    /// TODO: カスタムカテゴリに置き換え後削除
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
+
+    /// <summary>
+    /// ユーザー商品カテゴリID（カスタムカテゴリ対応）
+    /// </summary>
+    public Guid? UserItemCategoryId { get; set; }
 }
 
 /// <summary>
@@ -157,11 +169,6 @@ public class UpdateTaxDetailRequest
 /// </summary>
 public class UpdateShopDetailRequest
 {
-    /// <summary>
-    /// 店舗詳細ID（既存の場合は指定、新規追加の場合はnull）
-    /// </summary>
-    public Guid? Id { get; set; }
-
     /// <summary>
     /// 店舗名
     /// </summary>
