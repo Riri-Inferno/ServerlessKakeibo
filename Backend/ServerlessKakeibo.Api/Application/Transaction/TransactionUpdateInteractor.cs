@@ -166,11 +166,11 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
     /// リクエストから新しい TransactionEntity を作成
     /// </summary>
     private TransactionEntity CreateTransactionEntity(
-        Guid transactionId,
-        UpdateTransactionRequest request,
-        Guid userId,
-        Guid tenantId,
-        TransactionType existingType)
+    Guid transactionId,
+    UpdateTransactionRequest request,
+    Guid userId,
+    Guid tenantId,
+    TransactionType existingType)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -185,7 +185,8 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Payer = request.Payer,
             Payee = request.Payee,
             PaymentMethod = request.PaymentMethod,
-            Category = request.Category,
+            Category = request.Category,  // 後方互換
+            UserTransactionCategoryId = request.UserTransactionCategoryId,
             Notes = request.Notes,
             TaxInclusionType = request.TaxInclusionType,
             CreatedBy = userId,
@@ -201,19 +202,22 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         {
             foreach (var itemReq in request.Items)
             {
-                entity.Items.Add(TransactionCreateMapper.ToItemEntity(
-                    new CreateTransactionItemRequest
-                    {
-                        Name = itemReq.Name,
-                        Quantity = itemReq.Quantity,
-                        UnitPrice = itemReq.UnitPrice,
-                        Amount = itemReq.Amount,
-                        Category = itemReq.Category
-                    },
-                    transactionId,
-                    userId,
-                    tenantId
-                ));
+                entity.Items.Add(new TransactionItemEntity
+                {
+                    Id = Guid.NewGuid(),
+                    TransactionId = transactionId,
+                    TenantId = tenantId,
+                    CreatedBy = userId,
+                    UpdatedBy = userId,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    Name = itemReq.Name,
+                    Quantity = itemReq.Quantity,
+                    UnitPrice = itemReq.UnitPrice,
+                    Amount = itemReq.Amount,
+                    Category = itemReq.Category,  // 後方互換
+                    UserItemCategoryId = itemReq.UserItemCategoryId
+                });
             }
         }
 

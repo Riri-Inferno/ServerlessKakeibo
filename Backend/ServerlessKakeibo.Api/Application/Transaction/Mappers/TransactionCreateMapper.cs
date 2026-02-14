@@ -38,7 +38,8 @@ public static class TransactionCreateMapper
         entity.Payer = request.Payer;
         entity.Payee = request.Payee;
         entity.PaymentMethod = request.PaymentMethod;
-        entity.Category = request.Category;
+        entity.Category = request.Category;  // 後方互換
+        entity.UserTransactionCategoryId = request.UserTransactionCategoryId;  // 新規
         entity.TaxInclusionType = request.TaxInclusionType;
         entity.Notes = request.Notes;
 
@@ -73,7 +74,8 @@ public static class TransactionCreateMapper
             Quantity = request.Quantity,
             UnitPrice = request.UnitPrice,
             Amount = request.Amount,
-            Category = request.Category
+            Category = request.Category,  // 後方互換
+            UserItemCategoryId = request.UserItemCategoryId  // 新規
         };
     }
 
