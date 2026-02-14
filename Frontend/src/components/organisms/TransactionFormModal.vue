@@ -276,6 +276,7 @@ const availableCategories = computed(() => {
           <TransactionItemsList
             :items="items"
             :item-categories="availableItemCategories"
+            :transaction-type="type"
             @update:items="items = $event"
             @add="addItem"
             @remove="removeItem"
