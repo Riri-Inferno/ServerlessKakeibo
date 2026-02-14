@@ -1,4 +1,5 @@
 using ServerlessKakeibo.Api.Contracts;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
 namespace ServerlessKakeibo.Api.Application.Transaction.Mappers;
@@ -57,13 +58,19 @@ public static class TransactionCreateMapper
     /// <summary>
     /// CreateTransactionItemRequest → TransactionItemEntity 変換
     /// </summary>
+    /// <param name="request">リクエスト</param>
+    /// <param name="transactionId">取引ID</param>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="tenantId">テナントID</param>
+    /// <param name="transactionType">取引種別（収入/支出）</param>
     public static TransactionItemEntity ToItemEntity(
         CreateTransactionItemRequest request,
         Guid transactionId,
         Guid userId,
-        Guid tenantId)
+        Guid tenantId,
+        TransactionType transactionType)
     {
-        return new TransactionItemEntity
+        var entity = new TransactionItemEntity
         {
             Id = Guid.NewGuid(),
             TransactionId = transactionId,
@@ -75,8 +82,21 @@ public static class TransactionCreateMapper
             UnitPrice = request.UnitPrice,
             Amount = request.Amount,
             Category = request.Category,  // 後方互換
-            UserItemCategoryId = request.UserItemCategoryId  // 新規
         };
+
+        // 収入/支出による振り分け
+        if (transactionType == TransactionType.Income)
+        {
+            entity.UserIncomeItemCategoryId = request.UserIncomeItemCategoryId;
+            entity.UserItemCategoryId = null;
+        }
+        else // Expense
+        {
+            entity.UserItemCategoryId = request.UserItemCategoryId;
+            entity.UserIncomeItemCategoryId = null;
+        }
+
+        return entity;
     }
 
     /// <summary>

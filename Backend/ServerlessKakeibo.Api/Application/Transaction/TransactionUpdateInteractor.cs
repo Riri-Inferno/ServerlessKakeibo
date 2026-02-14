@@ -202,7 +202,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         {
             foreach (var itemReq in request.Items)
             {
-                entity.Items.Add(new TransactionItemEntity
+                var item = new TransactionItemEntity
                 {
                     Id = Guid.NewGuid(),
                     TransactionId = transactionId,
@@ -216,8 +216,21 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     UnitPrice = itemReq.UnitPrice,
                     Amount = itemReq.Amount,
                     Category = itemReq.Category,  // 後方互換
-                    UserItemCategoryId = itemReq.UserItemCategoryId
-                });
+                };
+
+                // existingType による振り分け
+                if (existingType == TransactionType.Income)
+                {
+                    item.UserIncomeItemCategoryId = itemReq.UserIncomeItemCategoryId;
+                    item.UserItemCategoryId = null;
+                }
+                else // Expense
+                {
+                    item.UserItemCategoryId = itemReq.UserItemCategoryId;
+                    item.UserIncomeItemCategoryId = null;
+                }
+
+                entity.Items.Add(item);
             }
         }
 
