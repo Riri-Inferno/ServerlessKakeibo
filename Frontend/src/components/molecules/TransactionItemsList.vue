@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import type { CreateTransactionItem } from "../../types/transaction";
 import type { ItemCategoryDto } from "../../types/itemCategory";
+import { TransactionType } from "../../types/transaction";
 import BaseText from "../atoms/BaseText.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
@@ -13,6 +14,7 @@ import BaseCard from "../atoms/BaseCard.vue";
 interface Props {
   items: CreateTransactionItem[];
   itemCategories: ItemCategoryDto[];
+  transactionType: TransactionType;
 }
 
 const props = defineProps<Props>();
@@ -46,9 +48,17 @@ const updateItem = (
     [field]: value,
   };
 
-  // userItemCategoryId が更新された場合、category（後方互換）も更新
-  if (field === "userItemCategoryId") {
-    newItems[index].category = value || "Uncategorized";
+  // カテゴリ更新時は type に応じて振り分け
+  if (field === "userItemCategoryId" || field === "userIncomeItemCategoryId") {
+    newItems[index].category = "Uncategorized"; // 後方互換
+
+    if (props.transactionType === TransactionType.Income) {
+      newItems[index].userIncomeItemCategoryId = value;
+      newItems[index].userItemCategoryId = null;
+    } else {
+      newItems[index].userItemCategoryId = value;
+      newItems[index].userIncomeItemCategoryId = null;
+    }
   }
 
   if (field === "quantity" || field === "unitPrice") {
@@ -168,11 +178,17 @@ const itemTotal = computed(() => {
               >カテゴリ</BaseText
             >
             <BaseSelect
-              :model-value="item.userItemCategoryId || ''"
+              :model-value="
+                transactionType === TransactionType.Income
+                  ? item.userIncomeItemCategoryId || ''
+                  : item.userItemCategoryId || ''
+              "
               @update:model-value="
                 updateItem(
                   index,
-                  'userItemCategoryId',
+                  transactionType === TransactionType.Income
+                    ? 'userIncomeItemCategoryId'
+                    : 'userItemCategoryId',
                   $event ? ($event as string) : null,
                 )
               "

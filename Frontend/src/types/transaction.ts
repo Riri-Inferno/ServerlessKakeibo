@@ -196,12 +196,14 @@ export interface GetTransactionsRequest {
  * 取引作成用の項目
  */
 export interface CreateTransactionItem {
+  id?: string;
   name: string;
   quantity: number;
   unitPrice: number | null;
   amount: number;
   category: string; // 後方互換
-  userItemCategoryId?: string | null; // 新規追加
+  userItemCategoryId: string | null; // 支出用
+  userIncomeItemCategoryId?: string | null;
 }
 
 /**
@@ -267,13 +269,14 @@ export interface TransactionResult {
  * 取引更新用の項目
  */
 export interface UpdateTransactionItem {
-  id?: string; // 既存項目の場合は指定
+  id?: string;
   name: string;
   quantity: number;
   unitPrice: number | null;
   amount: number;
   category: string; // 後方互換
-  userItemCategoryId?: string | null; // 新規追加
+  userItemCategoryId: string | null; // 支出用
+  userIncomeItemCategoryId?: string | null;
 }
 
 /**

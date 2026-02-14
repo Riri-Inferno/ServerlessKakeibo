@@ -78,7 +78,11 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     foreach (var itemReq in request.Items)
                     {
                         var itemEntity = TransactionCreateMapper.ToItemEntity(
-                            itemReq, transactionEntity.Id, userId, tenantId);
+                            itemReq,
+                            transactionEntity.Id,
+                            userId,
+                            tenantId,
+                            request.Type);
                         transactionEntity.Items.Add(itemEntity);
                     }
                     itemsTotal = transactionEntity.Items.Sum(i => i.Amount ?? 0);
@@ -113,7 +117,11 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                         foreach (var itemReq in request.Items)
                         {
                             var itemEntity = TransactionCreateMapper.ToItemEntity(
-                                itemReq, transactionEntity.Id, userId, tenantId);
+                                itemReq,
+                                transactionEntity.Id,
+                                userId,
+                                tenantId,
+                                request.Type);
                             transactionEntity.Items.Add(itemEntity);
                         }
                     }

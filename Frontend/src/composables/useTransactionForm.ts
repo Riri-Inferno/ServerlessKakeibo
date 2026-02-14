@@ -8,7 +8,7 @@ import type {
   ShopDetails,
   TransactionDetail,
   UpdateTransactionRequest,
-  TransactionCategory,
+  // TransactionCategory, // 後方互換一掃時に消す
 } from "../types/transaction";
 import type {
   ReceiptParseResult,
@@ -142,6 +142,7 @@ export function useTransactionForm() {
         amount: item.amount,
         category: item.category || "Uncategorized", // 後方互換
         userItemCategoryId,
+        userIncomeItemCategoryId: null,
       };
     });
 
@@ -198,9 +199,10 @@ export function useTransactionForm() {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       amount: item.amount,
-      category: item.category, // TODO: 将来的に変更
+      category: item.category,
+      userItemCategoryId: null, // TODO 取得APIをカスタムカテゴリ対応後に置き換え
+      userIncomeItemCategoryId: null, // TODO　取得APIをカスタムカテゴリ対応後に置き換え
     }));
-
     // 税情報を復元（idを保持）
     taxes.value = transaction.taxes.map((tax) => ({
       id: tax.id,
@@ -232,11 +234,26 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
+        category: "Uncategorized", // 後方互換用に固定値
         userTransactionCategoryId: category.value || undefined,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
-        items: items.value.length > 0 ? items.value : undefined,
+        // items の振り分け
+        items:
+          items.value.length > 0
+            ? items.value.map((item) => ({
+                ...item,
+                // type による振り分け
+                userItemCategoryId:
+                  type.value === TransactionType.Expense
+                    ? item.userItemCategoryId
+                    : null,
+                userIncomeItemCategoryId:
+                  type.value === TransactionType.Income
+                    ? item.userIncomeItemCategoryId
+                    : null,
+              }))
+            : undefined,
         taxes: taxes.value.length > 0 ? taxes.value : undefined,
         shopDetails: shopDetails.value || undefined,
       };
@@ -330,11 +347,26 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: (category.value as TransactionCategory) || "Uncategorized", // 後方互換
+        category: "Uncategorized", // 後方互換用に固定値
         userTransactionCategoryId: category.value || undefined,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
-        items: items.value.length > 0 ? items.value : undefined,
+        // items の振り分け
+        items:
+          items.value.length > 0
+            ? items.value.map((item) => ({
+                ...item,
+                // type による振り分け
+                userItemCategoryId:
+                  type.value === TransactionType.Expense
+                    ? item.userItemCategoryId
+                    : null,
+                userIncomeItemCategoryId:
+                  type.value === TransactionType.Income
+                    ? item.userIncomeItemCategoryId
+                    : null,
+              }))
+            : undefined,
         taxes: taxes.value.length > 0 ? taxes.value : undefined,
         shopDetails: shopDetails.value || undefined,
       };
@@ -360,6 +392,7 @@ export function useTransactionForm() {
       amount: 0,
       category: "Uncategorized", // 後方互換
       userItemCategoryId: null,
+      userIncomeItemCategoryId: null,
     });
   };
 
