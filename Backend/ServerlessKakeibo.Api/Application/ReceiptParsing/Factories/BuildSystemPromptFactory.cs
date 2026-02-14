@@ -1,6 +1,4 @@
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
-using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
-using System.Text;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Factories;
 
@@ -9,10 +7,7 @@ public class BuildSystemPromptFactory
   /// <summary>
   /// システムプロンプトを構築
   /// </summary>
-  public static string BuildSystemPrompt(
-      ReceiptType? expectedType,
-      List<UserTransactionCategoryEntity> transactionCategories,
-      List<UserItemCategoryEntity> itemCategories)
+  public static string BuildSystemPrompt(ReceiptType? expectedType)
   {
     var basePrompt = @"あなたは領収書解析の専門家です。
 提供された画像から、領収書・請求書・クレジットカード明細などの情報を正確に抽出してください。
@@ -66,15 +61,62 @@ public class BuildSystemPromptFactory
 - Other: その他の支払方法
 - Unknown: 不明または判定不可
 
-";
+取引カテゴリ（category）の判定基準：
+- Uncategorized: 未分類
+- Food: 食費（スーパー、食品店など）
+- DiningOut: 外食（レストラン、カフェなど）
+- DailyNecessities: 日用品（ドラッグストア、雑貨店など）
+- Transportation: 交通費（電車、バス、タクシー、ガソリンなど）
+- Education: 教育・教養（書店、塾、習い事など）
+- Medical: 医療・健康（病院、薬局など）
+- Entertainment: 趣味・娯楽（映画、ゲーム、スポーツなど）
+- Fashion: 衣服・美容（衣料品店、美容院など）
+- Utilities: 水道・光熱費（電気、ガス、水道）
+- Communication: 通信費（携帯電話、インターネット）
+- Other: その他
 
-    // 取引カテゴリを動的に生成
-    basePrompt += BuildTransactionCategoriesSection(transactionCategories);
+商品カテゴリ（items内のcategory）の判定基準：
+【食品・飲料】
+- Food: 食品全般
+- Beverage: 飲料
+- Snack: お菓子・スナック
+- FrozenFood: 冷凍食品
+- DairyProduct: 乳製品
+- Seasoning: 調味料
 
-    // 商品カテゴリを動的に生成
-    basePrompt += BuildItemCategoriesSection(itemCategories);
+【日用品】
+- Toiletries: トイレタリー（シャンプー、石鹸など）
+- KitchenSupplies: キッチン用品
+- CleaningSupplies: 掃除用品
+- LaundrySupplies: 洗濯用品
 
-    basePrompt += @"
+【文具・雑貨】
+- Stationery: 文房具
+- Miscellaneous: 雑貨
+
+【医薬品・化粧品】
+- Medicine: 医薬品
+- Supplement: サプリメント
+- Cosmetics: 化粧品
+
+【衣類・ファッション】
+- Clothing: 衣類
+- Shoes: 靴
+- Accessories: アクセサリー
+
+【電子機器】
+- Electronics: 電子機器
+- Battery: 電池
+
+【その他】
+- PetSupplies: ペット用品
+- BabyProducts: ベビー用品
+- Packaging: レジ袋・包装材
+- Tobacco: タバコ
+- Books: 書籍・雑誌
+- Other: その他
+- Uncategorized: 未分類
+
 重要な指示：
 1. 日付は必ずyyyy-MM-dd HH:mm:ss形式に変換してください（時刻情報がある場合は必ず含める）
 2. 金額は数値のみで、通貨記号や単位は含めないでください
@@ -85,8 +127,7 @@ public class BuildSystemPromptFactory
 7. 税金が複数ある場合は、taxes配列に全て含めてください
 8. インボイス番号が記載されている場合は必ず抽出してください
 9. 取引全体のcategoryと、各商品のcategoryを必ず判定してください
-10. 店舗名や商品名から適切なカテゴリを推論してください
-11. categoryとitems内のcategoryは、必ず提供されたカテゴリリストのCodeから選択してください";
+10. 店舗名や商品名から適切なカテゴリを推論してください";
 
     if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
     {
@@ -94,75 +135,6 @@ public class BuildSystemPromptFactory
     }
 
     return basePrompt;
-  }
-
-  /// <summary>
-  /// 取引カテゴリセクションを構築
-  /// </summary>
-  private static string BuildTransactionCategoriesSection(List<UserTransactionCategoryEntity> categories)
-  {
-    var sb = new StringBuilder();
-    sb.AppendLine("取引カテゴリ（category）の判定基準：");
-
-    // 非表示カテゴリは除外してソート
-    var visibleCategories = categories
-        .Where(c => !c.IsHidden)
-        .OrderBy(c => c.DisplayOrder)
-        .ToList();
-
-    foreach (var category in visibleCategories)
-    {
-      // サニタイズ: 改行とダブルクォートをエスケープ
-      var sanitizedName = SanitizeForPrompt(category.Name);
-      var sanitizedCode = SanitizeForPrompt(category.Code);
-
-      sb.AppendLine($"- {sanitizedCode}: {sanitizedName}");
-    }
-
-    sb.AppendLine();
-    return sb.ToString();
-  }
-
-  /// <summary>
-  /// 商品カテゴリセクションを構築
-  /// </summary>
-  private static string BuildItemCategoriesSection(List<UserItemCategoryEntity> categories)
-  {
-    var sb = new StringBuilder();
-    sb.AppendLine("商品カテゴリ（items内のcategory）の判定基準：");
-
-    // 非表示カテゴリは除外してソート
-    var visibleCategories = categories
-        .Where(c => !c.IsHidden)
-        .OrderBy(c => c.DisplayOrder)
-        .ToList();
-
-    foreach (var category in visibleCategories)
-    {
-      // サニタイズ: 改行とダブルクォートをエスケープ
-      var sanitizedName = SanitizeForPrompt(category.Name);
-      var sanitizedCode = SanitizeForPrompt(category.Code);
-
-      sb.AppendLine($"- {sanitizedCode}: {sanitizedName}");
-    }
-
-    sb.AppendLine();
-    return sb.ToString();
-  }
-
-  /// <summary>
-  /// プロンプト用文字列のサニタイズ（念のため）
-  /// </summary>
-  private static string SanitizeForPrompt(string input)
-  {
-    if (string.IsNullOrEmpty(input))
-      return string.Empty;
-
-    return input
-        .Replace("\r\n", " ")  // 改行除去
-        .Replace("\n", " ")
-        .Replace("\r", " ")
-        .Replace("\"", "'");   // ダブルクォートをシングルクォートに
   }
 
   /// <summary>

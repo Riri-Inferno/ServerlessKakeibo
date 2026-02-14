@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 
@@ -100,9 +101,10 @@ public class NormalizedTransaction
     public ShopDetails? ShopDetails { get; set; }
 
     /// <summary>
-    /// LLMが判定したカテゴリCode（例: "Food", "Custom_食材費"）
+    /// LLMが推論したカテゴリ
     /// </summary>
-    public string? CategoryCode { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public Domain.ValueObjects.TransactionCategory? Category { get; set; }
 
     /// <summary>
     /// 金額整合性の観測結果
@@ -136,9 +138,10 @@ public class NormalizedItem
     public decimal? Amount { get; set; }
 
     /// <summary>
-    /// LLMが判定した商品カテゴリCode（例: "Food", "Beverage"）
+    /// 商品カテゴリ（LLMが推論）
     /// </summary>
-    public string? CategoryCode { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public Domain.ValueObjects.ItemCategory? Category { get; set; }
 }
 
 /// <summary>
