@@ -190,7 +190,8 @@ export interface GetTransactionsRequest {
   pageSize?: number;
   startDate?: string;
   endDate?: string;
-  category?: TransactionCategory;
+  category?: TransactionCategory; // 後方互換
+  userTransactionCategoryId?: string | null;
   payer?: string;
   payee?: string;
   minAmount?: number;
