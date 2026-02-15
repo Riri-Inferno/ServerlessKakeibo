@@ -319,7 +319,17 @@ onUnmounted(() => {
                           : "支出"
                       }}
                     </BaseBadge>
-                    <BaseBadge color="gray" size="sm">
+                    <!-- ユーザー設定のカテゴリ -->
+                    <BaseBadge
+                      v-if="transaction.userTransactionCategory"
+                      :custom-color="
+                        transaction.userTransactionCategory.colorCode
+                      "
+                      size="sm"
+                    >
+                      {{ transaction.userTransactionCategory.name }}
+                    </BaseBadge>
+                    <BaseBadge v-else color="gray" size="sm">
                       {{
                         CategoryLabels[transaction.category] ||
                         transaction.category

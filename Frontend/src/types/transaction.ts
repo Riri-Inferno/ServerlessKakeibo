@@ -88,7 +88,8 @@ export interface TransactionSummary {
   currency: string;
   payer: string | null;
   payee: string | null;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategory?: UserTransactionCategory | null;
   paymentMethod: string | null;
   taxInclusionType?: TaxInclusionType;
   itemCount: number;
@@ -103,7 +104,11 @@ export interface TransactionItem {
   quantity: number;
   unitPrice: number;
   amount: number;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userItemCategoryId?: string | null;
+  userIncomeItemCategoryId?: string | null;
+  userItemCategory?: UserItemCategory | null;
+  userIncomeItemCategory?: UserIncomeItemCategory | null;
 }
 
 /**
@@ -133,7 +138,8 @@ export interface TransactionDetail {
   payer: string | null;
   payee: string;
   paymentMethod: string | null;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategory?: UserTransactionCategory | null;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   receiptType: string | null;
@@ -359,4 +365,35 @@ export interface TransactionExportResult {
    * 画像取得に失敗した件数
    */
   imagesFailedCount: number;
+}
+
+/**
+ * ユーザー取引カテゴリ（取引レベル）
+ */
+export interface UserTransactionCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isIncome: boolean;
+  isCustom: boolean;
+}
+
+/**
+ * ユーザー商品カテゴリ（支出用・明細レベル）
+ */
+export interface UserItemCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isCustom: boolean;
+}
+
+/**
+ * ユーザー収入項目カテゴリ（収入用・明細レベル）
+ */
+export interface UserIncomeItemCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isCustom: boolean;
 }

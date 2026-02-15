@@ -187,12 +187,15 @@ export function useTransactionForm() {
     amountTotal.value = transaction.amountTotal;
     payer.value = transaction.payer || "";
     payee.value = transaction.payee || "";
-    category.value = transaction.category; // TODO: 将来的に UserTransactionCategoryId に
+
+    // カスタムカテゴリIDを取得
+    category.value = transaction.userTransactionCategory?.id || null;
+
     paymentMethod.value = transaction.paymentMethod || "";
     notes.value = transaction.notes || "";
     taxInclusionType.value = transaction.taxInclusionType;
 
-    // 明細を復元（idを保持）
+    // 明細のカテゴリIDを復元
     items.value = transaction.items.map((item) => ({
       id: item.id,
       name: item.name,
@@ -200,8 +203,8 @@ export function useTransactionForm() {
       unitPrice: item.unitPrice,
       amount: item.amount,
       category: item.category,
-      userItemCategoryId: null, // TODO 取得APIをカスタムカテゴリ対応後に置き換え
-      userIncomeItemCategoryId: null, // TODO　取得APIをカスタムカテゴリ対応後に置き換え
+      userItemCategoryId: item.userItemCategoryId || null,
+      userIncomeItemCategoryId: item.userIncomeItemCategoryId || null,
     }));
     // 税情報を復元（idを保持）
     taxes.value = transaction.taxes.map((tax) => ({
