@@ -41,8 +41,13 @@ public class TransactionRepository : ITransactionRepository
         return await _context.Transactions
             .AsNoTracking()
             .Include(t => t.Items)        // ← Eager Loading
+                .ThenInclude(i => i.UserItemCategory)
+            .Include(t => t.Items)
+                .ThenInclude(i => i.UserIncomeItemCategory)
+            .Include(t => t.UserTransactionCategory)
             .Include(t => t.Taxes)
             .Include(t => t.ShopDetail)
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.Id == id
                 && t.UserId == userId
                 && !t.IsDeleted)
