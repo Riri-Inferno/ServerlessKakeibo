@@ -267,21 +267,24 @@ public class TransactionRepository : ITransactionRepository
     /// エクスポート用に取引一覧を取得（ページング無視、全件取得）
     /// </summary>
     public async Task<List<TransactionEntity>> GetAllForExportAsync(
-        Guid userId,
-        DateTimeOffset? startDate = null,
-        DateTimeOffset? endDate = null,
-        TransactionCategory? category = null,
-        string? payee = null,
-        decimal? minAmount = null,
-        decimal? maxAmount = null,
-        TransactionType? type = null,
-        CancellationToken ct = default)
+    Guid userId,
+    DateTimeOffset? startDate = null,
+    DateTimeOffset? endDate = null,
+    TransactionCategory? category = null,
+    string? payee = null,
+    decimal? minAmount = null,
+    decimal? maxAmount = null,
+    TransactionType? type = null,
+    Guid? userTransactionCategoryId = null,
+    string? payer = null,
+    CancellationToken ct = default)
     {
         var query = _context.Transactions
             .AsNoTracking()
-            .Include(t => t.Items)        // CSV出力用
-            .Include(t => t.Taxes)        // CSV出力用
-            .Include(t => t.ShopDetail)   // CSV出力用
+            .Include(t => t.Items)
+            .Include(t => t.Taxes)
+            .Include(t => t.ShopDetail)
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId && !t.IsDeleted);
 
         // フィルタ適用
@@ -294,8 +297,23 @@ public class TransactionRepository : ITransactionRepository
         if (category.HasValue)
             query = query.Where(t => t.Category == category.Value);
 
-        if (!string.IsNullOrWhiteSpace(payee))
+        if (userTransactionCategoryId.HasValue)
+            query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);
+
+        if (!string.IsNullOrWhiteSpace(payer) && !string.IsNullOrWhiteSpace(payee))
+        {
+            query = query.Where(t =>
+                (t.Payer != null && t.Payer.Contains(payer)) ||
+                (t.Payee != null && t.Payee.Contains(payee)));
+        }
+        else if (!string.IsNullOrWhiteSpace(payer))
+        {
+            query = query.Where(t => t.Payer != null && t.Payer.Contains(payer));
+        }
+        else if (!string.IsNullOrWhiteSpace(payee))
+        {
             query = query.Where(t => t.Payee != null && t.Payee.Contains(payee));
+        }
 
         if (minAmount.HasValue)
             query = query.Where(t => t.AmountTotal >= minAmount.Value);
@@ -306,7 +324,6 @@ public class TransactionRepository : ITransactionRepository
         if (type.HasValue)
             query = query.Where(t => t.Type == type.Value);
 
-        // 取引日時の降順でソート
         return await query
             .OrderByDescending(t => t.TransactionDate)
             .ThenByDescending(t => t.CreatedAt)

@@ -88,6 +88,8 @@ public interface ITransactionRepository
         decimal? minAmount = null,
         decimal? maxAmount = null,
         TransactionType? type = null,
+        Guid? userTransactionCategoryId = null,
+        string? payer = null,
         CancellationToken ct = default);
 
     /// <summary>
