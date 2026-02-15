@@ -100,6 +100,7 @@ public class TransactionQueryInteractor : ITransactionQueryUseCase
                 request.MinAmount,
                 request.MaxAmount,
                 request.Type,
+                request.UserTransactionCategoryId,
                 cancellationToken);
 
             _logger.LogInformation(

@@ -32,10 +32,15 @@ public class GetTransactionsRequest
     public DateTimeOffset? EndDate { get; set; }
 
     /// <summary>
-    /// カテゴリでフィルタ
+    /// カテゴリでフィルタ（後方互換用）
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public TransactionCategory? Category { get; set; }
+
+    /// <summary>
+    /// ユーザー取引カテゴリIDでフィルタ（カスタムカテゴリ対応）
+    /// </summary>
+    public Guid? UserTransactionCategoryId { get; set; }
 
     /// <summary>
     /// 支払者フィルタ（部分一致）
