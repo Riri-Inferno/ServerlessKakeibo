@@ -105,6 +105,7 @@ public class TransactionRepository : ITransactionRepository
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(t => t.Items)  // ← ItemCountのため
+            .Include(t => t.UserTransactionCategory)
             .ToListAsync(ct);
 
         return (items, totalCount);
@@ -262,7 +263,7 @@ public class TransactionRepository : ITransactionRepository
             .Include(t => t.ShopDetail)   // CSV出力用
             .Where(t => t.UserId == userId && !t.IsDeleted);
 
-        // フィルタ適用（GetPagedListAsyncと同じロジック）
+        // フィルタ適用
         if (startDate.HasValue)
             query = query.Where(t => t.TransactionDate >= startDate.Value);
 
