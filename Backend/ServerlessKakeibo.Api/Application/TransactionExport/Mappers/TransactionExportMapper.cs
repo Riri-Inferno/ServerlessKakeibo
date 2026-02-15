@@ -31,7 +31,7 @@ public static class TransactionExportMapper
             支払方法 = entity.PaymentMethod != null
                 ? PaymentMethod.FromString(entity.PaymentMethod).Value
                 : string.Empty,
-            カテゴリ = entity.Category.ToJapanese(),
+            カテゴリ = entity.UserTransactionCategory?.Name ?? "未分類",
             税区分 = entity.TaxInclusionType?.ToJapanese()
                 ?? TaxInclusionType.Unknown.ToJapanese(),
             メモ = entity.Notes ?? string.Empty,
