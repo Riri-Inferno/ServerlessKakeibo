@@ -89,11 +89,23 @@ public class TransactionRepository : ITransactionRepository
         if (userTransactionCategoryId.HasValue)
             query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);
 
-        if (!string.IsNullOrWhiteSpace(payer))
+        if (!string.IsNullOrWhiteSpace(payer) && !string.IsNullOrWhiteSpace(payee))
+        {
+            // 両方指定された場合は OR 検索
+            query = query.Where(t =>
+                (t.Payer != null && t.Payer.Contains(payer)) ||
+                (t.Payee != null && t.Payee.Contains(payee)));
+        }
+        else if (!string.IsNullOrWhiteSpace(payer))
+        {
+            // payer のみ
             query = query.Where(t => t.Payer != null && t.Payer.Contains(payer));
-
-        if (!string.IsNullOrWhiteSpace(payee))
+        }
+        else if (!string.IsNullOrWhiteSpace(payee))
+        {
+            // payee のみ
             query = query.Where(t => t.Payee != null && t.Payee.Contains(payee));
+        }
 
         if (minAmount.HasValue)
             query = query.Where(t => t.AmountTotal >= minAmount.Value);
