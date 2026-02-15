@@ -45,9 +45,15 @@ public class TransactionSummaryResult
 
     /// <summary>
     /// カテゴリ
+    /// TODO:後方互換後一掃
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public Domain.ValueObjects.TransactionCategory Category { get; set; }
+
+    /// <summary>
+    /// ユーザー取引カテゴリ（カスタムカテゴリ対応）
+    /// </summary>
+    public UserTransactionCategoryDto? UserTransactionCategory { get; set; }
 
     /// <summary>
     /// 支払方法

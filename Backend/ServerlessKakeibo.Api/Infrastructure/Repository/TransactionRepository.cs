@@ -41,8 +41,13 @@ public class TransactionRepository : ITransactionRepository
         return await _context.Transactions
             .AsNoTracking()
             .Include(t => t.Items)        // ← Eager Loading
+                .ThenInclude(i => i.UserItemCategory)
+            .Include(t => t.Items)
+                .ThenInclude(i => i.UserIncomeItemCategory)
+            .Include(t => t.UserTransactionCategory)
             .Include(t => t.Taxes)
             .Include(t => t.ShopDetail)
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.Id == id
                 && t.UserId == userId
                 && !t.IsDeleted)
@@ -105,6 +110,7 @@ public class TransactionRepository : ITransactionRepository
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(t => t.Items)  // ← ItemCountのため
+            .Include(t => t.UserTransactionCategory)
             .ToListAsync(ct);
 
         return (items, totalCount);
@@ -262,7 +268,7 @@ public class TransactionRepository : ITransactionRepository
             .Include(t => t.ShopDetail)   // CSV出力用
             .Where(t => t.UserId == userId && !t.IsDeleted);
 
-        // フィルタ適用（GetPagedListAsyncと同じロジック）
+        // フィルタ適用
         if (startDate.HasValue)
             query = query.Where(t => t.TransactionDate >= startDate.Value);
 
