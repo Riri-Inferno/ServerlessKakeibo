@@ -15,6 +15,7 @@ type Size = "sm" | "md" | "lg";
 interface Props {
   color?: Color;
   size?: Size;
+  customColor?: string; // Hex カラーコード
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,6 +39,24 @@ const sizeClasses: Record<Size, string> = {
   lg: "text-base px-3 py-1.5",
 };
 
+// カスタムカラーがある場合のベースクラス
+const baseClass = computed(() => {
+  const base = "inline-flex items-center font-medium rounded-full";
+  const size = sizeClasses[props.size];
+  return `${base} ${size}`;
+});
+
+// カスタムカラーがある場合のスタイル
+const customStyle = computed(() => {
+  if (!props.customColor) return undefined;
+
+  return {
+    backgroundColor: `${props.customColor}20`, // 透明度20%
+    color: props.customColor,
+    border: `1px solid ${props.customColor}60`,
+  };
+});
+
 const badgeClass = computed(() => {
   const base = "inline-flex items-center font-medium rounded-full";
   const color = colorClasses[props.color];
@@ -48,7 +67,10 @@ const badgeClass = computed(() => {
 </script>
 
 <template>
-  <span :class="badgeClass">
+  <span
+    :class="customColor ? baseClass : badgeClass"
+    :style="customColor ? customStyle : undefined"
+  >
     <slot />
   </span>
 </template>
