@@ -57,6 +57,8 @@ public class TransactionExportInteractor : ITransactionExportUseCase
             request.MinAmount,
             request.MaxAmount,
             request.Type,
+            request.UserTransactionCategoryId,
+            request.Payer,
             cancellationToken);
 
         if (!transactions.Any())
