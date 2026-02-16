@@ -267,16 +267,16 @@ public class TransactionRepository : ITransactionRepository
     /// エクスポート用に取引一覧を取得（ページング無視、全件取得）
     /// </summary>
     public async Task<List<TransactionEntity>> GetAllForExportAsync(
-    Guid userId,
-    DateTimeOffset? startDate = null,
-    DateTimeOffset? endDate = null,
-    TransactionCategory? category = null,
-    string? payee = null,
-    decimal? minAmount = null,
-    decimal? maxAmount = null,
-    TransactionType? type = null,
-    Guid? userTransactionCategoryId = null,
-    string? payer = null,
+        Guid userId,
+        DateTimeOffset? startDate = null,
+        DateTimeOffset? endDate = null,
+        TransactionCategory? category = null,
+        string? payee = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null,
+        TransactionType? type = null,
+        Guid? userTransactionCategoryId = null,
+        string? payer = null,
     CancellationToken ct = default)
     {
         var query = _context.Transactions
