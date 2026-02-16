@@ -37,7 +37,7 @@ watch(
   async (isOpen) => {
     if (isOpen && transactionCategories.value.length === 0) {
       console.log("カテゴリを取得中...");
-      await fetchCategories();
+      await fetchCategories(true);
       console.log(
         "カテゴリ取得完了:",
         transactionCategories.value.length,

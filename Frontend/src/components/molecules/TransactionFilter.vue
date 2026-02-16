@@ -19,11 +19,10 @@ const emit = defineEmits<{
 const isExpanded = ref(false);
 
 // カスタムカテゴリ取得
-const { expenseCategories, incomeCategories, fetchCategories } =
-  useTransactionCategories();
+const { categories, fetchCategories } = useTransactionCategories();
 
 // 初回読み込み
-fetchCategories(false);
+fetchCategories(true);
 
 const filters = ref({
   startDate: undefined,
@@ -45,27 +44,39 @@ const typeOptions = [
 // type に応じてカテゴリオプションを切り替え
 const categoryOptions = computed(() => {
   if (filters.value.type === TransactionType.Income) {
-    return incomeCategories.value.map((cat) => ({
-      value: cat.id,
-      label: cat.name,
-    }));
+    return categories.value
+      .filter((cat) => cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
   } else if (filters.value.type === TransactionType.Expense) {
-    return expenseCategories.value.map((cat) => ({
-      value: cat.id,
-      label: cat.name,
-    }));
+    return categories.value
+      .filter((cat) => !cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
   }
 
   // type 未選択: 両方表示
   return [
-    ...expenseCategories.value.map((cat) => ({
-      value: cat.id,
-      label: `${cat.name}（支出）`,
-    })),
-    ...incomeCategories.value.map((cat) => ({
-      value: cat.id,
-      label: `${cat.name}（収入）`,
-    })),
+    ...categories.value
+      .filter((cat) => !cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: `${cat.name}（支出）`,
+      })),
+    ...categories.value
+      .filter((cat) => cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: `${cat.name}（収入）`,
+      })),
   ];
 });
 
