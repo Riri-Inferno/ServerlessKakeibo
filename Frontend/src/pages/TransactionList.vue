@@ -18,6 +18,7 @@ import TransactionFormModal from "../components/organisms/TransactionFormModal.v
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
+import BaseIcon from "../components/atoms/BaseIcon.vue";
 
 const {
   transactions,
