@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { useTransactionExport } from "../../composables/useTransactionExport";
 import { CategoryLabels } from "../../types/transaction";
 import type { GetTransactionsRequest } from "../../types/transaction";
+import { useTransactionCategories } from "../../composables/useTransactionCategories";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -23,15 +24,40 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+// カテゴリ一覧を取得
+const {
+  categories: transactionCategories,
+  fetchCategories,
+  isLoading: isCategoriesLoading,
+} = useTransactionCategories();
+
+// モーダルが開いた時にカテゴリを取得
+watch(
+  () => props.isOpen,
+  async (isOpen) => {
+    if (isOpen && transactionCategories.value.length === 0) {
+      console.log("カテゴリを取得中...");
+      await fetchCategories();
+      console.log(
+        "カテゴリ取得完了:",
+        transactionCategories.value.length,
+        "件",
+      );
+    }
+  },
+  { immediate: true },
+);
+
 const {
   isExporting,
   errorMessage,
   exportResult,
+  warnings,
   exportTransactions,
   clearResult,
 } = useTransactionExport();
 
-const includeImages = ref(true);
+const includeImages = ref(false);
 
 type ModalState = "confirm" | "loading" | "success";
 const modalState = ref<ModalState>("confirm");
@@ -60,8 +86,35 @@ const formatDateRange = () => {
 };
 
 const getCategoryLabel = () => {
-  if (!props.filters.category) return "すべて";
-  return CategoryLabels[props.filters.category] || props.filters.category;
+  // カテゴリ読み込み中の場合
+  if (isCategoriesLoading.value) {
+    return "読み込み中...";
+  }
+
+  // カスタムカテゴリIDが指定されている場合
+  if (props.filters.userTransactionCategoryId) {
+    const category = transactionCategories.value.find(
+      (c) => c.id === props.filters.userTransactionCategoryId,
+    );
+
+    if (!category) {
+      console.warn(
+        "カテゴリが見つかりません:",
+        props.filters.userTransactionCategoryId,
+        "利用可能なカテゴリ:",
+        transactionCategories.value.map((c) => ({ id: c.id, name: c.name })),
+      );
+    }
+
+    return category?.name || "不明なカテゴリ";
+  }
+
+  // 後方互換: Enum カテゴリ
+  if (props.filters.category) {
+    return CategoryLabels[props.filters.category] || props.filters.category;
+  }
+
+  return "すべて";
 };
 
 const getTypeLabel = () => {
@@ -126,6 +179,21 @@ watch(
             <div class="flex-1">
               <BaseText variant="caption" color="gray">カテゴリ</BaseText>
               <BaseText variant="body">{{ getCategoryLabel() }}</BaseText>
+            </div>
+          </div>
+
+          <div v-if="filters.payer" class="flex items-start gap-2">
+            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5" />
+            <div class="flex-1">
+              <BaseText variant="caption" color="gray">支払元</BaseText>
+              <BaseText variant="body">{{ filters.payer }}</BaseText>
+            </div>
+          </div>
+          <div v-if="filters.payee" class="flex items-start gap-2">
+            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5" />
+            <div class="flex-1">
+              <BaseText variant="caption" color="gray">支払先</BaseText>
+              <BaseText variant="body">{{ filters.payee }}</BaseText>
             </div>
           </div>
 
@@ -278,6 +346,33 @@ watch(
             />
             <BaseText variant="body" class="text-red-600">
               {{ exportResult.imagesFailedCount }}件の画像を取得できませんでした
+            </BaseText>
+          </div>
+        </div>
+      </BaseCard>
+
+      <BaseCard
+        v-if="warnings"
+        padding="sm"
+        class="bg-yellow-50 border border-yellow-200"
+      >
+        <div class="flex items-start gap-2">
+          <BaseIcon
+            name="warning"
+            size="sm"
+            class="text-yellow-600 mt-0.5"
+            variant="solid"
+          />
+          <div class="flex-1">
+            <BaseText
+              variant="caption"
+              weight="bold"
+              class="text-yellow-800 mb-1"
+            >
+              警告
+            </BaseText>
+            <BaseText variant="caption" class="text-yellow-700">
+              {{ warnings }}
             </BaseText>
           </div>
         </div>
