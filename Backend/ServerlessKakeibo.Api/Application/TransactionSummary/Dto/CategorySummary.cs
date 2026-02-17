@@ -1,5 +1,3 @@
-using ServerlessKakeibo.Api.Domain.ValueObjects;
-
 namespace ServerlessKakeibo.Api.Application.TransactionSummary.Dto;
 
 /// <summary>
@@ -8,14 +6,19 @@ namespace ServerlessKakeibo.Api.Application.TransactionSummary.Dto;
 public class CategorySummary
 {
     /// <summary>
-    /// カテゴリ
+    /// カテゴリID
     /// </summary>
-    public Domain.ValueObjects.TransactionCategory Category { get; set; }
+    public Guid CategoryId { get; set; }
 
     /// <summary>
-    /// カテゴリ名（日本語）
+    /// カテゴリ名
     /// </summary>
     public string CategoryName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// カラーコード（例: #FF5733）
+    /// </summary>
+    public string ColorCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 金額合計

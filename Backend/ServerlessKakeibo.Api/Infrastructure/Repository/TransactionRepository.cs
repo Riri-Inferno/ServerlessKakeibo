@@ -206,61 +206,26 @@ public class TransactionRepository : ITransactionRepository
     }
 
     /// <summary>
-    /// 月次サマリーを取得
+    /// 月次の取引一覧を取得
     /// </summary>
-    public async Task<(
-        decimal TotalIncome,
-        decimal TotalExpense,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
-        GetMonthlySummaryAsync(
-            Guid userId,
-            int year,
-            int month,
-            CancellationToken ct = default)
+    public async Task<List<TransactionEntity>> GetMonthlyTransactionsWithCategoryAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
     {
         var closingDay = await GetClosingDayAsync(userId, ct);
         var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
-        var transactions = await _context.Transactions
+        return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId
                 && !t.IsDeleted
+                && t.UserTransactionCategoryId != null // カテゴリ未設定を除外
                 && t.TransactionDate >= startDate
                 && t.TransactionDate <= endDate)
-            .Select(t => new
-            {
-                t.Type,
-                t.AmountTotal,
-                t.Category
-            })
             .ToListAsync(ct);
-
-        var totalIncome = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var totalExpense = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var incomeByCategory = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        var expenseByCategory = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        return (totalIncome, totalExpense, incomeByCategory, expenseByCategory);
     }
 
     /// <summary>
@@ -331,40 +296,6 @@ public class TransactionRepository : ITransactionRepository
     }
 
     /// <summary>
-    /// 全カテゴリの支出内訳を取得（TopN制限なし）
-    /// </summary>
-    public async Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default)
-    {
-        var closingDay = await GetClosingDayAsync(userId, ct);
-        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
-
-        var expenseByCategory = await _context.Transactions
-            .AsNoTracking()
-            .Where(t => t.UserId == userId
-                && !t.IsDeleted
-                && t.Type == TransactionType.Expense
-                && t.TransactionDate >= startDate
-                && t.TransactionDate <= endDate)
-            .GroupBy(t => t.Category)
-            .Select(g => new
-            {
-                Category = g.Key,
-                Amount = g.Sum(t => t.AmountTotal ?? 0),
-                Count = g.Count()
-            })
-            .ToListAsync(ct);
-
-        return expenseByCategory.ToDictionary(
-            x => x.Category,
-            x => (x.Amount, x.Count)
-        );
-    }
-
-    /// <summary>
     /// 指定月の最高額支出取引を取得
     /// </summary>
     public async Task<TransactionEntity?> GetMaxExpenseTransactionAsync(
@@ -378,49 +309,15 @@ public class TransactionRepository : ITransactionRepository
 
         return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId
                 && !t.IsDeleted
                 && t.Type == TransactionType.Expense
+                && t.UserTransactionCategoryId != null
                 && t.TransactionDate >= startDate
                 && t.TransactionDate <= endDate)
             .OrderByDescending(t => t.AmountTotal)
             .FirstOrDefaultAsync(ct);
-    }
-
-    /// <summary>
-    /// 指定月の最も頻度の高いカテゴリを取得
-    /// </summary>
-    public async Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default)
-    {
-        var closingDay = await GetClosingDayAsync(userId, ct);
-        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
-
-        var result = await _context.Transactions
-            .AsNoTracking()
-            .Where(t => t.UserId == userId
-                && !t.IsDeleted
-                && t.Type == TransactionType.Expense
-                && t.TransactionDate >= startDate
-                && t.TransactionDate <= endDate)
-            .GroupBy(t => t.Category)
-            .Select(g => new
-            {
-                Category = g.Key,
-                Count = g.Count(),
-                TotalAmount = g.Sum(t => t.AmountTotal ?? 0)
-            })
-            .OrderByDescending(x => x.Count)
-            .ThenByDescending(x => x.TotalAmount)
-            .FirstOrDefaultAsync(ct);
-
-        if (result == null)
-            return null;
-
-        return (result.Category, result.Count, result.TotalAmount);
     }
 
     /// <summary>

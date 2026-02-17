@@ -22,12 +22,6 @@ const props = defineProps<Props>();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chartInstance: ChartJS<"pie"> | null = null;
 
-// カテゴリごとの色を生成
-const getCategoryColor = (index: number): string => {
-  const hue = index * 137.5;
-  return `hsl(${hue % 360}, 70%, 50%)`;
-};
-
 // チャートデータを生成
 const generateChartData = (): ChartData<"pie"> => {
   return {
@@ -35,7 +29,7 @@ const generateChartData = (): ChartData<"pie"> => {
     datasets: [
       {
         data: props.categories.map((c) => c.amount),
-        backgroundColor: props.categories.map((_, i) => getCategoryColor(i)),
+        backgroundColor: props.categories.map((c) => c.colorCode),
         borderWidth: 2,
         borderColor: "#ffffff",
       },
@@ -46,8 +40,9 @@ const generateChartData = (): ChartData<"pie"> => {
 // チャートオプション
 const chartOptions: ChartOptions<"pie"> = {
   responsive: true,
-  maintainAspectRatio: true,
-  aspectRatio: 1,
+  maintainAspectRatio: false,
+  // aspectRatio: 1,
+  devicePixelRatio: 2,
 
   layout: {
     padding: {
@@ -131,7 +126,7 @@ const updateChart = () => {
 
   // データを更新
   chartInstance.data = generateChartData();
-  chartInstance.update("none"); // アニメーションなしで更新
+  chartInstance.update("none");
 };
 
 // propsの変更を監視
@@ -172,7 +167,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full" style="max-width: 400px; margin: 0 auto">
+  <div class="w-full h-[460px]" style="max-width: 400px; margin: 0 auto">
     <canvas ref="canvasRef"></canvas>
   </div>
 </template>

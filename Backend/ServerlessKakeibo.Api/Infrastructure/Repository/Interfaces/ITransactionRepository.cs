@@ -48,19 +48,14 @@ public interface ITransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
-    /// 月次サマリーを取得
+    /// 月次の取引一覧を取得
     /// </summary>
     /// <param name="userId">ユーザーID</param>
     /// <param name="year">対象年</param>
     /// <param name="month">対象月</param>
     /// <param name="ct">キャンセレーショントークン</param>
-    /// <returns>収入合計、支出合計、各カテゴリ別集計</returns>
-    Task<(
-        decimal TotalIncome,
-        decimal TotalExpense,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
-    GetMonthlySummaryAsync(
+    /// <returns>取引一覧（カテゴリ含む）</returns>
+    Task<List<TransactionEntity>> GetMonthlyTransactionsWithCategoryAsync(
         Guid userId,
         int year,
         int month,
@@ -93,20 +88,6 @@ public interface ITransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
-    /// 全カテゴリの支出内訳を取得（TopN制限なし）
-    /// </summary>
-    /// <param name="userId">ユーザーID</param>
-    /// <param name="year">対象年</param>
-    /// <param name="month">対象月</param>
-    /// <param name="ct">キャンセルトークン</param>
-    /// <returns>カテゴリ別の金額と件数</returns>
-    Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default);
-
-    /// <summary>
     /// 指定月の最高額支出取引を取得
     /// </summary>
     /// <param name="userId">ユーザーID</param>
@@ -115,20 +96,6 @@ public interface ITransactionRepository
     /// <param name="ct">キャンセルトークン</param>
     /// <returns>最高額の取引（支出のみ）</returns>
     Task<TransactionEntity?> GetMaxExpenseTransactionAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// 指定月の最も頻度の高いカテゴリを取得
-    /// </summary>
-    /// <param name="userId">ユーザーID</param>
-    /// <param name="year">対象年</param>
-    /// <param name="month">対象月</param>
-    /// <param name="ct">キャンセルトークン</param>
-    /// <returns>カテゴリ、件数、合計金額</returns>
-    Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
         Guid userId,
         int year,
         int month,

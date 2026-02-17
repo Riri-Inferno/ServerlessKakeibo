@@ -45,26 +45,55 @@ public class MonthlySummaryInteractor : IMonthlySummaryUseCase
                 "月次サマリー取得を開始します。UserId: {UserId}, Year: {Year}, Month: {Month}",
                 userId, year, month);
 
-            var (totalIncome, totalExpense, incomeByCategory, expenseByCategory) =
-    await _transactionRepository.GetMonthlySummaryAsync(userId, year, month, cancellationToken);
+            // Repository からエンティティを取得
+            var transactions = await _transactionRepository
+                .GetMonthlyTransactionsWithCategoryAsync(userId, year, month, cancellationToken);
+
+            // Interactor で集計
+            var totalIncome = transactions
+                .Where(t => t.Type == TransactionType.Income)
+                .Sum(t => t.AmountTotal ?? 0);
+
+            var totalExpense = transactions
+                .Where(t => t.Type == TransactionType.Expense)
+                .Sum(t => t.AmountTotal ?? 0);
 
             var balance = totalIncome - totalExpense;
 
-            // 支出トップ3を取得
-            var topExpenseCategories = expenseByCategory
-                .OrderByDescending(x => x.Value.Amount)
-                .Take(3)
-                .Select(x => new CategorySummary
+            // カテゴリ別集計（支出）
+            var expenseByCategory = transactions
+                .Where(t => t.Type == TransactionType.Expense)
+                .GroupBy(t => t.UserTransactionCategory!.Id)
+                .Select(g => new CategorySummary
                 {
-                    Category = x.Key,
-                    CategoryName = x.Key.ToJapanese(),
-                    Amount = x.Value.Amount,
-                    Count = x.Value.Count
+                    CategoryId = g.Key,
+                    CategoryName = g.First().UserTransactionCategory!.Name,
+                    ColorCode = g.First().UserTransactionCategory!.ColorCode,
+                    Amount = g.Sum(t => t.AmountTotal ?? 0),
+                    Count = g.Count()
+                })
+                .OrderByDescending(c => c.Amount)
+                .ToList();
+
+            // カテゴリ別集計（収入）
+            var incomeByCategory = transactions
+                .Where(t => t.Type == TransactionType.Income)
+                .GroupBy(t => t.UserTransactionCategory!.Id)
+                .Select(g => new CategorySummary
+                {
+                    CategoryId = g.Key,
+                    CategoryName = g.First().UserTransactionCategory!.Name,
+                    ColorCode = g.First().UserTransactionCategory!.ColorCode,
+                    Amount = g.Sum(t => t.AmountTotal ?? 0),
+                    Count = g.Count()
                 })
                 .ToList();
 
-            var incomeCount = incomeByCategory.Values.Sum(x => x.Count);
-            var expenseCount = expenseByCategory.Values.Sum(x => x.Count);
+            // 支出トップ3を抽出
+            var topExpenseCategories = expenseByCategory.Take(3).ToList();
+
+            var incomeCount = incomeByCategory.Sum(c => c.Count);
+            var expenseCount = expenseByCategory.Sum(c => c.Count);
             var totalCount = incomeCount + expenseCount;
 
             _logger.LogInformation(

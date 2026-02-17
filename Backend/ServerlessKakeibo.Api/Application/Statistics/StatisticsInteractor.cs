@@ -110,22 +110,30 @@ public class StatisticsInteractor : IStatisticsUseCase
                 "カテゴリ別支出内訳取得を開始します。UserId: {UserId}, Year: {Year}, Month: {Month}",
                 userId, year, month);
 
-            var expenseByCategory = await _transactionRepository.GetAllCategoryExpensesAsync(
-                userId, year, month, cancellationToken);
+            // Repository からエンティティを取得
+            var transactions = await _transactionRepository
+                .GetMonthlyTransactionsWithCategoryAsync(userId, year, month, cancellationToken);
 
-            var totalExpense = expenseByCategory.Values.Sum(x => x.Amount);
-
-            // 全カテゴリを金額順にソート
-            var categories = expenseByCategory
-                .OrderByDescending(x => x.Value.Amount)
-                .Select(x => new CategorySummary
-                {
-                    Category = x.Key,
-                    CategoryName = x.Key.ToJapanese(),
-                    Amount = x.Value.Amount,
-                    Count = x.Value.Count
-                })
+            // 支出のみを抽出
+            var expenseTransactions = transactions
+                .Where(t => t.Type == TransactionType.Expense)
                 .ToList();
+
+            // カテゴリ別に集計
+            var categories = expenseTransactions
+                .GroupBy(t => t.UserTransactionCategory!.Id) // ID でグループ化
+                .Select(g => new CategorySummary
+                {
+                    CategoryId = g.Key,
+                    CategoryName = g.First().UserTransactionCategory!.Name,
+                    ColorCode = g.First().UserTransactionCategory!.ColorCode,
+                    Amount = g.Sum(t => t.AmountTotal ?? 0),
+                    Count = g.Count()
+                })
+                .OrderByDescending(c => c.Amount) // 金額順
+                .ToList();
+
+            var totalExpense = categories.Sum(c => c.Amount);
 
             _logger.LogInformation(
                 "カテゴリ別支出内訳を取得しました。UserId: {UserId}, TotalExpense: {TotalExpense}, CategoryCount: {CategoryCount}",
@@ -232,17 +240,41 @@ public class StatisticsInteractor : IStatisticsUseCase
                 "月次ハイライト取得を開始します。UserId: {UserId}, Year: {Year}, Month: {Month}",
                 userId, year, month);
 
-            var maxExpenseTransaction = await _transactionRepository.GetMaxExpenseTransactionAsync(
-                userId, year, month, cancellationToken);
+            // Repository からエンティティを取得
+            var transactions = await _transactionRepository
+                .GetMonthlyTransactionsWithCategoryAsync(userId, year, month, cancellationToken);
 
-            var mostFrequentCategory = await _transactionRepository.GetMostFrequentCategoryAsync(
-                userId, year, month, cancellationToken);
+            // 支出のみを抽出
+            var expenseTransactions = transactions
+                .Where(t => t.Type == TransactionType.Expense)
+                .ToList();
 
-            var daysWithExpense = await _transactionRepository.GetDaysWithExpenseAsync(
-                userId, year, month, cancellationToken);
+            // 最高額取引を取得
+            var maxExpenseTransaction = expenseTransactions
+                .OrderByDescending(t => t.AmountTotal)
+                .FirstOrDefault();
 
-            var (_, totalExpense, _, _) = await _transactionRepository.GetMonthlySummaryAsync(
-            userId, year, month, cancellationToken);
+            // 最頻出カテゴリを計算
+            var mostFrequentCategory = expenseTransactions
+                .GroupBy(t => t.UserTransactionCategory!.Id)
+                .Select(g => new
+                {
+                    Category = g.First().UserTransactionCategory!,
+                    Count = g.Count(),
+                    TotalAmount = g.Sum(t => t.AmountTotal ?? 0)
+                })
+                .OrderByDescending(x => x.Count)
+                .ThenByDescending(x => x.TotalAmount)
+                .FirstOrDefault();
+
+            // 支出があった日数を計算
+            var daysWithExpense = expenseTransactions
+                .Select(t => t.TransactionDate!.Value.Date)
+                .Distinct()
+                .Count();
+
+            // 合計支出を計算
+            var totalExpense = expenseTransactions.Sum(t => t.AmountTotal ?? 0);
 
             // 平均支出を計算
             var averageExpensePerDay = daysWithExpense > 0
@@ -259,22 +291,23 @@ public class StatisticsInteractor : IStatisticsUseCase
                     Payee = maxExpenseTransaction.Payee ?? "不明",
                     Amount = maxExpenseTransaction.AmountTotal ?? 0,
                     TransactionDate = maxExpenseTransaction.TransactionDate ?? DateTimeOffset.UtcNow,
-                    Category = maxExpenseTransaction.Category.ToString(),
-                    CategoryName = maxExpenseTransaction.Category.ToJapanese()
+                    CategoryId = maxExpenseTransaction.UserTransactionCategory!.Id,
+                    CategoryName = maxExpenseTransaction.UserTransactionCategory!.Name,
+                    ColorCode = maxExpenseTransaction.UserTransactionCategory!.ColorCode
                 };
             }
 
             // 最多カテゴリを整形
             CategoryFrequency? mostFrequentFrequency = null;
-            if (mostFrequentCategory.HasValue)
+            if (mostFrequentCategory != null)
             {
-                var (category, count, totalAmount) = mostFrequentCategory.Value;
                 mostFrequentFrequency = new CategoryFrequency
                 {
-                    Category = category.ToString(),
-                    CategoryName = category.ToJapanese(),
-                    Count = count,
-                    TotalAmount = totalAmount
+                    CategoryId = mostFrequentCategory.Category.Id,
+                    CategoryName = mostFrequentCategory.Category.Name,
+                    ColorCode = mostFrequentCategory.Category.ColorCode,
+                    Count = mostFrequentCategory.Count,
+                    TotalAmount = mostFrequentCategory.TotalAmount
                 };
             }
 
