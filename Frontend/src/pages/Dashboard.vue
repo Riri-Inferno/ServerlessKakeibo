@@ -122,14 +122,14 @@ onMounted(async () => {
                 支出合計
               </BaseText>
               <BaseText variant="h2" color="danger">
-                {{ categoryBreakdown.totalExpense.toLocaleString() }}円
+                {{ categoryBreakdown?.totalExpense?.toLocaleString() }}円
               </BaseText>
             </div>
           </div>
         </BaseCard>
 
         <!-- 支出トップ3 -->
-        <BaseCard v-if="monthlySummary.topExpenseCategories.length > 0">
+        <BaseCard v-if="monthlySummary?.topExpenseCategories?.length > 0">
           <div class="flex items-center gap-2 mb-4">
             <BaseIcon name="chart" size="md" class="text-gray-500" />
             <BaseText variant="h3">支出トップ3</BaseText>
@@ -138,32 +138,69 @@ onMounted(async () => {
             <div
               v-for="(category, index) in monthlySummary.topExpenseCategories"
               :key="category.categoryId"
-              class="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+              class="relative overflow-hidden rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
             >
-              <!-- ランキングバッジ -->
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white"
-                  :class="{
-                    'bg-yellow-500': index === 0,
-                    'bg-gray-400': index === 1,
-                    'bg-orange-600': index === 2,
-                  }"
-                >
-                  {{ index + 1 }}
+              <!-- カテゴリカラーのアクセントバー -->
+              <div
+                class="absolute left-0 top-0 bottom-0 w-1.5"
+                :style="{ backgroundColor: category.colorCode }"
+              ></div>
+
+              <!-- コンテンツ -->
+              <div class="flex items-center justify-between p-4 pl-5">
+                <div class="flex items-center gap-4">
+                  <!-- ランキングアイコン -->
+                  <div class="relative">
+                    <div
+                      class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
+                      :style="{
+                        backgroundColor: category.colorCode + '20',
+                        color: category.colorCode,
+                      }"
+                    >
+                      {{ index + 1 }}
+                    </div>
+                    <!-- トロフィーアイコン（1位のみ） -->
+                    <div
+                      v-if="index === 0"
+                      class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center"
+                    >
+                      <BaseIcon name="star" size="sm" class="text-white" />
+                    </div>
+                  </div>
+
+                  <!-- カテゴリ情報 -->
+                  <div>
+                    <BaseText variant="body" weight="bold" class="mb-0.5">
+                      {{ category.categoryName }}
+                    </BaseText>
+                    <div class="flex items-center gap-2">
+                      <BaseText variant="caption" color="gray">
+                        {{ category.count }}件の取引
+                      </BaseText>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <BaseText variant="body" weight="medium">
-                    {{ category.categoryName }}
+
+                <!-- 金額 -->
+                <div class="text-right">
+                  <BaseText variant="h3" color="danger">
+                    {{ category.amount.toLocaleString() }}
                   </BaseText>
-                  <BaseText variant="caption" color="gray">
-                    {{ category.count }}件
-                  </BaseText>
+                  <BaseText variant="caption" color="gray">円</BaseText>
                 </div>
               </div>
-              <BaseText variant="body" color="danger" weight="bold">
-                {{ category.amount.toLocaleString() }}円
-              </BaseText>
+
+              <!-- 金額バー（視覚化） -->
+              <div class="h-1 bg-gray-100">
+                <div
+                  class="h-full transition-all duration-500"
+                  :style="{
+                    backgroundColor: category.colorCode,
+                    width: `${(category.amount / (monthlySummary?.topExpenseCategories?.[0]?.amount || 1)) * 100}%`,
+                  }"
+                ></div>
+              </div>
             </div>
           </div>
         </BaseCard>
