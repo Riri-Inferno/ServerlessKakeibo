@@ -206,61 +206,26 @@ public class TransactionRepository : ITransactionRepository
     }
 
     /// <summary>
-    /// 月次サマリーを取得
+    /// 月次の取引一覧を取得
     /// </summary>
-    public async Task<(
-        decimal TotalIncome,
-        decimal TotalExpense,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
-        GetMonthlySummaryAsync(
-            Guid userId,
-            int year,
-            int month,
-            CancellationToken ct = default)
+    public async Task<List<TransactionEntity>> GetMonthlyTransactionsWithCategoryAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
     {
         var closingDay = await GetClosingDayAsync(userId, ct);
         var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
-        var transactions = await _context.Transactions
+        return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId
                 && !t.IsDeleted
+                && t.UserTransactionCategoryId != null // カテゴリ未設定を除外
                 && t.TransactionDate >= startDate
                 && t.TransactionDate <= endDate)
-            .Select(t => new
-            {
-                t.Type,
-                t.AmountTotal,
-                t.Category
-            })
             .ToListAsync(ct);
-
-        var totalIncome = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var totalExpense = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var incomeByCategory = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        var expenseByCategory = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        return (totalIncome, totalExpense, incomeByCategory, expenseByCategory);
     }
 
     /// <summary>

@@ -48,19 +48,14 @@ public interface ITransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
-    /// 月次サマリーを取得
+    /// 月次の取引一覧を取得
     /// </summary>
     /// <param name="userId">ユーザーID</param>
     /// <param name="year">対象年</param>
     /// <param name="month">対象月</param>
     /// <param name="ct">キャンセレーショントークン</param>
-    /// <returns>収入合計、支出合計、各カテゴリ別集計</returns>
-    Task<(
-        decimal TotalIncome,
-        decimal TotalExpense,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
-    GetMonthlySummaryAsync(
+    /// <returns>取引一覧（カテゴリ含む）</returns>
+    Task<List<TransactionEntity>> GetMonthlyTransactionsWithCategoryAsync(
         Guid userId,
         int year,
         int month,
