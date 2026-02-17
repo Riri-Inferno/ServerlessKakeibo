@@ -137,7 +137,7 @@ onMounted(async () => {
           <div class="space-y-3">
             <div
               v-for="(category, index) in monthlySummary.topExpenseCategories"
-              :key="category.category"
+              :key="category.categoryId"
               class="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
             >
               <!-- ランキングバッジ -->
