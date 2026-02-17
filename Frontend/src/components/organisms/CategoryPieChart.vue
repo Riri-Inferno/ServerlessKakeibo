@@ -40,8 +40,9 @@ const generateChartData = (): ChartData<"pie"> => {
 // チャートオプション
 const chartOptions: ChartOptions<"pie"> = {
   responsive: true,
-  maintainAspectRatio: true,
-  aspectRatio: 1,
+  maintainAspectRatio: false,
+  // aspectRatio: 1,
+  devicePixelRatio: 2,
 
   layout: {
     padding: {
@@ -166,7 +167,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full" style="max-width: 400px; margin: 0 auto">
+  <div class="w-full h-[460px]" style="max-width: 400px; margin: 0 auto">
     <canvas ref="canvasRef"></canvas>
   </div>
 </template>
