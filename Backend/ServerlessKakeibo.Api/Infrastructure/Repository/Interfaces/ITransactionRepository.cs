@@ -88,20 +88,6 @@ public interface ITransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
-    /// 全カテゴリの支出内訳を取得（TopN制限なし）
-    /// </summary>
-    /// <param name="userId">ユーザーID</param>
-    /// <param name="year">対象年</param>
-    /// <param name="month">対象月</param>
-    /// <param name="ct">キャンセルトークン</param>
-    /// <returns>カテゴリ別の金額と件数</returns>
-    Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default);
-
-    /// <summary>
     /// 指定月の最高額支出取引を取得
     /// </summary>
     /// <param name="userId">ユーザーID</param>
@@ -110,20 +96,6 @@ public interface ITransactionRepository
     /// <param name="ct">キャンセルトークン</param>
     /// <returns>最高額の取引（支出のみ）</returns>
     Task<TransactionEntity?> GetMaxExpenseTransactionAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// 指定月の最も頻度の高いカテゴリを取得
-    /// </summary>
-    /// <param name="userId">ユーザーID</param>
-    /// <param name="year">対象年</param>
-    /// <param name="month">対象月</param>
-    /// <param name="ct">キャンセルトークン</param>
-    /// <returns>カテゴリ、件数、合計金額</returns>
-    Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
         Guid userId,
         int year,
         int month,
