@@ -39,7 +39,6 @@ public static class TransactionCreateMapper
         entity.Payer = request.Payer;
         entity.Payee = request.Payee;
         entity.PaymentMethod = request.PaymentMethod;
-        entity.Category = request.Category;  // 後方互換
         entity.UserTransactionCategoryId = request.UserTransactionCategoryId;  // 新規
         entity.TaxInclusionType = request.TaxInclusionType;
         entity.Notes = request.Notes;
@@ -81,7 +80,6 @@ public static class TransactionCreateMapper
             Quantity = request.Quantity,
             UnitPrice = request.UnitPrice,
             Amount = request.Amount,
-            Category = request.Category,  // 後方互換
         };
 
         // 収入/支出による振り分け
@@ -173,7 +171,6 @@ public static class TransactionCreateMapper
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
                 Amount = i.Amount,
-                Category = i.Category
             }).ToList(),
             Taxes = entity.Taxes.Select(t => new Domain.Receipt.Models.TaxDetail
             {

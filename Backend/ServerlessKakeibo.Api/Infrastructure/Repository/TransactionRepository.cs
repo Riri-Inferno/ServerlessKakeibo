@@ -63,7 +63,6 @@ public class TransactionRepository : ITransactionRepository
     int pageSize,
     DateTimeOffset? startDate = null,
     DateTimeOffset? endDate = null,
-    TransactionCategory? category = null,
     string? payer = null,
     string? payee = null,
     decimal? minAmount = null,
@@ -82,9 +81,6 @@ public class TransactionRepository : ITransactionRepository
 
         if (endDate.HasValue)
             query = query.Where(t => t.TransactionDate <= endDate.Value);
-
-        if (category.HasValue)
-            query = query.Where(t => t.Category == category.Value);
 
         if (userTransactionCategoryId.HasValue)
             query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);
@@ -235,7 +231,6 @@ public class TransactionRepository : ITransactionRepository
         Guid userId,
         DateTimeOffset? startDate = null,
         DateTimeOffset? endDate = null,
-        TransactionCategory? category = null,
         string? payee = null,
         decimal? minAmount = null,
         decimal? maxAmount = null,
@@ -258,9 +253,6 @@ public class TransactionRepository : ITransactionRepository
 
         if (endDate.HasValue)
             query = query.Where(t => t.TransactionDate <= endDate.Value);
-
-        if (category.HasValue)
-            query = query.Where(t => t.Category == category.Value);
 
         if (userTransactionCategoryId.HasValue)
             query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);

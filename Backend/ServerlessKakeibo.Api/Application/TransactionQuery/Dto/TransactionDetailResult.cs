@@ -49,12 +49,6 @@ public class TransactionDetailResult
     public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// カテゴリ:後方互換一掃
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.TransactionCategory Category { get; set; }
-
-    /// <summary>
     /// ユーザー取引カテゴリ（カスタムカテゴリ対応）
     /// </summary>
     public UserTransactionCategoryDto? UserTransactionCategory { get; set; }

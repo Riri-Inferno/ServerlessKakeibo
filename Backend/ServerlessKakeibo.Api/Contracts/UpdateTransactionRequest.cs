@@ -40,14 +40,6 @@ public class UpdateTransactionRequest
     public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// カテゴリ（Enum）
-    /// TODO: カスタムカテゴリに置き換え後削除
-    /// </summary>
-    [Required(ErrorMessage = "カテゴリは必須です")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory Category { get; set; }
-
-    /// <summary>
     /// ユーザー取引カテゴリID（カスタムカテゴリ対応）
     /// </summary>
     public Guid? UserTransactionCategoryId { get; set; }
@@ -115,13 +107,6 @@ public class UpdateTransactionItemRequest
     [Required(ErrorMessage = "金額は必須です")]
     [Range(0, double.MaxValue, ErrorMessage = "金額は0以上を指定してください")]
     public decimal Amount { get; set; }
-
-    /// <summary>
-    /// 商品カテゴリ（Enum）
-    /// TODO: カスタムカテゴリに置き換え後削除
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
 
     /// <summary>
     /// ユーザー商品カテゴリID（支出用・カスタムカテゴリ対応）
