@@ -50,8 +50,6 @@ const updateItem = (
 
   // カテゴリ更新時は type に応じて振り分け
   if (field === "userItemCategoryId" || field === "userIncomeItemCategoryId") {
-    newItems[index].category = "Uncategorized"; // 後方互換
-
     if (props.transactionType === TransactionType.Income) {
       newItems[index].userIncomeItemCategoryId = value;
       newItems[index].userItemCategoryId = null;

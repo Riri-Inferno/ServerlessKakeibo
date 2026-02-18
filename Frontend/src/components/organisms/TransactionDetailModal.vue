@@ -3,7 +3,6 @@ import { watch, ref, computed } from "vue";
 import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import {
   TransactionType,
-  CategoryLabels,
   TaxInclusionTypeLabels,
 } from "../../types/transaction";
 import BaseModal from "../atoms/BaseModal.vue";
@@ -171,9 +170,6 @@ const handleDelete = () => {
           :custom-color="transaction.userTransactionCategory.colorCode"
         >
           {{ transaction.userTransactionCategory.name }}
-        </BaseBadge>
-        <BaseBadge v-else color="gray">
-          {{ CategoryLabels[transaction.category] || transaction.category }}
         </BaseBadge>
         <BaseBadge v-if="transaction.taxInclusionType" color="info">
           {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}

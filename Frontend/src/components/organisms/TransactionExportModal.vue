@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useTransactionExport } from "../../composables/useTransactionExport";
-import { CategoryLabels } from "../../types/transaction";
 import type { GetTransactionsRequest } from "../../types/transaction";
 import { useTransactionCategories } from "../../composables/useTransactionCategories";
 import BaseModal from "../atoms/BaseModal.vue";
@@ -107,11 +106,6 @@ const getCategoryLabel = () => {
     }
 
     return category?.name || "不明なカテゴリ";
-  }
-
-  // 後方互換: Enum カテゴリ
-  if (props.filters.category) {
-    return CategoryLabels[props.filters.category] || props.filters.category;
   }
 
   return "すべて";
