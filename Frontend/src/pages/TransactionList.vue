@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { useTransactions } from "../composables/useTransactions";
-import {
-  TransactionType,
-  CategoryLabels,
-  TaxInclusionTypeLabels,
-} from "../types/transaction";
+import { TransactionType, TaxInclusionTypeLabels } from "../types/transaction";
 import type { GetTransactionsRequest } from "../types/transaction";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseCard from "../components/atoms/BaseCard.vue";
@@ -329,12 +325,6 @@ onUnmounted(() => {
                       size="sm"
                     >
                       {{ transaction.userTransactionCategory.name }}
-                    </BaseBadge>
-                    <BaseBadge v-else color="gray" size="sm">
-                      {{
-                        CategoryLabels[transaction.category] ||
-                        transaction.category
-                      }}
                     </BaseBadge>
                     <!-- 税区分バッジ -->
                     <BaseBadge

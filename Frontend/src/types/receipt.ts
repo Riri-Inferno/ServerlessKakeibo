@@ -83,15 +83,14 @@ export interface NormalizedTransaction {
 }
 
 /**
- * OCR解析結果の取引項目（NormalizedItem → NormalizedTransactionItem に改名）
+ * OCR解析結果の取引項目
  */
 export interface NormalizedTransactionItem {
   name: string | null;
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string | null; // 既存（後方互換、Enum文字列）
-  categoryCode?: string | null; // 新規追加（Code文字列）
+  categoryCode?: string | null;
 }
 
 /**
@@ -106,37 +105,3 @@ export interface ReceiptParseResult {
   warnings: string[];
   missingFields: string[];
 }
-
-/**
- * 商品カテゴリの日本語ラベル
- * TODO: カスタムカテゴリ対応後は削除予定
- */
-export const ItemCategoryLabels: Record<string, string> = {
-  Uncategorized: "未分類",
-  Food: "食品",
-  Beverage: "飲料",
-  Snack: "お菓子・スナック",
-  FrozenFood: "冷凍食品",
-  DairyProduct: "乳製品",
-  Seasoning: "調味料",
-  Toiletries: "トイレタリー",
-  KitchenSupplies: "キッチン用品",
-  CleaningSupplies: "掃除用品",
-  LaundrySupplies: "洗濯用品",
-  Stationery: "文房具",
-  Miscellaneous: "雑貨",
-  Medicine: "医薬品",
-  Supplement: "サプリメント",
-  Cosmetics: "化粧品",
-  Clothing: "衣類",
-  Shoes: "靴",
-  Accessories: "アクセサリー",
-  Electronics: "電子機器",
-  Battery: "電池",
-  PetSupplies: "ペット用品",
-  BabyProducts: "ベビー用品",
-  Packaging: "レジ袋・包装材",
-  Tobacco: "タバコ",
-  Books: "書籍・雑誌",
-  Other: "その他",
-};

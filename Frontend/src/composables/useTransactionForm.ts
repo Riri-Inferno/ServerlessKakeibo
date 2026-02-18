@@ -8,7 +8,6 @@ import type {
   ShopDetails,
   TransactionDetail,
   UpdateTransactionRequest,
-  // TransactionCategory, // 後方互換一掃時に消す
 } from "../types/transaction";
 import type {
   ReceiptParseResult,
@@ -140,7 +139,6 @@ export function useTransactionForm() {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         amount: item.amount,
-        category: item.category || "Uncategorized", // 後方互換
         userItemCategoryId,
         userIncomeItemCategoryId: null,
       };
@@ -202,7 +200,6 @@ export function useTransactionForm() {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       amount: item.amount,
-      category: item.category,
       userItemCategoryId: item.userItemCategoryId || null,
       userIncomeItemCategoryId: item.userIncomeItemCategoryId || null,
     }));
@@ -237,7 +234,6 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: "Uncategorized", // 後方互換用に固定値
         userTransactionCategoryId: category.value || undefined,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
@@ -350,7 +346,6 @@ export function useTransactionForm() {
         payer: payer.value || undefined,
         payee: payee.value || undefined,
         paymentMethod: paymentMethod.value || undefined,
-        category: "Uncategorized", // 後方互換用に固定値
         userTransactionCategoryId: category.value || undefined,
         notes: notes.value || undefined,
         taxInclusionType: taxInclusionType.value,
@@ -393,7 +388,6 @@ export function useTransactionForm() {
       quantity: 1,
       unitPrice: null,
       amount: 0,
-      category: "Uncategorized", // 後方互換
       userItemCategoryId: null,
       userIncomeItemCategoryId: null,
     });

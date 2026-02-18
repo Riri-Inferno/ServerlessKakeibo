@@ -10,51 +10,6 @@ export type TransactionType =
   (typeof TransactionType)[keyof typeof TransactionType];
 
 /**
- * 取引カテゴリ
- * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
- */
-export const TransactionCategory = {
-  Uncategorized: "Uncategorized",
-  Food: "Food",
-  DiningOut: "DiningOut",
-  DailyNecessities: "DailyNecessities",
-  Transportation: "Transportation",
-  Education: "Education",
-  Medical: "Medical",
-  Entertainment: "Entertainment",
-  Fashion: "Fashion",
-  Utilities: "Utilities",
-  Communication: "Communication",
-  Other: "Other",
-  Salary: "Salary",
-  OtherIncome: "OtherIncome",
-} as const;
-
-export type TransactionCategory =
-  (typeof TransactionCategory)[keyof typeof TransactionCategory];
-
-/**
- * カテゴリ名の日本語マッピング
- * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
- */
-export const CategoryLabels: Record<string, string> = {
-  Uncategorized: "未分類",
-  Food: "食費",
-  DiningOut: "外食",
-  DailyNecessities: "日用品",
-  Transportation: "交通費",
-  Education: "教育・教養",
-  Medical: "医療・健康",
-  Entertainment: "趣味・娯楽",
-  Fashion: "衣服・美容",
-  Utilities: "水道・光熱費",
-  Communication: "通信費",
-  Other: "その他",
-  Salary: "給与",
-  OtherIncome: "その他収入",
-};
-
-/**
  * 税の扱い（内税・外税）
  */
 export const TaxInclusionType = {
@@ -88,7 +43,6 @@ export interface TransactionSummary {
   currency: string;
   payer: string | null;
   payee: string | null;
-  category: TransactionCategory; // 後方互換
   userTransactionCategory?: UserTransactionCategory | null;
   paymentMethod: string | null;
   taxInclusionType?: TaxInclusionType;
@@ -104,7 +58,6 @@ export interface TransactionItem {
   quantity: number;
   unitPrice: number;
   amount: number;
-  category: TransactionCategory; // 後方互換
   userItemCategoryId?: string | null;
   userIncomeItemCategoryId?: string | null;
   userItemCategory?: UserItemCategory | null;
@@ -138,7 +91,6 @@ export interface TransactionDetail {
   payer: string | null;
   payee: string;
   paymentMethod: string | null;
-  category: TransactionCategory; // 後方互換
   userTransactionCategory?: UserTransactionCategory | null;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
@@ -190,7 +142,6 @@ export interface GetTransactionsRequest {
   pageSize?: number;
   startDate?: string;
   endDate?: string;
-  category?: TransactionCategory; // 後方互換
   userTransactionCategoryId?: string | null;
   payer?: string;
   payee?: string;
@@ -208,7 +159,6 @@ export interface CreateTransactionItem {
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string; // 後方互換
   userItemCategoryId: string | null; // 支出用
   userIncomeItemCategoryId?: string | null;
 }
@@ -245,8 +195,7 @@ export interface CreateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory; // 後方互換
-  userTransactionCategoryId?: string | null; // 新規追加
+  userTransactionCategoryId?: string | null;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: CreateTransactionItem[];
@@ -265,7 +214,6 @@ export interface TransactionResult {
   amountTotal: number;
   currency: string;
   payee: string | null;
-  category: TransactionCategory;
   taxInclusionType?: TaxInclusionType;
   notes?: string | null;
   processedAt: string;
@@ -281,7 +229,6 @@ export interface UpdateTransactionItem {
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string; // 後方互換
   userItemCategoryId: string | null; // 支出用
   userIncomeItemCategoryId?: string | null;
 }
@@ -318,8 +265,7 @@ export interface UpdateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory; // 後方互換
-  userTransactionCategoryId?: string | null; // 新規追加
+  userTransactionCategoryId?: string | null;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: UpdateTransactionItem[];
