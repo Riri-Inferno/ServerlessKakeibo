@@ -52,14 +52,19 @@ public class TransactionHighlight
     public DateTimeOffset TransactionDate { get; set; }
 
     /// <summary>
-    /// カテゴリ（Enum値）
+    /// カテゴリID
     /// </summary>
-    public string Category { get; set; } = string.Empty;
+    public Guid CategoryId { get; set; }
 
     /// <summary>
-    /// カテゴリ名（日本語）
+    /// カテゴリ名
     /// </summary>
     public string CategoryName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// カラーコード
+    /// </summary>
+    public string ColorCode { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -68,14 +73,19 @@ public class TransactionHighlight
 public class CategoryFrequency
 {
     /// <summary>
-    /// カテゴリ（Enum値）
+    /// カテゴリID
     /// </summary>
-    public string Category { get; set; } = string.Empty;
+    public Guid CategoryId { get; set; }
 
     /// <summary>
-    /// カテゴリ名（日本語）
+    /// カテゴリ名
     /// </summary>
     public string CategoryName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// カラーコード
+    /// </summary>
+    public string ColorCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 取引件数

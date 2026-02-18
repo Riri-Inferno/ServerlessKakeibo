@@ -34,8 +34,22 @@ public class TransactionItemDto
     public decimal? Amount { get; set; }
 
     /// <summary>
-    /// 商品カテゴリ
+    /// ユーザー商品カテゴリID（支出用）
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.ItemCategory Category { get; set; }
+    public Guid? UserItemCategoryId { get; set; }
+
+    /// <summary>
+    /// ユーザー収入項目カテゴリID（収入用）
+    /// </summary>
+    public Guid? UserIncomeItemCategoryId { get; set; }
+
+    /// <summary>
+    /// 明細のカテゴリ
+    /// </summary>
+    public UserItemCategoryDto? UserItemCategory { get; set; }
+
+    /// <summary>
+    /// 収入明細のカテゴリ
+    /// </summary>
+    public UserIncomeItemCategoryDto? UserIncomeItemCategory { get; set; }
 }

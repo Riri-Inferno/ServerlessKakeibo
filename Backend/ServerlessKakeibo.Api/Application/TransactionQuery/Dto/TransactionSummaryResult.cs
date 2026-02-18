@@ -44,10 +44,9 @@ public class TransactionSummaryResult
     public string? Payee { get; set; }
 
     /// <summary>
-    /// カテゴリ
+    /// ユーザー取引カテゴリ（カスタムカテゴリ対応）
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.TransactionCategory Category { get; set; }
+    public UserTransactionCategoryDto? UserTransactionCategory { get; set; }
 
     /// <summary>
     /// 支払方法

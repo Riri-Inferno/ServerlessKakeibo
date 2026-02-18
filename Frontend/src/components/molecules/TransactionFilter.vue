@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import {
-  TransactionType,
-  //   TransactionCategory,
-  CategoryLabels,
-} from "../../types/transaction";
+import { ref, computed } from "vue";
+import { TransactionType } from "../../types/transaction";
 import type { GetTransactionsRequest } from "../../types/transaction";
+import { useTransactionCategories } from "../../composables/useTransactionCategories";
 import BaseCard from "../atoms/BaseCard.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
@@ -21,14 +18,22 @@ const emit = defineEmits<{
 
 const isExpanded = ref(false);
 
-const filters = ref<GetTransactionsRequest>({
+// カスタムカテゴリ取得
+const { categories, fetchCategories } = useTransactionCategories();
+
+// 初回読み込み
+fetchCategories(true);
+
+const filters = ref({
   startDate: undefined,
   endDate: undefined,
-  category: undefined,
+  userTransactionCategoryId: null as string | null,
+  payer: undefined,
   payee: undefined,
+  payerOrPayee: undefined,
   minAmount: undefined,
   maxAmount: undefined,
-  type: undefined,
+  type: null as TransactionType | null,
 });
 
 const typeOptions = [
@@ -36,18 +41,93 @@ const typeOptions = [
   { value: TransactionType.Expense, label: "支出" },
 ];
 
-const categoryOptions = Object.entries(CategoryLabels).map(([key, label]) => ({
-  value: key,
-  label,
-}));
+// type に応じてカテゴリオプションを切り替え
+const categoryOptions = computed(() => {
+  if (filters.value.type === TransactionType.Income) {
+    return categories.value
+      .filter((cat) => cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
+  } else if (filters.value.type === TransactionType.Expense) {
+    return categories.value
+      .filter((cat) => !cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
+  }
+
+  // type 未選択: 両方表示
+  return [
+    ...categories.value
+      .filter((cat) => !cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: `${cat.name}（支出）`,
+      })),
+    ...categories.value
+      .filter((cat) => cat.isIncome)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((cat) => ({
+        value: cat.id,
+        label: `${cat.name}（収入）`,
+      })),
+  ];
+});
+
+// type に応じたラベル
+const payerPayeeLabel = computed(() => {
+  if (filters.value.type === TransactionType.Income) {
+    return "支払元（勤務先など）";
+  } else if (filters.value.type === TransactionType.Expense) {
+    return "支払先（店舗名など）";
+  }
+  return "支払元/支払先";
+});
+
+const payerPayeePlaceholder = computed(() => {
+  if (filters.value.type === TransactionType.Income) {
+    return "会社名など";
+  } else if (filters.value.type === TransactionType.Expense) {
+    return "店舗名など";
+  }
+  return "会社名や店舗名など";
+});
 
 const handleSearch = () => {
   const searchParams: GetTransactionsRequest = {};
 
   if (filters.value.startDate) searchParams.startDate = filters.value.startDate;
   if (filters.value.endDate) searchParams.endDate = filters.value.endDate;
-  if (filters.value.category) searchParams.category = filters.value.category;
-  if (filters.value.payee) searchParams.payee = filters.value.payee;
+
+  // カスタムカテゴリID
+  if (filters.value.userTransactionCategoryId) {
+    searchParams.userTransactionCategoryId =
+      filters.value.userTransactionCategoryId;
+  }
+
+  // type に応じて payer/payee を振り分け
+  if (!filters.value.type && filters.value.payerOrPayee) {
+    // type未選択: 両方検索
+    searchParams.payer = filters.value.payerOrPayee;
+    searchParams.payee = filters.value.payerOrPayee;
+  } else if (
+    filters.value.type === TransactionType.Income &&
+    filters.value.payer
+  ) {
+    searchParams.payer = filters.value.payer;
+  } else if (
+    filters.value.type === TransactionType.Expense &&
+    filters.value.payee
+  ) {
+    searchParams.payee = filters.value.payee;
+  }
+
   if (
     filters.value.minAmount !== undefined &&
     filters.value.minAmount !== null
@@ -69,11 +149,13 @@ const handleClear = () => {
   filters.value = {
     startDate: undefined,
     endDate: undefined,
-    category: undefined,
+    userTransactionCategoryId: null,
+    payer: undefined,
     payee: undefined,
+    payerOrPayee: undefined,
     minAmount: undefined,
     maxAmount: undefined,
-    type: undefined,
+    type: null,
   };
   emit("clear");
 };
@@ -101,7 +183,7 @@ const toggleExpand = () => {
       </div>
 
       <div v-show="isExpanded" class="space-y-4">
-        <!-- 日付範囲：モバイルは縦並び、タブレット以上は横並び -->
+        <!-- 日付範囲 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <BaseText variant="caption" color="gray" class="mb-1">
@@ -118,19 +200,7 @@ const toggleExpand = () => {
           </div>
         </div>
 
-        <div>
-          <BaseText variant="caption" color="gray" class="mb-1">
-            支払先
-          </BaseText>
-          <BaseInput
-            v-model="filters.payee"
-            type="text"
-            placeholder="店舗名など"
-            size="md"
-          />
-        </div>
-
-        <!-- 種別・カテゴリ：モバイルは縦並び、タブレット以上は横並び -->
+        <!-- 種別・カテゴリ -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <BaseText variant="caption" color="gray" class="mb-1">
@@ -149,7 +219,7 @@ const toggleExpand = () => {
               カテゴリ
             </BaseText>
             <BaseSelect
-              v-model="filters.category"
+              v-model="filters.userTransactionCategoryId"
               :options="categoryOptions"
               placeholder="すべて"
               size="md"
@@ -157,7 +227,35 @@ const toggleExpand = () => {
           </div>
         </div>
 
-        <!-- 金額範囲：モバイルは縦並び、タブレット以上は横並び -->
+        <!-- 支払元/支払先を type に応じて切り替え -->
+        <div>
+          <BaseText variant="caption" color="gray" class="mb-1">
+            {{ payerPayeeLabel }}
+          </BaseText>
+          <BaseInput
+            v-if="filters.type === TransactionType.Income"
+            v-model="filters.payer"
+            type="text"
+            :placeholder="payerPayeePlaceholder"
+            size="md"
+          />
+          <BaseInput
+            v-else-if="filters.type === TransactionType.Expense"
+            v-model="filters.payee"
+            type="text"
+            :placeholder="payerPayeePlaceholder"
+            size="md"
+          />
+          <BaseInput
+            v-else
+            v-model="filters.payerOrPayee"
+            type="text"
+            placeholder="会社名や店舗名など"
+            size="md"
+          />
+        </div>
+
+        <!-- 金額範囲 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <BaseText variant="caption" color="gray" class="mb-1">
@@ -182,7 +280,7 @@ const toggleExpand = () => {
           </div>
         </div>
 
-        <!-- ボタン：モバイルは縦並び、タブレット以上は横並び -->
+        <!-- ボタン -->
         <div class="flex flex-col sm:flex-row gap-2">
           <BaseButton
             variant="primary"

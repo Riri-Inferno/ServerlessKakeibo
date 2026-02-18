@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
 {
@@ -39,12 +38,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public decimal? Amount { get; set; }
 
         /// <summary>
-        /// 商品カテゴリ（LLMが推論）
-        /// TODO:カスタムカテゴリに置き換え後削除する
-        /// </summary>
-        public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
-
-        /// <summary>
         /// 取引ID（外部キー）
         /// </summary>
         public Guid TransactionId { get; set; }
@@ -59,7 +52,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         /// </summary>
         public UserItemCategoryEntity? UserItemCategory { get; set; }
 
-        // 【追加】新しい外部キー（収入用）
         /// <summary>
         /// ユーザー給与項目カテゴリID（収入用、外部キー）
         /// </summary>

@@ -49,10 +49,9 @@ public class TransactionDetailResult
     public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// カテゴリ
+    /// ユーザー取引カテゴリ（カスタムカテゴリ対応）
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.TransactionCategory Category { get; set; }
+    public UserTransactionCategoryDto? UserTransactionCategory { get; set; }
 
     /// <summary>
     /// メモ・備考

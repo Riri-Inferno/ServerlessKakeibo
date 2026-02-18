@@ -94,12 +94,12 @@ public class TransactionQueryInteractor : ITransactionQueryUseCase
                 request.PageSize,
                 request.StartDate,
                 request.EndDate,
-                request.Category,
                 request.Payer,
                 request.Payee,
                 request.MinAmount,
                 request.MaxAmount,
                 request.Type,
+                request.UserTransactionCategoryId,
                 cancellationToken);
 
             _logger.LogInformation(

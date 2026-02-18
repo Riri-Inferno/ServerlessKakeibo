@@ -156,7 +156,7 @@ export const transactionRepository = {
    */
   async export(
     request: ExportTransactionsRequest,
-  ): Promise<TransactionExportResult> {
+  ): Promise<{ result: TransactionExportResult; warnings?: string }> {
     const response = await apiClient.post<ApiResponse<TransactionExportResult>>(
       "/TransactionExport",
       request,
@@ -166,6 +166,9 @@ export const transactionRepository = {
       throw new Error(response.data.message || "エクスポートに失敗しました");
     }
 
-    return response.data.data;
+    return {
+      result: response.data.data,
+      warnings: response.data.message || undefined,
+    };
   },
 };

@@ -12,6 +12,7 @@ export function useTransactionExport() {
   const isExporting = ref(false);
   const errorMessage = ref("");
   const exportResult = ref<TransactionExportResult | null>(null);
+  const warnings = ref<string | null>(null);
 
   /**
    * Base64をBlobに変換
@@ -57,15 +58,15 @@ export function useTransactionExport() {
     isExporting.value = true;
     errorMessage.value = "";
     exportResult.value = null;
+    warnings.value = null;
 
     try {
-      const result = await transactionRepository.export(request);
+      const response = await transactionRepository.export(request);
 
-      // 結果を保存（モーダル表示用）
-      exportResult.value = result;
+      exportResult.value = response.result;
+      warnings.value = response.warnings || null;
 
-      // Zipファイルをダウンロード
-      downloadZip(result.fileName, result.zipDataBase64);
+      downloadZip(response.result.fileName, response.result.zipDataBase64);
 
       return true;
     } catch (error) {
@@ -84,12 +85,14 @@ export function useTransactionExport() {
   const clearResult = () => {
     exportResult.value = null;
     errorMessage.value = "";
+    warnings.value = null;
   };
 
   return {
     isExporting,
     errorMessage,
     exportResult,
+    warnings,
     exportTransactions,
     clearResult,
   };

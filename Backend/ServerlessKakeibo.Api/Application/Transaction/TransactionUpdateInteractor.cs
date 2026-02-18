@@ -144,7 +144,6 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     AmountTotal = newEntity.AmountTotal ?? 0,
                     Currency = newEntity.Currency,
                     Payee = newEntity.Payee,
-                    Category = newEntity.Category,
                     Notes = newEntity.Notes,
                     TaxInclusionType = newEntity.TaxInclusionType,
                     ProcessedAt = DateTimeOffset.UtcNow,
@@ -166,11 +165,11 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
     /// リクエストから新しい TransactionEntity を作成
     /// </summary>
     private TransactionEntity CreateTransactionEntity(
-        Guid transactionId,
-        UpdateTransactionRequest request,
-        Guid userId,
-        Guid tenantId,
-        TransactionType existingType)
+    Guid transactionId,
+    UpdateTransactionRequest request,
+    Guid userId,
+    Guid tenantId,
+    TransactionType existingType)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -185,7 +184,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Payer = request.Payer,
             Payee = request.Payee,
             PaymentMethod = request.PaymentMethod,
-            Category = request.Category,
+            UserTransactionCategoryId = request.UserTransactionCategoryId,
             Notes = request.Notes,
             TaxInclusionType = request.TaxInclusionType,
             CreatedBy = userId,
@@ -201,19 +200,34 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
         {
             foreach (var itemReq in request.Items)
             {
-                entity.Items.Add(TransactionCreateMapper.ToItemEntity(
-                    new CreateTransactionItemRequest
-                    {
-                        Name = itemReq.Name,
-                        Quantity = itemReq.Quantity,
-                        UnitPrice = itemReq.UnitPrice,
-                        Amount = itemReq.Amount,
-                        Category = itemReq.Category
-                    },
-                    transactionId,
-                    userId,
-                    tenantId
-                ));
+                var item = new TransactionItemEntity
+                {
+                    Id = Guid.NewGuid(),
+                    TransactionId = transactionId,
+                    TenantId = tenantId,
+                    CreatedBy = userId,
+                    UpdatedBy = userId,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    Name = itemReq.Name,
+                    Quantity = itemReq.Quantity,
+                    UnitPrice = itemReq.UnitPrice,
+                    Amount = itemReq.Amount,
+                };
+
+                // existingType による振り分け
+                if (existingType == TransactionType.Income)
+                {
+                    item.UserIncomeItemCategoryId = itemReq.UserIncomeItemCategoryId;
+                    item.UserItemCategoryId = null;
+                }
+                else // Expense
+                {
+                    item.UserItemCategoryId = itemReq.UserItemCategoryId;
+                    item.UserIncomeItemCategoryId = null;
+                }
+
+                entity.Items.Add(item);
             }
         }
 

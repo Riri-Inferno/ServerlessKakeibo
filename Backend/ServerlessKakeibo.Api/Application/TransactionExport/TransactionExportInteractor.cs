@@ -52,11 +52,12 @@ public class TransactionExportInteractor : ITransactionExportUseCase
             userId,
             request.StartDate,
             request.EndDate,
-            request.Category,
             request.Payee,
             request.MinAmount,
             request.MaxAmount,
             request.Type,
+            request.UserTransactionCategoryId,
+            request.Payer,
             cancellationToken);
 
         if (!transactions.Any())

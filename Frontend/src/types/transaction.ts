@@ -11,6 +11,7 @@ export type TransactionType =
 
 /**
  * 取引カテゴリ
+ * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
  */
 export const TransactionCategory = {
   Uncategorized: "Uncategorized",
@@ -34,6 +35,7 @@ export type TransactionCategory =
 
 /**
  * カテゴリ名の日本語マッピング
+ * TODO: カスタムカテゴリ対応後は削除予定（後方互換のため現在は残す）
  */
 export const CategoryLabels: Record<string, string> = {
   Uncategorized: "未分類",
@@ -86,7 +88,8 @@ export interface TransactionSummary {
   currency: string;
   payer: string | null;
   payee: string | null;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategory?: UserTransactionCategory | null;
   paymentMethod: string | null;
   taxInclusionType?: TaxInclusionType;
   itemCount: number;
@@ -101,7 +104,11 @@ export interface TransactionItem {
   quantity: number;
   unitPrice: number;
   amount: number;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userItemCategoryId?: string | null;
+  userIncomeItemCategoryId?: string | null;
+  userItemCategory?: UserItemCategory | null;
+  userIncomeItemCategory?: UserIncomeItemCategory | null;
 }
 
 /**
@@ -131,7 +138,8 @@ export interface TransactionDetail {
   payer: string | null;
   payee: string;
   paymentMethod: string | null;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategory?: UserTransactionCategory | null;
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   receiptType: string | null;
@@ -182,7 +190,8 @@ export interface GetTransactionsRequest {
   pageSize?: number;
   startDate?: string;
   endDate?: string;
-  category?: TransactionCategory;
+  category?: TransactionCategory; // 後方互換
+  userTransactionCategoryId?: string | null;
   payer?: string;
   payee?: string;
   minAmount?: number;
@@ -194,11 +203,14 @@ export interface GetTransactionsRequest {
  * 取引作成用の項目
  */
 export interface CreateTransactionItem {
+  id?: string;
   name: string;
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string;
+  category: string; // 後方互換
+  userItemCategoryId: string | null; // 支出用
+  userIncomeItemCategoryId?: string | null;
 }
 
 /**
@@ -233,7 +245,8 @@ export interface CreateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategoryId?: string | null; // 新規追加
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: CreateTransactionItem[];
@@ -263,12 +276,14 @@ export interface TransactionResult {
  * 取引更新用の項目
  */
 export interface UpdateTransactionItem {
-  id?: string; // 既存項目の場合は指定
+  id?: string;
   name: string;
   quantity: number;
   unitPrice: number | null;
   amount: number;
-  category: string;
+  category: string; // 後方互換
+  userItemCategoryId: string | null; // 支出用
+  userIncomeItemCategoryId?: string | null;
 }
 
 /**
@@ -303,7 +318,8 @@ export interface UpdateTransactionRequest {
   payer?: string;
   payee?: string;
   paymentMethod?: string;
-  category: TransactionCategory;
+  category: TransactionCategory; // 後方互換
+  userTransactionCategoryId?: string | null; // 新規追加
   notes?: string;
   taxInclusionType?: TaxInclusionType;
   items?: UpdateTransactionItem[];
@@ -350,4 +366,35 @@ export interface TransactionExportResult {
    * 画像取得に失敗した件数
    */
   imagesFailedCount: number;
+}
+
+/**
+ * ユーザー取引カテゴリ（取引レベル）
+ */
+export interface UserTransactionCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isIncome: boolean;
+  isCustom: boolean;
+}
+
+/**
+ * ユーザー商品カテゴリ（支出用・明細レベル）
+ */
+export interface UserItemCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isCustom: boolean;
+}
+
+/**
+ * ユーザー収入項目カテゴリ（収入用・明細レベル）
+ */
+export interface UserIncomeItemCategory {
+  id: string;
+  name: string;
+  colorCode: string;
+  isCustom: boolean;
 }

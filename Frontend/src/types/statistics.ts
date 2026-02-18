@@ -3,17 +3,18 @@
  */
 
 /**
- * カテゴリサマリー（既存の月次サマリーと共通）
+ * カテゴリサマリー
  */
 export interface CategorySummary {
-  category: string;
+  categoryId: string;
   categoryName: string;
+  colorCode: string;
   amount: number;
   count: number;
 }
 
 /**
- * 月次サマリー結果（既存）
+ * 月次サマリー結果
  */
 export interface MonthlySummaryResult {
   year: number;
@@ -75,16 +76,18 @@ export interface TransactionHighlight {
   payee: string;
   amount: number;
   transactionDate: string;
-  category: string;
+  categoryId: string;
   categoryName: string;
+  colorCode: string;
 }
 
 /**
  * カテゴリ頻度
  */
 export interface CategoryFrequency {
-  category: string;
+  categoryId: string;
   categoryName: string;
+  colorCode: string;
   count: number;
   totalAmount: number;
 }
@@ -111,5 +114,5 @@ export interface GetMonthlySummaryRequest {
  * 月次推移取得リクエスト
  */
 export interface GetMonthlyTrendRequest {
-  months?: number; // デフォルト: 6
+  months?: number;
 }

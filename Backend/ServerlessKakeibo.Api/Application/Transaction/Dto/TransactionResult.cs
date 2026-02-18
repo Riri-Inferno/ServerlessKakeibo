@@ -44,12 +44,6 @@ public class TransactionResult
     public string? Payee { get; set; }
 
     /// <summary>
-    /// カテゴリ
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.TransactionCategory Category { get; set; }
-
-    /// <summary>
     /// 税の扱い（外税・内税・不明）
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]

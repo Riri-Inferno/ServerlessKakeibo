@@ -41,8 +41,13 @@ public class TransactionRepository : ITransactionRepository
         return await _context.Transactions
             .AsNoTracking()
             .Include(t => t.Items)        // ← Eager Loading
+                .ThenInclude(i => i.UserItemCategory)
+            .Include(t => t.Items)
+                .ThenInclude(i => i.UserIncomeItemCategory)
+            .Include(t => t.UserTransactionCategory)
             .Include(t => t.Taxes)
             .Include(t => t.ShopDetail)
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.Id == id
                 && t.UserId == userId
                 && !t.IsDeleted)
@@ -53,18 +58,18 @@ public class TransactionRepository : ITransactionRepository
     /// 取引一覧を取得(ページング対応)
     /// </summary>
     public async Task<(List<TransactionEntity> Items, int TotalCount)> GetPagedListAsync(
-        Guid userId,
-        int page,
-        int pageSize,
-        DateTimeOffset? startDate = null,
-        DateTimeOffset? endDate = null,
-        TransactionCategory? category = null,
-        string? payer = null,
-        string? payee = null,
-        decimal? minAmount = null,
-        decimal? maxAmount = null,
-        TransactionType? type = null,
-        CancellationToken ct = default)
+    Guid userId,
+    int page,
+    int pageSize,
+    DateTimeOffset? startDate = null,
+    DateTimeOffset? endDate = null,
+    string? payer = null,
+    string? payee = null,
+    decimal? minAmount = null,
+    decimal? maxAmount = null,
+    TransactionType? type = null,
+    Guid? userTransactionCategoryId = null,
+    CancellationToken ct = default)
     {
         var query = _context.Transactions
             .AsNoTracking()
@@ -77,14 +82,26 @@ public class TransactionRepository : ITransactionRepository
         if (endDate.HasValue)
             query = query.Where(t => t.TransactionDate <= endDate.Value);
 
-        if (category.HasValue)
-            query = query.Where(t => t.Category == category.Value);
+        if (userTransactionCategoryId.HasValue)
+            query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);
 
-        if (!string.IsNullOrWhiteSpace(payer))
+        if (!string.IsNullOrWhiteSpace(payer) && !string.IsNullOrWhiteSpace(payee))
+        {
+            // 両方指定された場合は OR 検索
+            query = query.Where(t =>
+                (t.Payer != null && t.Payer.Contains(payer)) ||
+                (t.Payee != null && t.Payee.Contains(payee)));
+        }
+        else if (!string.IsNullOrWhiteSpace(payer))
+        {
+            // payer のみ
             query = query.Where(t => t.Payer != null && t.Payer.Contains(payer));
-
-        if (!string.IsNullOrWhiteSpace(payee))
+        }
+        else if (!string.IsNullOrWhiteSpace(payee))
+        {
+            // payee のみ
             query = query.Where(t => t.Payee != null && t.Payee.Contains(payee));
+        }
 
         if (minAmount.HasValue)
             query = query.Where(t => t.AmountTotal >= minAmount.Value);
@@ -104,7 +121,8 @@ public class TransactionRepository : ITransactionRepository
             .ThenByDescending(t => t.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Include(t => t.Items)  // ← ItemCountのため
+            .Include(t => t.Items)
+            .Include(t => t.UserTransactionCategory)
             .ToListAsync(ct);
 
         return (items, totalCount);
@@ -184,61 +202,26 @@ public class TransactionRepository : ITransactionRepository
     }
 
     /// <summary>
-    /// 月次サマリーを取得
+    /// 月次の取引一覧を取得
     /// </summary>
-    public async Task<(
-        decimal TotalIncome,
-        decimal TotalExpense,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> IncomeByCategory,
-        Dictionary<TransactionCategory, (decimal Amount, int Count)> ExpenseByCategory)>
-        GetMonthlySummaryAsync(
-            Guid userId,
-            int year,
-            int month,
-            CancellationToken ct = default)
+    public async Task<List<TransactionEntity>> GetMonthlyTransactionsWithCategoryAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken ct = default)
     {
         var closingDay = await GetClosingDayAsync(userId, ct);
         var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
 
-        var transactions = await _context.Transactions
+        return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId
                 && !t.IsDeleted
+                && t.UserTransactionCategoryId != null // カテゴリ未設定を除外
                 && t.TransactionDate >= startDate
                 && t.TransactionDate <= endDate)
-            .Select(t => new
-            {
-                t.Type,
-                t.AmountTotal,
-                t.Category
-            })
             .ToListAsync(ct);
-
-        var totalIncome = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var totalExpense = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .Sum(t => t.AmountTotal ?? 0);
-
-        var incomeByCategory = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        var expenseByCategory = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .GroupBy(t => t.Category)
-            .ToDictionary(
-                g => g.Key,
-                g => (Amount: g.Sum(t => t.AmountTotal ?? 0), Count: g.Count())
-            );
-
-        return (totalIncome, totalExpense, incomeByCategory, expenseByCategory);
     }
 
     /// <summary>
@@ -248,32 +231,46 @@ public class TransactionRepository : ITransactionRepository
         Guid userId,
         DateTimeOffset? startDate = null,
         DateTimeOffset? endDate = null,
-        TransactionCategory? category = null,
         string? payee = null,
         decimal? minAmount = null,
         decimal? maxAmount = null,
         TransactionType? type = null,
-        CancellationToken ct = default)
+        Guid? userTransactionCategoryId = null,
+        string? payer = null,
+    CancellationToken ct = default)
     {
         var query = _context.Transactions
             .AsNoTracking()
-            .Include(t => t.Items)        // CSV出力用
-            .Include(t => t.Taxes)        // CSV出力用
-            .Include(t => t.ShopDetail)   // CSV出力用
+            .Include(t => t.Items)
+            .Include(t => t.Taxes)
+            .Include(t => t.ShopDetail)
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId && !t.IsDeleted);
 
-        // フィルタ適用（GetPagedListAsyncと同じロジック）
+        // フィルタ適用
         if (startDate.HasValue)
             query = query.Where(t => t.TransactionDate >= startDate.Value);
 
         if (endDate.HasValue)
             query = query.Where(t => t.TransactionDate <= endDate.Value);
 
-        if (category.HasValue)
-            query = query.Where(t => t.Category == category.Value);
+        if (userTransactionCategoryId.HasValue)
+            query = query.Where(t => t.UserTransactionCategoryId == userTransactionCategoryId.Value);
 
-        if (!string.IsNullOrWhiteSpace(payee))
+        if (!string.IsNullOrWhiteSpace(payer) && !string.IsNullOrWhiteSpace(payee))
+        {
+            query = query.Where(t =>
+                (t.Payer != null && t.Payer.Contains(payer)) ||
+                (t.Payee != null && t.Payee.Contains(payee)));
+        }
+        else if (!string.IsNullOrWhiteSpace(payer))
+        {
+            query = query.Where(t => t.Payer != null && t.Payer.Contains(payer));
+        }
+        else if (!string.IsNullOrWhiteSpace(payee))
+        {
             query = query.Where(t => t.Payee != null && t.Payee.Contains(payee));
+        }
 
         if (minAmount.HasValue)
             query = query.Where(t => t.AmountTotal >= minAmount.Value);
@@ -284,45 +281,10 @@ public class TransactionRepository : ITransactionRepository
         if (type.HasValue)
             query = query.Where(t => t.Type == type.Value);
 
-        // 取引日時の降順でソート
         return await query
             .OrderByDescending(t => t.TransactionDate)
             .ThenByDescending(t => t.CreatedAt)
             .ToListAsync(ct);
-    }
-
-    /// <summary>
-    /// 全カテゴリの支出内訳を取得（TopN制限なし）
-    /// </summary>
-    public async Task<Dictionary<TransactionCategory, (decimal Amount, int Count)>> GetAllCategoryExpensesAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default)
-    {
-        var closingDay = await GetClosingDayAsync(userId, ct);
-        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
-
-        var expenseByCategory = await _context.Transactions
-            .AsNoTracking()
-            .Where(t => t.UserId == userId
-                && !t.IsDeleted
-                && t.Type == TransactionType.Expense
-                && t.TransactionDate >= startDate
-                && t.TransactionDate <= endDate)
-            .GroupBy(t => t.Category)
-            .Select(g => new
-            {
-                Category = g.Key,
-                Amount = g.Sum(t => t.AmountTotal ?? 0),
-                Count = g.Count()
-            })
-            .ToListAsync(ct);
-
-        return expenseByCategory.ToDictionary(
-            x => x.Category,
-            x => (x.Amount, x.Count)
-        );
     }
 
     /// <summary>
@@ -339,49 +301,15 @@ public class TransactionRepository : ITransactionRepository
 
         return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.UserTransactionCategory)
             .Where(t => t.UserId == userId
                 && !t.IsDeleted
                 && t.Type == TransactionType.Expense
+                && t.UserTransactionCategoryId != null
                 && t.TransactionDate >= startDate
                 && t.TransactionDate <= endDate)
             .OrderByDescending(t => t.AmountTotal)
             .FirstOrDefaultAsync(ct);
-    }
-
-    /// <summary>
-    /// 指定月の最も頻度の高いカテゴリを取得
-    /// </summary>
-    public async Task<(TransactionCategory Category, int Count, decimal TotalAmount)?> GetMostFrequentCategoryAsync(
-        Guid userId,
-        int year,
-        int month,
-        CancellationToken ct = default)
-    {
-        var closingDay = await GetClosingDayAsync(userId, ct);
-        var (startDate, endDate) = ClosingDayHelper.GetPeriod(year, month, closingDay);
-
-        var result = await _context.Transactions
-            .AsNoTracking()
-            .Where(t => t.UserId == userId
-                && !t.IsDeleted
-                && t.Type == TransactionType.Expense
-                && t.TransactionDate >= startDate
-                && t.TransactionDate <= endDate)
-            .GroupBy(t => t.Category)
-            .Select(g => new
-            {
-                Category = g.Key,
-                Count = g.Count(),
-                TotalAmount = g.Sum(t => t.AmountTotal ?? 0)
-            })
-            .OrderByDescending(x => x.Count)
-            .ThenByDescending(x => x.TotalAmount)
-            .FirstOrDefaultAsync(ct);
-
-        if (result == null)
-            return null;
-
-        return (result.Category, result.Count, result.TotalAmount);
     }
 
     /// <summary>

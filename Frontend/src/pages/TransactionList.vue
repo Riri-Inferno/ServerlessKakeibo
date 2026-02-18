@@ -18,6 +18,7 @@ import TransactionFormModal from "../components/organisms/TransactionFormModal.v
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
+import BaseIcon from "../components/atoms/BaseIcon.vue";
 
 const {
   transactions,
@@ -319,7 +320,17 @@ onUnmounted(() => {
                           : "支出"
                       }}
                     </BaseBadge>
-                    <BaseBadge color="gray" size="sm">
+                    <!-- ユーザー設定のカテゴリ -->
+                    <BaseBadge
+                      v-if="transaction.userTransactionCategory"
+                      :custom-color="
+                        transaction.userTransactionCategory.colorCode
+                      "
+                      size="sm"
+                    >
+                      {{ transaction.userTransactionCategory.name }}
+                    </BaseBadge>
+                    <BaseBadge v-else color="gray" size="sm">
                       {{
                         CategoryLabels[transaction.category] ||
                         transaction.category

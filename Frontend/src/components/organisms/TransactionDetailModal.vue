@@ -164,7 +164,15 @@ const handleDelete = () => {
         >
           {{ transaction.type === TransactionType.Income ? "収入" : "支出" }}
         </BaseBadge>
-        <BaseBadge color="gray">
+
+        <!-- ユーザー設定カテゴリ -->
+        <BaseBadge
+          v-if="transaction.userTransactionCategory"
+          :custom-color="transaction.userTransactionCategory.colorCode"
+        >
+          {{ transaction.userTransactionCategory.name }}
+        </BaseBadge>
+        <BaseBadge v-else color="gray">
           {{ CategoryLabels[transaction.category] || transaction.category }}
         </BaseBadge>
         <BaseBadge v-if="transaction.taxInclusionType" color="info">
@@ -324,11 +332,28 @@ const handleDelete = () => {
             :key="item.id"
             padding="sm"
           >
-            <div class="flex justify-between items-center">
-              <div>
-                <BaseText variant="body" weight="medium">{{
-                  item.name
-                }}</BaseText>
+            <div class="flex justify-between items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <BaseText variant="body" weight="medium">{{
+                    item.name
+                  }}</BaseText>
+                  <!-- 明細カテゴリバッジ -->
+                  <BaseBadge
+                    v-if="item.userItemCategory"
+                    :custom-color="item.userItemCategory.colorCode"
+                    size="sm"
+                  >
+                    {{ item.userItemCategory.name }}
+                  </BaseBadge>
+                  <BaseBadge
+                    v-else-if="item.userIncomeItemCategory"
+                    :custom-color="item.userIncomeItemCategory.colorCode"
+                    size="sm"
+                  >
+                    {{ item.userIncomeItemCategory.name }}
+                  </BaseBadge>
+                </div>
                 <BaseText variant="caption" color="gray">
                   {{ item.quantity }}個
                   <span v-if="item.unitPrice !== null">

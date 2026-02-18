@@ -54,11 +54,9 @@ public class CreateTransactionRequest : IValidatableObject
     public string? PaymentMethod { get; set; }
 
     /// <summary>
-    /// カテゴリ
+    /// ユーザー取引カテゴリID（カスタムカテゴリ対応）
     /// </summary>
-    [Required(ErrorMessage = "カテゴリは必須です")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public TransactionCategory Category { get; set; }
+    public Guid? UserTransactionCategoryId { get; set; }
 
     /// <summary>
     /// メモ・備考
@@ -139,10 +137,14 @@ public class CreateTransactionItemRequest
     public decimal Amount { get; set; }
 
     /// <summary>
-    /// 商品カテゴリ
+    /// ユーザー商品カテゴリID（支出用・カスタムカテゴリ対応）
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ItemCategory Category { get; set; } = ItemCategory.Uncategorized;
+    public Guid? UserItemCategoryId { get; set; }
+
+    /// <summary>
+    /// ユーザー収入項目カテゴリID（収入用・カスタムカテゴリ対応）
+    /// </summary>
+    public Guid? UserIncomeItemCategoryId { get; set; }
 }
 
 /// <summary>

@@ -27,7 +27,9 @@ public static class TransactionQueryMapper
             Payer = entity.Payer,
             Payee = entity.Payee,
             PaymentMethod = entity.PaymentMethod,
-            Category = entity.Category,
+            UserTransactionCategory = entity.UserTransactionCategory != null
+                ? ToUserTransactionCategoryDto(entity.UserTransactionCategory)
+                : null,
             Notes = entity.Notes,
             TaxInclusionType = entity.TaxInclusionType,
             SourceUrl = entity.SourceUrl,
@@ -66,7 +68,14 @@ public static class TransactionQueryMapper
             Quantity = entity.Quantity,
             UnitPrice = entity.UnitPrice,
             Amount = entity.Amount,
-            Category = entity.Category
+            UserItemCategoryId = entity.UserItemCategoryId,
+            UserIncomeItemCategoryId = entity.UserIncomeItemCategoryId,
+            UserItemCategory = entity.UserItemCategory != null
+                ? ToUserItemCategoryDto(entity.UserItemCategory)
+                : null,
+            UserIncomeItemCategory = entity.UserIncomeItemCategory != null
+                ? ToUserIncomeItemCategoryDto(entity.UserIncomeItemCategory)
+                : null,
         };
     }
 
@@ -128,10 +137,63 @@ public static class TransactionQueryMapper
             Currency = entity.Currency,
             Payer = entity.Payer,
             Payee = entity.Payee,
-            Category = entity.Category,
+            UserTransactionCategory = entity.UserTransactionCategory != null
+                ? ToUserTransactionCategoryDto(entity.UserTransactionCategory)
+                : null,
             PaymentMethod = entity.PaymentMethod,
             TaxInclusionType = entity.TaxInclusionType,
             ItemCount = entity.Items?.Count ?? 0
+        };
+    }
+
+    /// <summary>
+    /// UserTransactionCategoryEntity → UserTransactionCategoryDto 変換
+    /// </summary>
+    private static UserTransactionCategoryDto ToUserTransactionCategoryDto(
+        UserTransactionCategoryEntity entity)
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        return new UserTransactionCategoryDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ColorCode = entity.ColorCode,
+            IsIncome = entity.IsIncome,
+            IsCustom = entity.IsCustom
+        };
+    }
+
+    /// <summary>
+    /// UserItemCategoryEntity → UserItemCategoryDto 変換
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    private static UserItemCategoryDto ToUserItemCategoryDto(UserItemCategoryEntity entity)
+    {
+        return new UserItemCategoryDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ColorCode = entity.ColorCode,
+            IsCustom = entity.IsCustom
+        };
+    }
+
+    /// <summary>
+    /// UserIncomeItemCategoryEntity → UserIncomeItemCategoryDto 変換
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    private static UserIncomeItemCategoryDto ToUserIncomeItemCategoryDto(UserIncomeItemCategoryEntity entity)
+    {
+        return new UserIncomeItemCategoryDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ColorCode = entity.ColorCode,
+            IsCustom = entity.IsCustom
         };
     }
 }

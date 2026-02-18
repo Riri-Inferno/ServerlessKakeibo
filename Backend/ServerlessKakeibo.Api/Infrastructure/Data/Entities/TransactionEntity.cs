@@ -99,12 +99,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? RawDataJson { get; set; }
 
         /// <summary>
-        /// カテゴリ(Enum)
-        /// TODO:カスタムカテゴリに置き換え後削除する
-        /// </summary>
-        public TransactionCategory Category { get; set; } = TransactionCategory.Uncategorized;
-
-        /// <summary>
         /// ユーザーID(外部キー)
         /// </summary>
         public Guid UserId { get; set; }

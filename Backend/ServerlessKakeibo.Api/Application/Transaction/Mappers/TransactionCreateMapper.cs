@@ -1,4 +1,5 @@
 using ServerlessKakeibo.Api.Contracts;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 using ServerlessKakeibo.Api.Infrastructure.Data.Entities;
 
 namespace ServerlessKakeibo.Api.Application.Transaction.Mappers;
@@ -38,7 +39,7 @@ public static class TransactionCreateMapper
         entity.Payer = request.Payer;
         entity.Payee = request.Payee;
         entity.PaymentMethod = request.PaymentMethod;
-        entity.Category = request.Category;
+        entity.UserTransactionCategoryId = request.UserTransactionCategoryId;  // 新規
         entity.TaxInclusionType = request.TaxInclusionType;
         entity.Notes = request.Notes;
 
@@ -56,13 +57,19 @@ public static class TransactionCreateMapper
     /// <summary>
     /// CreateTransactionItemRequest → TransactionItemEntity 変換
     /// </summary>
+    /// <param name="request">リクエスト</param>
+    /// <param name="transactionId">取引ID</param>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="tenantId">テナントID</param>
+    /// <param name="transactionType">取引種別（収入/支出）</param>
     public static TransactionItemEntity ToItemEntity(
         CreateTransactionItemRequest request,
         Guid transactionId,
         Guid userId,
-        Guid tenantId)
+        Guid tenantId,
+        TransactionType transactionType)
     {
-        return new TransactionItemEntity
+        var entity = new TransactionItemEntity
         {
             Id = Guid.NewGuid(),
             TransactionId = transactionId,
@@ -73,8 +80,21 @@ public static class TransactionCreateMapper
             Quantity = request.Quantity,
             UnitPrice = request.UnitPrice,
             Amount = request.Amount,
-            Category = request.Category
         };
+
+        // 収入/支出による振り分け
+        if (transactionType == TransactionType.Income)
+        {
+            entity.UserIncomeItemCategoryId = request.UserIncomeItemCategoryId;
+            entity.UserItemCategoryId = null;
+        }
+        else // Expense
+        {
+            entity.UserItemCategoryId = request.UserItemCategoryId;
+            entity.UserIncomeItemCategoryId = null;
+        }
+
+        return entity;
     }
 
     /// <summary>
@@ -151,7 +171,6 @@ public static class TransactionCreateMapper
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
                 Amount = i.Amount,
-                Category = i.Category
             }).ToList(),
             Taxes = entity.Taxes.Select(t => new Domain.Receipt.Models.TaxDetail
             {
