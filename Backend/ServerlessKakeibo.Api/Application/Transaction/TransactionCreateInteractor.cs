@@ -200,7 +200,6 @@ public class TransactionCreateInteractor : ITransactionCreateUseCase
                     AmountTotal = transactionEntity.AmountTotal ?? 0,
                     Currency = transactionEntity.Currency,
                     Payee = transactionEntity.Payee,
-                    Category = transactionEntity.Category,
                     TaxInclusionType = transactionEntity.TaxInclusionType ?? TaxInclusionType.Unknown,
                     Notes = transactionEntity.Notes,
                     ProcessedAt = DateTimeOffset.UtcNow,

@@ -94,7 +94,6 @@ public class TransactionQueryInteractor : ITransactionQueryUseCase
                 request.PageSize,
                 request.StartDate,
                 request.EndDate,
-                request.Category,
                 request.Payer,
                 request.Payee,
                 request.MinAmount,

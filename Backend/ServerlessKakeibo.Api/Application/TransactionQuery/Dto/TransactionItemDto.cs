@@ -34,13 +34,6 @@ public class TransactionItemDto
     public decimal? Amount { get; set; }
 
     /// <summary>
-    /// 商品カテゴリ
-    /// TODO:後で一掃する
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Domain.ValueObjects.ItemCategory Category { get; set; }
-
-    /// <summary>
     /// ユーザー商品カテゴリID（支出用）
     /// </summary>
     public Guid? UserItemCategoryId { get; set; }

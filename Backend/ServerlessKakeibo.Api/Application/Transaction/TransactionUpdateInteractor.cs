@@ -144,7 +144,6 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     AmountTotal = newEntity.AmountTotal ?? 0,
                     Currency = newEntity.Currency,
                     Payee = newEntity.Payee,
-                    Category = newEntity.Category,
                     Notes = newEntity.Notes,
                     TaxInclusionType = newEntity.TaxInclusionType,
                     ProcessedAt = DateTimeOffset.UtcNow,
@@ -185,7 +184,6 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
             Payer = request.Payer,
             Payee = request.Payee,
             PaymentMethod = request.PaymentMethod,
-            Category = request.Category,  // 後方互換
             UserTransactionCategoryId = request.UserTransactionCategoryId,
             Notes = request.Notes,
             TaxInclusionType = request.TaxInclusionType,
@@ -215,7 +213,6 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     Quantity = itemReq.Quantity,
                     UnitPrice = itemReq.UnitPrice,
                     Amount = itemReq.Amount,
-                    Category = itemReq.Category,  // 後方互換
                 };
 
                 // existingType による振り分け

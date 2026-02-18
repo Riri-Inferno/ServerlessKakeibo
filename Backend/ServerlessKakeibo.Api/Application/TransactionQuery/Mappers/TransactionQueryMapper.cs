@@ -27,7 +27,6 @@ public static class TransactionQueryMapper
             Payer = entity.Payer,
             Payee = entity.Payee,
             PaymentMethod = entity.PaymentMethod,
-            Category = entity.Category,
             UserTransactionCategory = entity.UserTransactionCategory != null
                 ? ToUserTransactionCategoryDto(entity.UserTransactionCategory)
                 : null,
@@ -69,7 +68,6 @@ public static class TransactionQueryMapper
             Quantity = entity.Quantity,
             UnitPrice = entity.UnitPrice,
             Amount = entity.Amount,
-            Category = entity.Category,
             UserItemCategoryId = entity.UserItemCategoryId,
             UserIncomeItemCategoryId = entity.UserIncomeItemCategoryId,
             UserItemCategory = entity.UserItemCategory != null
@@ -139,7 +137,6 @@ public static class TransactionQueryMapper
             Currency = entity.Currency,
             Payer = entity.Payer,
             Payee = entity.Payee,
-            Category = entity.Category,
             UserTransactionCategory = entity.UserTransactionCategory != null
                 ? ToUserTransactionCategoryDto(entity.UserTransactionCategory)
                 : null,

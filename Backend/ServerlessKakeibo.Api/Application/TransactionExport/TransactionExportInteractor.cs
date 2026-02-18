@@ -52,7 +52,6 @@ public class TransactionExportInteractor : ITransactionExportUseCase
             userId,
             request.StartDate,
             request.EndDate,
-            request.Category,
             request.Payee,
             request.MinAmount,
             request.MaxAmount,
