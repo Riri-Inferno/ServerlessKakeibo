@@ -6,6 +6,14 @@ import { useAuthStore } from "../stores/authStore";
 import type { CurrentUser } from "../types/auth";
 
 /**
+ * Google認証用のクライアントIDを取得
+ */
+const githubClientId = 
+  (window as any).ENV?.GITHUB_CLIENT_ID || 
+  import.meta.env.VITE_GITHUB_CLIENT_ID || 
+  '';
+
+/**
  * useAuth - 認証処理の Composable
  */
 export function useAuth() {
@@ -121,7 +129,7 @@ export function useAuth() {
    * GitHub OAuth の認証URLを生成
    */
   const getGitHubAuthUrl = () => {
-    const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const GITHUB_CLIENT_ID = githubClientId;
 
     if (!GITHUB_CLIENT_ID) {
       throw new Error("GitHub Client ID が設定されていません");
