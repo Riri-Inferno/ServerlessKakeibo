@@ -166,18 +166,18 @@ const toggleExpand = () => {
 </script>
 
 <template>
-  <BaseCard class="p-3 md:p-4 lg:p-6">
-    <div class="space-y-3 md:space-y-4">
+    <BaseCard class="p-2 md:p-4 lg:p-6">
+    <div class="space-y-2 md:space-y-4">
       <div class="flex items-center justify-between">
-        <BaseText variant="h3" class="text-base md:text-lg">検索条件</BaseText>
+        <BaseText variant="h3" class="text-sm md:text-lg">検索条件</BaseText>
         <button
           @click="toggleExpand"
-          class="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors tap-transparent"
+          class="p-1 md:p-2 hover:bg-gray-100 rounded-lg transition-colors tap-transparent"
           aria-label="検索条件を展開"
         >
           <BaseIcon
             :name="isExpanded ? 'chevron-up' : 'chevron-down'"
-            size="md"
+            size="sm"
           />
         </button>
       </div>
