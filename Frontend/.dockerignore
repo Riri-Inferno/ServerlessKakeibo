@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.git/
+.gitignore
+.dockerignore
+docker-compose*.yml
+Dockerfile*
+*.md
+.env*.local
+coverage/
+.vscode/
