@@ -138,7 +138,7 @@ const handleDelete = () => {
 
 <template>
   <BaseModal :is-open="isOpen" title="取引詳細" @close="emit('close')">
-    <div v-if="isLoading" class="text-center py-8">
+    <div v-if="isLoading" class="text-center py-6 md:py-8">
       <BaseSpinner
         icon="refresh"
         size="lg"
@@ -149,17 +149,19 @@ const handleDelete = () => {
       <BaseText variant="body" color="gray">読み込み中...</BaseText>
     </div>
 
-    <div v-else-if="errorMessage" class="text-center py-8">
+    <div v-else-if="errorMessage" class="text-center py-6 md:py-8">
       <BaseText variant="body" color="danger">{{ errorMessage }}</BaseText>
     </div>
 
-    <div v-else-if="transaction" class="space-y-6">
+    <div v-else-if="transaction" class="space-y-4 md:space-y-6">
       <!-- バッジ -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 md:gap-2 flex-wrap">
         <BaseBadge
           :color="
             transaction.type === TransactionType.Income ? 'success' : 'danger'
           "
+          size="sm"
+          class="text-xs md:text-sm"
         >
           {{ transaction.type === TransactionType.Income ? "収入" : "支出" }}
         </BaseBadge>
@@ -168,17 +170,19 @@ const handleDelete = () => {
         <BaseBadge
           v-if="transaction.userTransactionCategory"
           :custom-color="transaction.userTransactionCategory.colorCode"
+          size="sm"
+          class="text-xs md:text-sm"
         >
           {{ transaction.userTransactionCategory.name }}
         </BaseBadge>
-        <BaseBadge v-if="transaction.taxInclusionType" color="info">
+        <BaseBadge v-if="transaction.taxInclusionType" color="info" size="sm" class="text-xs md:text-sm">
           {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
         </BaseBadge>
       </div>
 
       <!-- 合計金額 -->
       <div>
-        <BaseText variant="caption" color="gray" class="mb-1"
+        <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
           >合計金額</BaseText
         >
         <BaseText
@@ -186,6 +190,7 @@ const handleDelete = () => {
           :color="
             transaction.type === TransactionType.Income ? 'success' : 'danger'
           "
+          class="text-2xl md:text-3xl"
         >
           {{ transaction.type === TransactionType.Income ? "+" : "-" }}
           {{ transaction.amountTotal.toLocaleString() }}円
@@ -194,49 +199,49 @@ const handleDelete = () => {
 
       <!-- 支払先 -->
       <div>
-        <BaseText variant="caption" color="gray" class="mb-1">
+        <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
           {{
             transaction.type === TransactionType.Income ? "支払元" : "支払先"
           }}
         </BaseText>
-        <BaseText variant="body" weight="bold">{{
+        <BaseText variant="body" weight="bold" class="text-sm md:text-base">{{
           transaction.payee
         }}</BaseText>
       </div>
 
       <!-- 取引日 -->
       <div>
-        <BaseText variant="caption" color="gray" class="mb-1">取引日</BaseText>
-        <BaseText variant="body">{{
+        <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">取引日</BaseText>
+        <BaseText variant="body" class="text-sm md:text-base">{{
           formatDate(transaction.transactionDate)
         }}</BaseText>
       </div>
 
       <!-- 支払方法 -->
       <div v-if="transaction.paymentMethod">
-        <BaseText variant="caption" color="gray" class="mb-1"
+        <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
           >支払方法</BaseText
         >
-        <BaseText variant="body">{{ transaction.paymentMethod }}</BaseText>
+        <BaseText variant="body" class="text-sm md:text-base">{{ transaction.paymentMethod }}</BaseText>
       </div>
 
       <!-- メモ -->
       <div v-if="transaction.notes">
-        <BaseText variant="caption" color="gray" class="mb-1">メモ</BaseText>
-        <BaseText variant="body" class="whitespace-pre-wrap">{{
+        <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">メモ</BaseText>
+        <BaseText variant="body" class="whitespace-pre-wrap text-sm md:text-base">{{
           transaction.notes
         }}</BaseText>
       </div>
 
       <!-- レシート画像セクション -->
       <div v-if="transaction.sourceUrl || canAttachReceipt">
-        <BaseText variant="h3" class="mb-3">レシート画像</BaseText>
+        <BaseText variant="h3" class="mb-2 md:mb-3 text-base md:text-lg">レシート画像</BaseText>
 
         <!-- 画像がある場合 -->
         <div v-if="receiptImageUrl">
-          <BaseCard padding="sm" class="relative">
-            <div v-if="isLoadingImage" class="text-center py-8">
-              <BaseText variant="caption" color="gray">読み込み中...</BaseText>
+          <BaseCard padding="sm" class="relative p-2 md:p-3">
+            <div v-if="isLoadingImage" class="text-center py-6 md:py-8">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">読み込み中...</BaseText>
             </div>
             <div v-else>
               <img
@@ -245,7 +250,7 @@ const handleDelete = () => {
                 class="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 @click="showFullImage = true"
               />
-              <BaseText variant="caption" color="gray" class="mt-2 block">
+              <BaseText variant="caption" color="gray" class="mt-2 block text-xs">
                 添付日: {{ formatDate(transaction.receiptAttachedAt!) }}
               </BaseText>
             </div>
@@ -254,17 +259,17 @@ const handleDelete = () => {
 
         <!-- 圧縮中の表示 -->
         <div v-else-if="isCompressing || isAttaching">
-          <BaseCard padding="sm">
-            <div class="text-center py-8">
+          <BaseCard padding="sm" class="p-2 md:p-3">
+            <div class="text-center py-6 md:py-8">
               <BaseIcon
                 name="plus"
                 size="xl"
                 class="mx-auto mb-2 text-gray-400"
               />
-              <BaseText variant="body" color="gray" class="mb-2">
+              <BaseText variant="body" color="gray" class="mb-2 text-sm md:text-base">
                 {{ isCompressing ? "画像を圧縮中..." : "アップロード中..." }}
               </BaseText>
-              <BaseText variant="caption" color="gray">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
                 しばらくお待ちください
               </BaseText>
             </div>
@@ -273,9 +278,9 @@ const handleDelete = () => {
 
         <!-- 画像がない & 添付可能 -->
         <div v-else-if="canAttachReceipt">
-          <BaseCard padding="sm">
+          <BaseCard padding="sm" class="p-2 md:p-3">
             <div
-              class="text-center py-8 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
+              class="text-center py-6 md:py-8 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
               @click="openFileDialog"
             >
               <BaseIcon
@@ -283,16 +288,16 @@ const handleDelete = () => {
                 size="xl"
                 class="mx-auto mb-2 text-gray-400"
               />
-              <BaseText variant="body" color="gray" class="mb-2">
+              <BaseText variant="body" color="gray" class="mb-2 text-sm md:text-base">
                 レシート画像を添付
               </BaseText>
-              <BaseText variant="caption" color="gray">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
                 クリックして画像を選択（自動で圧縮されます）
               </BaseText>
             </div>
             <div class="flex items-center justify-center gap-1.5 mt-2">
-              <BaseIcon name="warning" size="sm" class="text-yellow-600" />
-              <BaseText variant="caption" color="gray">
+              <BaseIcon name="warning" size="sm" class="text-yellow-600 flex-shrink-0" />
+              <BaseText variant="caption" color="gray" class="text-xs">
                 一度添付すると変更できません（作成から7日以内のみ可能）
               </BaseText>
             </div>
@@ -309,9 +314,9 @@ const handleDelete = () => {
 
         <!-- 期限切れ -->
         <div v-else>
-          <BaseCard padding="sm">
-            <div class="text-center py-4">
-              <BaseText variant="body" color="gray">
+          <BaseCard padding="sm" class="p-2 md:p-3">
+            <div class="text-center py-3 md:py-4">
+              <BaseText variant="body" color="gray" class="text-xs md:text-sm">
                 添付期限が過ぎています（作成から7日以内のみ添付可能）
               </BaseText>
             </div>
@@ -321,17 +326,18 @@ const handleDelete = () => {
 
       <!-- 明細 -->
       <div v-if="transaction.items && transaction.items.length > 0">
-        <BaseText variant="h3" class="mb-3">明細</BaseText>
+        <BaseText variant="h3" class="mb-2 md:mb-3 text-base md:text-lg">明細</BaseText>
         <div class="space-y-2">
           <BaseCard
             v-for="item in transaction.items"
             :key="item.id"
             padding="sm"
+            class="p-2.5 md:p-3"
           >
-            <div class="flex justify-between items-start gap-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <BaseText variant="body" weight="medium">{{
+            <div class="flex justify-between items-start gap-2 md:gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                  <BaseText variant="body" weight="medium" class="text-sm md:text-base">{{
                     item.name
                   }}</BaseText>
                   <!-- 明細カテゴリバッジ -->
@@ -339,6 +345,7 @@ const handleDelete = () => {
                     v-if="item.userItemCategory"
                     :custom-color="item.userItemCategory.colorCode"
                     size="sm"
+                    class="text-xs"
                   >
                     {{ item.userItemCategory.name }}
                   </BaseBadge>
@@ -346,18 +353,19 @@ const handleDelete = () => {
                     v-else-if="item.userIncomeItemCategory"
                     :custom-color="item.userIncomeItemCategory.colorCode"
                     size="sm"
+                    class="text-xs"
                   >
                     {{ item.userIncomeItemCategory.name }}
                   </BaseBadge>
                 </div>
-                <BaseText variant="caption" color="gray">
+                <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
                   {{ item.quantity }}個
                   <span v-if="item.unitPrice !== null">
                     × {{ item.unitPrice.toLocaleString() }}円
                   </span>
                 </BaseText>
               </div>
-              <BaseText variant="body" weight="bold">
+              <BaseText variant="body" weight="bold" class="text-sm md:text-base flex-shrink-0">
                 {{ item.amount.toLocaleString() }}円
               </BaseText>
             </div>
@@ -367,22 +375,22 @@ const handleDelete = () => {
 
       <!-- 税・控除 -->
       <div v-if="transaction.taxes && transaction.taxes.length > 0">
-        <BaseText variant="h3" class="mb-3">税・控除</BaseText>
+        <BaseText variant="h3" class="mb-2 md:mb-3 text-base md:text-lg">税・控除</BaseText>
         <div class="space-y-2">
-          <BaseCard v-for="tax in transaction.taxes" :key="tax.id" padding="sm">
-            <div class="flex justify-between items-center">
-              <div>
-                <BaseText variant="body" weight="medium">{{
+          <BaseCard v-for="tax in transaction.taxes" :key="tax.id" padding="sm" class="p-2.5 md:p-3">
+            <div class="flex justify-between items-center gap-2">
+              <div class="flex-1 min-w-0">
+                <BaseText variant="body" weight="medium" class="text-sm md:text-base">{{
                   tax.taxType
                 }}</BaseText>
-                <BaseText variant="caption" color="gray">
+                <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
                   <span v-if="tax.taxableAmount !== null">
                     対象額: {{ tax.taxableAmount.toLocaleString() }}円 ・
                   </span>
                   税率: {{ tax.taxRate }}%
                 </BaseText>
               </div>
-              <BaseText variant="body" weight="bold" color="danger">
+              <BaseText variant="body" weight="bold" color="danger" class="text-sm md:text-base flex-shrink-0">
                 {{ tax.taxAmount.toLocaleString() }}円
               </BaseText>
             </div>
@@ -391,21 +399,21 @@ const handleDelete = () => {
       </div>
 
       <!-- 作成・更新日時 -->
-      <div class="pt-4 border-t border-gray-200">
-        <div class="grid grid-cols-2 gap-4 text-sm">
+      <div class="pt-3 md:pt-4 border-t border-gray-200">
+        <div class="grid grid-cols-2 gap-3 md:gap-4 text-sm">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
               >作成日時</BaseText
             >
-            <BaseText variant="caption">{{
+            <BaseText variant="caption" class="text-xs md:text-sm">{{
               formatDateTime(transaction.createdAt)
             }}</BaseText>
           </div>
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1"
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
               >更新日時</BaseText
             >
-            <BaseText variant="caption">{{
+            <BaseText variant="caption" class="text-xs md:text-sm">{{
               formatDateTime(transaction.updatedAt)
             }}</BaseText>
           </div>
@@ -413,11 +421,11 @@ const handleDelete = () => {
       </div>
     </div>
     <template #footer>
-      <div class="flex gap-3">
-        <BaseButton variant="outline" @click="handleDelete" class="flex-1">
+      <div class="flex gap-2 md:gap-3">
+        <BaseButton variant="outline" @click="handleDelete" class="flex-1 text-sm md:text-base">
           削除
         </BaseButton>
-        <BaseButton variant="primary" @click="handleEdit" class="flex-1">
+        <BaseButton variant="primary" @click="handleEdit" class="flex-1 text-sm md:text-base">
           編集
         </BaseButton>
       </div>

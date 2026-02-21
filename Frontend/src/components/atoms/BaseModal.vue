@@ -55,7 +55,7 @@ const handleBackgroundClick = () => {
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center py-6 px-3 md:p-4"
       >
         <div
           class="fixed inset-0 bg-black bg-opacity-50"
@@ -63,25 +63,25 @@ const handleBackgroundClick = () => {
         ></div>
 
         <div
-          class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          class="relative bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[88vh] md:max-h-[90vh] overflow-hidden flex flex-col"
         >
           <div
-            class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200"
+            class="flex items-center justify-between p-3 md:p-4 lg:p-6 border-b border-gray-200"
           >
-            <h2 class="text-xl font-bold text-gray-900">{{ title }}</h2>
+            <h2 class="text-lg md:text-xl font-bold text-gray-900">{{ title }}</h2>
             <button
               @click="emit('close')"
-              class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             >
               <BaseIcon name="x" size="md" />
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 md:p-6">
+          <div class="flex-1 overflow-y-auto p-3 md:p-4 lg:p-6">
             <slot />
           </div>
 
-          <div v-if="$slots.footer" class="p-4 md:p-6 border-t border-gray-200">
+          <div v-if="$slots.footer" class="p-3 md:p-4 lg:p-6 border-t border-gray-200">
             <slot name="footer" />
           </div>
         </div>
