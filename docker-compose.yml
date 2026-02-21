@@ -1,4 +1,5 @@
 services:
+  # データベース
   db:
     image: postgres:16
     container_name: kakeibo-db
@@ -11,6 +12,54 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - kakeibo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # バックエンドAPI
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: ServerlessKakeibo.Api/Dockerfile
+    container_name: kakeibo-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=appdb;Username=postgres;Password=Password
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - kakeibo-network
+    volumes:
+      - ./Backend/ServerlessKakeibo.Api/service_account.json:/app/service_account.json:ro
+
+  # フロントエンド
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: kakeibo-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - kakeibo-network
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080
 
 volumes:
   pgdata:
+
+networks:
+  kakeibo-network:
+    driver: bridge
