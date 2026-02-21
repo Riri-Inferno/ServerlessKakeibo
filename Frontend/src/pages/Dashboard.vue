@@ -34,7 +34,7 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
       <!-- ヘッダー -->
       <div>
-        <BaseText variant="h1" class="mb-1 md:mb-2">ダッシュボード</BaseText>
+        <BaseText variant="h1" class="text-xl md:text-2xl lg:text-3xl">ダッシュボード</BaseText>
         <BaseText variant="caption" color="gray" class="mt-0.5 md:mt-1">
           {{ currentPeriodLabel }}
         </BaseText>

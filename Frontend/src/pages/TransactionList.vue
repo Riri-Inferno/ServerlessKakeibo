@@ -186,7 +186,7 @@ onUnmounted(() => {
       <div class="flex-shrink-0 space-y-3 md:space-y-4 mb-4 md:mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
           <div>
-            <BaseText variant="h1" class="mb-1 md:mb-2">取引一覧</BaseText>
+            <BaseText variant="h1" class="text-xl md:text-2xl lg:text-3xl">取引一覧</BaseText>
             <BaseText variant="caption" color="gray">全{{ totalCount }}件</BaseText>
           </div>
 
