@@ -201,13 +201,13 @@ const availableCategories = computed(() => {
 
 <template>
   <BaseModal :is-open="isOpen" :title="modalTitle" @close="handleClose">
-    <div class="space-y-6">
+    <div class="space-y-4 md:space-y-6">
       <!-- OCRアップロード（編集モードでは非表示） -->
       <div v-if="isOcrMode && !isOcrCompleted">
         <ReceiptUploadArea @upload="handleReceiptUpload" />
 
         <!-- OCR解析中の表示 -->
-        <div v-if="isOcrLoading" class="text-center py-8">
+        <div v-if="isOcrLoading" class="text-center py-6 md:py-8">
           <BaseSpinner
             icon="settings"
             size="lg"
@@ -215,19 +215,19 @@ const availableCategories = computed(() => {
             label="レシート解析中"
             class="mb-2"
           />
-          <BaseText variant="body" color="gray">解析中...</BaseText>
+          <BaseText variant="body" color="gray" class="text-sm md:text-base">解析中...</BaseText>
         </div>
 
         <div
           v-if="ocrError"
-          class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"
+          class="mt-3 md:mt-4 p-2.5 md:p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"
         >
-          <BaseText variant="caption">{{ ocrError }}</BaseText>
+          <BaseText variant="caption" class="text-xs md:text-sm">{{ ocrError }}</BaseText>
         </div>
       </div>
 
       <!-- フォーム（手動入力 or OCR完了後 or 編集モード） -->
-      <div v-if="!isOcrMode || isOcrCompleted || isEditMode" class="space-y-6">
+      <div v-if="!isOcrMode || isOcrCompleted || isEditMode" class="space-y-4 md:space-y-6">
         <!-- カテゴリ読み込み中 -->
         <div
           v-if="
@@ -235,7 +235,7 @@ const availableCategories = computed(() => {
             isItemCategoriesLoading ||
             isIncomeItemCategoriesLoading
           "
-          class="text-center py-4"
+          class="text-center py-3 md:py-4"
         >
           <BaseSpinner
             icon="settings"
@@ -293,7 +293,7 @@ const availableCategories = computed(() => {
         <!-- 画像保存オプション（レシートモード & 新規作成のみ） -->
         <div
           v-if="isOcrMode && !isEditMode"
-          class="pt-4 border-t border-gray-200"
+          class="pt-3 md:pt-4 border-t border-gray-200"
         >
           <LabeledCheckbox
             v-model="shouldSaveImage"
@@ -304,14 +304,14 @@ const availableCategories = computed(() => {
 
         <div
           v-if="submitError"
-          class="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"
+          class="p-2.5 md:p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"
         >
-          <BaseText variant="caption">{{ submitError }}</BaseText>
+          <BaseText variant="caption" class="text-xs md:text-sm">{{ submitError }}</BaseText>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-1.5 md:gap-2">
           <BaseButton variant="outline" @click="handleClose" class="flex-1">
-            キャンセル
+            <span class="text-sm md:text-base">キャンセル</span>
           </BaseButton>
           <BaseButton
             variant="primary"
@@ -329,10 +329,10 @@ const availableCategories = computed(() => {
                 size="sm"
                 color="gray"
               />
-              <span v-if="isSubmitting">
+              <span v-if="isSubmitting" class="text-sm md:text-base">
                 {{ isEditMode ? "更新中..." : "登録中..." }}
               </span>
-              <span v-else>
+              <span v-else class="text-sm md:text-base">
                 {{ isEditMode ? "更新" : "登録" }}
               </span>
             </span>

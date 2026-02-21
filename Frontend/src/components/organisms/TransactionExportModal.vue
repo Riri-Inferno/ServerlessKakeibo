@@ -170,64 +170,64 @@ watch(
 <template>
   <BaseModal :is-open="isOpen" :title="modalTitle" @close="handleClose">
     <!-- 確認画面 -->
-    <div v-if="modalState === 'confirm'" class="space-y-6">
+    <div v-if="modalState === 'confirm'" class="space-y-4 md:space-y-6">
       <div>
-        <BaseText variant="body" class="mb-4">
+        <BaseText variant="body" class="mb-3 md:mb-4 text-sm md:text-base">
           以下の条件でエクスポートします:
         </BaseText>
 
-        <BaseCard padding="sm" class="space-y-3">
-          <div class="flex items-start gap-2">
-            <BaseIcon name="calendar" size="sm" class="text-gray-500 mt-0.5" />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">期間</BaseText>
-              <BaseText variant="body">{{ formatDateRange() }}</BaseText>
+        <BaseCard padding="sm" class="space-y-2 md:space-y-3 p-2.5 md:p-3">
+          <div class="flex items-start gap-1.5 md:gap-2">
+            <BaseIcon name="calendar" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">期間</BaseText>
+              <BaseText variant="body" class="text-sm md:text-base">{{ formatDateRange() }}</BaseText>
             </div>
           </div>
 
-          <div class="flex items-start gap-2">
-            <BaseIcon name="tag" size="sm" class="text-gray-500 mt-0.5" />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">カテゴリ</BaseText>
-              <BaseText variant="body">{{ getCategoryLabel() }}</BaseText>
+          <div class="flex items-start gap-1.5 md:gap-2">
+            <BaseIcon name="tag" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">カテゴリ</BaseText>
+              <BaseText variant="body" class="text-sm md:text-base">{{ getCategoryLabel() }}</BaseText>
             </div>
           </div>
 
-          <div v-if="filters.payer" class="flex items-start gap-2">
-            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5" />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">支払元</BaseText>
-              <BaseText variant="body">{{ filters.payer }}</BaseText>
+          <div v-if="filters.payer" class="flex items-start gap-1.5 md:gap-2">
+            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">支払元</BaseText>
+              <BaseText variant="body" class="text-sm md:text-base">{{ filters.payer }}</BaseText>
             </div>
           </div>
-          <div v-if="filters.payee" class="flex items-start gap-2">
-            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5" />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">支払先</BaseText>
-              <BaseText variant="body">{{ filters.payee }}</BaseText>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-2">
-            <BaseIcon name="banknotes" size="sm" class="text-gray-500 mt-0.5" />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">取引種別</BaseText>
-              <BaseText variant="body">{{ getTypeLabel() }}</BaseText>
+          <div v-if="filters.payee" class="flex items-start gap-1.5 md:gap-2">
+            <BaseIcon name="user" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">支払先</BaseText>
+              <BaseText variant="body" class="text-sm md:text-base">{{ filters.payee }}</BaseText>
             </div>
           </div>
 
-          <div v-if="totalCount !== undefined" class="flex items-start gap-2">
+          <div class="flex items-start gap-1.5 md:gap-2">
+            <BaseIcon name="banknotes" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">取引種別</BaseText>
+              <BaseText variant="body" class="text-sm md:text-base">{{ getTypeLabel() }}</BaseText>
+            </div>
+          </div>
+
+          <div v-if="totalCount !== undefined" class="flex items-start gap-1.5 md:gap-2">
             <BaseIcon
               name="clipboard-list"
               size="sm"
-              class="text-gray-500 mt-0.5"
+              class="text-gray-500 mt-0.5 flex-shrink-0"
             />
-            <div class="flex-1">
-              <BaseText variant="caption" color="gray">取引件数</BaseText>
+            <div class="flex-1 min-w-0">
+              <BaseText variant="caption" color="gray" class="text-xs md:text-sm">取引件数</BaseText>
               <BaseText
                 variant="body"
                 weight="bold"
-                :class="totalCount === 0 ? 'text-red-600' : ''"
+                :class="[totalCount === 0 ? 'text-red-600' : '', 'text-sm md:text-base']"
               >
                 {{ totalCount }}件
               </BaseText>
@@ -236,7 +236,7 @@ watch(
         </BaseCard>
       </div>
 
-      <div class="pt-4 border-t border-gray-200">
+      <div class="pt-3 md:pt-4 border-t border-gray-200">
         <LabeledCheckbox
           v-model="includeImages"
           label="レシート画像を含める"
@@ -252,39 +252,39 @@ watch(
       <BaseCard
         v-if="totalCount === 0"
         padding="sm"
-        class="bg-red-50 border border-red-200"
+        class="bg-red-50 border border-red-200 p-2.5 md:p-3"
       >
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-1.5 md:gap-2">
           <BaseIcon
             name="warning"
             size="sm"
-            class="text-red-600 mt-0.5"
+            class="text-red-600 mt-0.5 flex-shrink-0"
             variant="solid"
           />
-          <div class="flex-1">
-            <BaseText variant="caption" weight="bold" class="text-red-800 mb-1">
+          <div class="flex-1 min-w-0">
+            <BaseText variant="caption" weight="bold" class="text-red-800 mb-1 text-xs md:text-sm">
               エクスポートできません
             </BaseText>
-            <BaseText variant="caption" class="text-red-700">
+            <BaseText variant="caption" class="text-red-700 text-xs md:text-sm">
               条件に一致する取引がありません。検索条件を変更してください。
             </BaseText>
           </div>
         </div>
       </BaseCard>
 
-      <BaseCard padding="sm" class="bg-yellow-50 border border-yellow-200">
-        <div class="flex items-start gap-2 mb-2">
+      <BaseCard padding="sm" class="bg-yellow-50 border border-yellow-200 p-2.5 md:p-3">
+        <div class="flex items-start gap-1.5 md:gap-2 mb-1.5 md:mb-2">
           <BaseIcon
             name="warning"
             size="sm"
-            class="text-yellow-600"
+            class="text-yellow-600 flex-shrink-0"
             variant="solid"
           />
-          <BaseText variant="caption" weight="bold" class="text-yellow-800">
+          <BaseText variant="caption" weight="bold" class="text-yellow-800 text-xs md:text-sm">
             注意事項
           </BaseText>
         </div>
-        <ul class="space-y-1 text-sm text-gray-600 ml-6">
+        <ul class="space-y-0.5 md:space-y-1 text-xs md:text-sm text-gray-600 ml-5 md:ml-6">
           <li>• 画像を含める場合、処理に時間がかかることがあります</li>
           <li>• ファイルサイズは最大10MB程度になります</li>
           <li>• 現在のフィルタ条件が適用されます</li>
@@ -293,16 +293,16 @@ watch(
 
       <div
         v-if="errorMessage"
-        class="p-3 bg-red-100 border border-red-400 rounded-lg"
+        class="p-2.5 md:p-3 bg-red-100 border border-red-400 rounded-lg"
       >
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-1.5 md:gap-2">
           <BaseIcon
             name="warning"
             size="sm"
-            class="text-red-700 mt-0.5"
+            class="text-red-700 mt-0.5 flex-shrink-0"
             variant="solid"
           />
-          <BaseText variant="caption" class="text-red-700">
+          <BaseText variant="caption" class="text-red-700 text-xs md:text-sm">
             {{ errorMessage }}
           </BaseText>
         </div>
@@ -310,63 +310,63 @@ watch(
     </div>
 
     <!-- ローディング画面 -->
-    <div v-else-if="modalState === 'loading'" class="text-center py-12">
+    <div v-else-if="modalState === 'loading'" class="text-center py-8 md:py-12">
       <BaseSpinner
         icon="settings"
         size="xl"
         color="primary"
         label="エクスポート処理中"
-        class="mb-4"
+        class="mb-3 md:mb-4"
       />
-      <BaseText variant="body" weight="bold" class="mb-2">
+      <BaseText variant="body" weight="bold" class="mb-1.5 md:mb-2 text-sm md:text-base">
         処理中です...
       </BaseText>
-      <BaseText variant="caption" color="gray">
+      <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
         しばらくお待ちください
       </BaseText>
     </div>
 
     <!-- 完了画面 -->
-    <div v-else-if="modalState === 'success' && exportResult" class="space-y-6">
-      <div class="text-center py-4">
+    <div v-else-if="modalState === 'success' && exportResult" class="space-y-4 md:space-y-6">
+      <div class="text-center py-3 md:py-4">
         <BaseIcon
           name="check-circle"
           size="xl"
-          class="mx-auto mb-4 text-green-500"
+          class="mx-auto mb-3 md:mb-4 text-green-500"
         />
-        <BaseText variant="h3" class="mb-2">エクスポート完了！</BaseText>
+        <BaseText variant="h3" class="mb-2 text-base md:text-lg">エクスポート完了！</BaseText>
       </div>
 
-      <BaseCard padding="sm" class="space-y-3">
-        <div class="flex items-start gap-2">
-          <BaseIcon name="document" size="sm" class="text-gray-500 mt-0.5" />
-          <div class="flex-1">
-            <BaseText variant="caption" color="gray">ファイル名</BaseText>
-            <BaseText variant="body" weight="bold">
+      <BaseCard padding="sm" class="space-y-2 md:space-y-3 p-2.5 md:p-3">
+        <div class="flex items-start gap-1.5 md:gap-2">
+          <BaseIcon name="document" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <BaseText variant="caption" color="gray" class="text-xs md:text-sm">ファイル名</BaseText>
+            <BaseText variant="body" weight="bold" class="text-sm md:text-base break-all">
               {{ exportResult.fileName }}
             </BaseText>
           </div>
         </div>
 
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-1.5 md:gap-2">
           <BaseIcon
             name="clipboard-list"
             size="sm"
-            class="text-gray-500 mt-0.5"
+            class="text-gray-500 mt-0.5 flex-shrink-0"
           />
-          <div class="flex-1">
-            <BaseText variant="caption" color="gray">エクスポート件数</BaseText>
-            <BaseText variant="body">
+          <div class="flex-1 min-w-0">
+            <BaseText variant="caption" color="gray" class="text-xs md:text-sm">エクスポート件数</BaseText>
+            <BaseText variant="body" class="text-sm md:text-base">
               {{ exportResult.totalCount }}件の取引
             </BaseText>
           </div>
         </div>
 
-        <div v-if="includeImages" class="flex items-start gap-2">
-          <BaseIcon name="photo" size="sm" class="text-gray-500 mt-0.5" />
-          <div class="flex-1">
-            <BaseText variant="caption" color="gray">画像</BaseText>
-            <BaseText variant="body">
+        <div v-if="includeImages" class="flex items-start gap-1.5 md:gap-2">
+          <BaseIcon name="photo" size="sm" class="text-gray-500 mt-0.5 flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <BaseText variant="caption" color="gray" class="text-xs md:text-sm">画像</BaseText>
+            <BaseText variant="body" class="text-sm md:text-base">
               {{ exportResult.imagesIncludedCount }}件の画像を含めました
             </BaseText>
           </div>
@@ -374,16 +374,16 @@ watch(
 
         <div
           v-if="exportResult.imagesFailedCount > 0"
-          class="pt-3 border-t border-gray-200"
+          class="pt-2 md:pt-3 border-t border-gray-200"
         >
-          <div class="flex items-start gap-2">
+          <div class="flex items-start gap-1.5 md:gap-2">
             <BaseIcon
               name="warning"
               size="sm"
-              class="text-red-500 mt-0.5"
+              class="text-red-500 mt-0.5 flex-shrink-0"
               variant="solid"
             />
-            <BaseText variant="body" class="text-red-600">
+            <BaseText variant="body" class="text-red-600 text-sm md:text-base">
               {{ exportResult.imagesFailedCount }}件の画像を取得できませんでした
             </BaseText>
           </div>
@@ -393,34 +393,34 @@ watch(
       <BaseCard
         v-if="warnings"
         padding="sm"
-        class="bg-yellow-50 border border-yellow-200"
+        class="bg-yellow-50 border border-yellow-200 p-2.5 md:p-3"
       >
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-1.5 md:gap-2">
           <BaseIcon
             name="warning"
             size="sm"
-            class="text-yellow-600 mt-0.5"
+            class="text-yellow-600 mt-0.5 flex-shrink-0"
             variant="solid"
           />
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <BaseText
               variant="caption"
               weight="bold"
-              class="text-yellow-800 mb-1"
+              class="text-yellow-800 mb-1 text-xs md:text-sm"
             >
               警告
             </BaseText>
-            <BaseText variant="caption" class="text-yellow-700">
+            <BaseText variant="caption" class="text-yellow-700 text-xs md:text-sm">
               {{ warnings }}
             </BaseText>
           </div>
         </div>
       </BaseCard>
 
-      <BaseCard padding="sm" class="bg-blue-50 border border-blue-200">
-        <div class="flex items-start gap-2">
-          <BaseIcon name="info" size="sm" class="text-blue-600 mt-0.5" />
-          <BaseText variant="caption" class="text-blue-800">
+      <BaseCard padding="sm" class="bg-blue-50 border border-blue-200 p-2.5 md:p-3">
+        <div class="flex items-start gap-1.5 md:gap-2">
+          <BaseIcon name="info" size="sm" class="text-blue-600 mt-0.5 flex-shrink-0" />
+          <BaseText variant="caption" class="text-blue-800 text-xs md:text-sm">
             ファイルはダウンロードフォルダに保存されました。
           </BaseText>
         </div>
@@ -429,9 +429,9 @@ watch(
 
     <template #footer>
       <!-- 確認画面のフッター -->
-      <div v-if="modalState === 'confirm'" class="flex gap-3">
+      <div v-if="modalState === 'confirm'" class="flex gap-2 md:gap-3">
         <BaseButton variant="outline" @click="handleClose" class="flex-1">
-          キャンセル
+          <span class="text-sm md:text-base">キャンセル</span>
         </BaseButton>
         <BaseButton
           variant="primary"
@@ -440,9 +440,9 @@ watch(
           class="flex-1"
           :title="disabledReason"
         >
-          <span class="flex items-center justify-center gap-2">
+          <span class="flex items-center justify-center gap-1.5 md:gap-2">
             <BaseIcon name="download" size="sm" />
-            <span>エクスポート実行</span>
+            <span class="text-sm md:text-base">エクスポート実行</span>
           </span>
         </BaseButton>
       </div>
@@ -455,7 +455,7 @@ watch(
       <!-- 完了画面のフッター -->
       <div v-else-if="modalState === 'success'">
         <BaseButton variant="primary" @click="handleClose" class="w-full">
-          閉じる
+          <span class="text-sm md:text-base">閉じる</span>
         </BaseButton>
       </div>
     </template>

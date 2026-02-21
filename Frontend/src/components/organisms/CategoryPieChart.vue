@@ -22,6 +22,80 @@ const props = defineProps<Props>();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chartInstance: ChartJS<"pie"> | null = null;
 
+// レスポンシブなパディング設定
+const getChartOptions = (): ChartOptions<"pie"> => {
+  // スマホ判定
+  const isMobile = window.innerWidth < 768;
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1,
+    devicePixelRatio: 2,
+
+    layout: {
+      padding: isMobile
+        ? {
+            top: 30,
+            right: 30,
+            bottom: 15,
+            left: 30,
+          }
+        : {
+            top: 60,
+            right: 60,
+            bottom: 20,
+            left: 60,
+          },
+    },
+
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed;
+            return ` ¥${value.toLocaleString()}`;
+          },
+        },
+      },
+      datalabels: {
+        color: "#374151",
+        font: {
+          weight: "bold",
+          size: isMobile ? 10 : 12, // スマホで文字を小さく
+        },
+        formatter: (value, context) => {
+          const dataset = context.chart.data.datasets[0];
+          if (!dataset || !dataset.data) return "";
+
+          const total = (dataset.data as number[]).reduce((sum, v) => sum + v, 0);
+          const percentage = ((value / total) * 100).toFixed(1);
+
+          const label = context.chart.data.labels![context.dataIndex];
+          return `${label}\n${percentage}%`;
+        },
+        anchor: "end",
+        align: "end",
+        offset: isMobile ? 6 : 10, // スマホでオフセット削減
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderRadius: 4,
+        padding: isMobile ? 4 : 6, // スマホでパディング削減
+        borderWidth: 2,
+        borderColor: (context) => {
+          const bgColors = context.dataset.backgroundColor;
+          if (!Array.isArray(bgColors)) {
+            return "#6b7280";
+          }
+          return bgColors[context.dataIndex] as string;
+        },
+      },
+    },
+  };
+};
+
 // チャートデータを生成
 const generateChartData = (): ChartData<"pie"> => {
   return {
@@ -35,68 +109,6 @@ const generateChartData = (): ChartData<"pie"> => {
       },
     ],
   };
-};
-
-// チャートオプション
-const chartOptions: ChartOptions<"pie"> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  // aspectRatio: 1,
-  devicePixelRatio: 2,
-
-  layout: {
-    padding: {
-      top: 60,
-      right: 60,
-      bottom: 20,
-      left: 60,
-    },
-  },
-
-  plugins: {
-    legend: {
-      display: false,
-    },
-    tooltip: {
-      callbacks: {
-        label: (context) => {
-          const value = context.parsed;
-          return ` ¥${value.toLocaleString()}`;
-        },
-      },
-    },
-    datalabels: {
-      color: "#374151",
-      font: {
-        weight: "bold",
-        size: 12,
-      },
-      formatter: (value, context) => {
-        const dataset = context.chart.data.datasets[0];
-        if (!dataset || !dataset.data) return "";
-
-        const total = (dataset.data as number[]).reduce((sum, v) => sum + v, 0);
-        const percentage = ((value / total) * 100).toFixed(1);
-
-        const label = context.chart.data.labels![context.dataIndex];
-        return `${label}\n${percentage}%`;
-      },
-      anchor: "end",
-      align: "end",
-      offset: 10,
-      backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderRadius: 4,
-      padding: 6,
-      borderWidth: 2,
-      borderColor: (context) => {
-        const bgColors = context.dataset.backgroundColor;
-        if (!Array.isArray(bgColors)) {
-          return "#6b7280";
-        }
-        return bgColors[context.dataIndex] as string;
-      },
-    },
-  },
 };
 
 // チャートを作成
@@ -113,7 +125,7 @@ const createChart = () => {
   chartInstance = new ChartJS(canvasRef.value, {
     type: "pie",
     data: generateChartData(),
-    options: chartOptions,
+    options: getChartOptions(),
   });
 };
 
@@ -126,6 +138,7 @@ const updateChart = () => {
 
   // データを更新
   chartInstance.data = generateChartData();
+  chartInstance.options = getChartOptions();
   chartInstance.update("none");
 };
 
@@ -149,16 +162,32 @@ watch(
   { deep: true, immediate: false },
 );
 
+// リサイズ時に再描画
+let resizeTimeout: number | null = null;
+const handleResize = () => {
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout);
+  }
+  resizeTimeout = window.setTimeout(() => {
+    updateChart();
+  }, 250);
+};
+
 // マウント時に作成
 onMounted(async () => {
   if (props.categories && props.categories.length > 0) {
     await nextTick();
     createChart();
   }
+  window.addEventListener("resize", handleResize);
 });
 
 // アンマウント時に破棄
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", handleResize);
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout);
+  }
   if (chartInstance) {
     chartInstance.destroy();
     chartInstance = null;
@@ -167,7 +196,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full h-[460px]" style="max-width: 400px; margin: 0 auto">
+  <div class="w-full h-[320px] md:h-[460px]" style="max-width: 400px; margin: 0 auto">
     <canvas ref="canvasRef"></canvas>
   </div>
 </template>

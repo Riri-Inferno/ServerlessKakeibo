@@ -37,6 +37,8 @@ import {
   ChevronLeftIcon,
   Bars3Icon,
   StarIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
 } from "@heroicons/vue/24/outline";
 
 // ===== Solid (24x24) =====
@@ -105,7 +107,9 @@ type IconName =
   | "arrow-down"
   | "chevron-left"
   | "chevron-right"
-  | "star";
+  | "star"
+  | "trending-up"
+  | "trending-down";
 
 type Size = "sm" | "md" | "lg" | "xl";
 type Variant = "outline" | "solid" | "mini";
@@ -165,6 +169,8 @@ const iconMapOutline: Record<IconName, Component> = {
   "chevron-left": ChevronLeftIcon,
   "chevron-right": ChevronRightIcon,
   star: StarIcon,
+  "trending-up": ArrowTrendingUpIcon,
+  "trending-down": ArrowTrendingDownIcon,
 };
 
 // Solid (24x24) - 必要に応じて追加
@@ -208,6 +214,8 @@ const iconMapSolid: Record<IconName, Component> = {
   "chevron-left": ChevronLeftIcon,
   "chevron-right": ChevronRightIcon,
   star: StarIcon,
+  "trending-up": ArrowTrendingUpIcon,
+  "trending-down": ArrowTrendingDownIcon,
 };
 
 // Mini (20x20) - よく使うものだけ
@@ -251,6 +259,8 @@ const iconMapMini: Record<IconName, Component> = {
   "chevron-left": ChevronLeftIcon,
   "chevron-right": ChevronRightIcon,
   star: StarIcon,
+  "trending-up": ArrowTrendingUpIcon,
+  "trending-down": ArrowTrendingDownIcon,
 };
 
 const iconComponent = computed(() => {
