@@ -1,0 +1,73 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'Backend/**'
+      - 'Frontend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/**'
+
+jobs:
+  build-backend:
+    name: Backend Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-frontend:
+    name: Frontend Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Frontend
+          file: ./Frontend/Dockerfile
+          push: false
+          build-args: |
+            VITE_API_BASE_URL=https://api.example.com
+            VITE_GOOGLE_CLIENT_ID=dummy
+            VITE_GITHUB_CLIENT_ID=dummy
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test-compose:
+    name: Docker Compose Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=test
+          POSTGRES_DB=testdb
+          EOF
+      
+      - name: Validate docker-compose
+        run: docker compose config
