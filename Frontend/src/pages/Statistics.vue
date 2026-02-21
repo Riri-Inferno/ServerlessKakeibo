@@ -43,19 +43,16 @@ onMounted(async () => {
 
 <template>
   <DefaultLayout>
-    <div class="max-w-7xl mx-auto space-y-6">
-      <!-- ヘッダー + 月切り替え -->
-      <div class="mb-6">
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
+      <div class="mb-4 md:mb-6">
         <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4 mb-3 md:mb-4"
         >
-          <BaseText variant="h1">統計</BaseText>
+          <BaseText variant="h1" class="text-xl md:text-2xl lg:text-3xl">統計</BaseText>
 
-          <!-- 月切り替えUI -->
           <div
-            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3"
           >
-            <!-- 年月ドロップダウン -->
             <div class="flex items-center gap-2 order-2 sm:order-1">
               <BaseSelect
                 :model-value="currentYear"
@@ -79,7 +76,6 @@ onMounted(async () => {
               />
             </div>
 
-            <!-- ← → 今月ボタン -->
             <div
               class="flex items-center justify-center gap-2 order-1 sm:order-2"
             >
@@ -93,9 +89,8 @@ onMounted(async () => {
                 <BaseIcon name="chevron-left" size="sm" />
               </BaseButton>
 
-              <!-- モバイルのみ: 月ラベル表示 -->
               <div class="min-w-[120px] text-center px-2 sm:hidden">
-                <BaseText variant="body" weight="medium">
+                <BaseText variant="body" weight="medium" class="text-sm">
                   {{ currentPeriodLabel }}
                 </BaseText>
               </div>
@@ -123,15 +118,14 @@ onMounted(async () => {
           </div>
         </div>
 
-        <BaseText variant="caption" color="gray">
+        <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
           {{ currentPeriodLabel }}
         </BaseText>
       </div>
 
-      <!-- ローディング -->
       <div
         v-if="isLoading"
-        class="flex-1 flex items-center justify-center py-12"
+        class="flex-1 flex items-center justify-center py-8 md:py-12"
       >
         <div class="text-center">
           <BaseSpinner
@@ -145,14 +139,11 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- エラー -->
-      <div v-else-if="errorMessage" class="text-center py-12">
+      <div v-else-if="errorMessage" class="text-center py-8 md:py-12">
         <BaseText variant="body" color="danger">{{ errorMessage }}</BaseText>
       </div>
 
-      <!-- データ表示 -->
       <template v-else>
-        <!-- 月次サマリーカード -->
         <StatsSummaryCards
           v-if="monthlyComparison"
           :income="monthlyComparison.current.income"
@@ -162,27 +153,25 @@ onMounted(async () => {
           :expense-change="monthlyComparison.expenseChangePercent"
         />
 
-        <!-- カテゴリ別支出 -->
         <BaseCard
           v-if="
             categoryBreakdown &&
             Array.isArray(categoryBreakdown.categories) &&
             categoryBreakdown.categories.length > 0
           "
+          class="p-4 md:p-6"
         >
-          <div class="space-y-6">
+          <div class="space-y-4 md:space-y-6">
             <div class="flex items-center gap-2">
               <BaseIcon name="tag" size="md" class="text-gray-500" />
               <BaseText variant="h3">カテゴリ別支出</BaseText>
             </div>
 
-            <!-- 円グラフ -->
             <CategoryPieChart
               :key="`chart-${currentYear}-${currentMonth}`"
               :categories="categoryBreakdown.categories"
             />
 
-            <!-- カテゴリリスト -->
             <CategoryBreakdownList
               :categories="categoryBreakdown.categories"
               :total-expense="categoryBreakdown.totalExpense"
@@ -190,10 +179,9 @@ onMounted(async () => {
           </div>
         </BaseCard>
 
-        <!-- 月次推移 -->
-        <BaseCard v-if="monthlyTrend">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2 mb-4">
+        <BaseCard v-if="monthlyTrend" class="p-4 md:p-6">
+          <div class="space-y-3 md:space-y-4">
+            <div class="flex items-center gap-2 mb-3 md:mb-4">
               <BaseIcon name="chart" size="md" class="text-gray-500" />
               <BaseText variant="h3">月次推移</BaseText>
             </div>
@@ -202,10 +190,9 @@ onMounted(async () => {
           </div>
         </BaseCard>
 
-        <!-- ハイライト -->
-        <BaseCard v-if="highlights">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2 mb-4">
+        <BaseCard v-if="highlights" class="p-4 md:p-6">
+          <div class="space-y-3 md:space-y-4">
+            <div class="flex items-center gap-2 mb-3 md:mb-4">
               <BaseIcon name="info" size="md" class="text-gray-500" />
               <BaseText variant="h3"
                 >{{ currentMonthLabel }}のハイライト</BaseText
