@@ -43,23 +43,23 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.name }}/backend:${{ github.sha }}
       
       # Frontend
-      - name: Build and Push Frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Frontend
-          file: ./Frontend/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest
-            ghcr.io/${{ steps.repo.outputs.name }}/frontend:${{ github.sha }}
-          build-args: |
-            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://api.example.com' }}
-            VITE_GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
-            VITE_GITHUB_CLIENT_ID=${{ vars.GITHUB_CLIENT_ID }}
+    #   - name: Build and Push Frontend
+    #     uses: docker/build-push-action@v5
+    #     with:
+    #       context: ./Frontend
+    #       file: ./Frontend/Dockerfile
+    #       push: true
+    #       tags: |
+    #         ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest
+    #         ghcr.io/${{ steps.repo.outputs.name }}/frontend:${{ github.sha }}
+    #       build-args: |
+    #         VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://api.example.com' }}
+    #         VITE_GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+    #         VITE_GITHUB_CLIENT_ID=${{ vars.GITHUB_CLIENT_ID }}
       
-      - name: Summary
-        run: |
-          echo "✅ Images pushed to GHCR"
-          echo ""
-          echo "Backend: ghcr.io/${{ steps.repo.outputs.name }}/backend:latest"
-          echo "Frontend: ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest"
+    #   - name: Summary
+    #     run: |
+    #       echo "✅ Images pushed to GHCR"
+    #       echo ""
+    #       echo "Backend: ghcr.io/${{ steps.repo.outputs.name }}/backend:latest"
+    #       echo "Frontend: ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest"
