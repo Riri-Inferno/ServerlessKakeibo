@@ -25,11 +25,35 @@
       font-size: 16px !important;
     }
   }
+
+  /* 🆕 スマホ表示の全体最適化 */
+  @media (max-width: 767px) {
+    /* ベースフォントサイズを少し小さく */
+    html {
+      font-size: 15px;
+    }
+    
+    /* 見出しのサイズをコンパクトに */
+    h1 { @apply text-xl; }
+    h2 { @apply text-lg; }
+    h3 { @apply text-base; }
+  }
 }
 
 @layer utilities {
   /* iOS Safariのタップハイライトを無効化 */
   .tap-transparent {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* スマホ用の密度調整クラス */
+  @media (max-width: 767px) {
+    .mobile-compact {
+      @apply space-y-3;
+    }
+    
+    .mobile-compact-card {
+      @apply p-3;
+    }
   }
 }
