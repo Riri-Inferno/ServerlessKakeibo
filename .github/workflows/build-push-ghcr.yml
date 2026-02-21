@@ -2,7 +2,11 @@ name: Build and Push to GHCR
 
 on:
   push:
-    branches: [main]
+    branches:
+      - develop
+      - main
+      - 'feature/*'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
