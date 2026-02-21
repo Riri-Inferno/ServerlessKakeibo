@@ -60,9 +60,9 @@ jobs:
     #         VITE_GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
     #         VITE_GITHUB_CLIENT_ID=${{ vars.GITHUB_CLIENT_ID }}
       
-    #   - name: Summary
-    #     run: |
-    #       echo "✅ Images pushed to GHCR"
-    #       echo ""
-    #       echo "Backend: ghcr.io/${{ steps.repo.outputs.name }}/backend:latest"
-    #       echo "Frontend: ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest"
+      - name: Summary
+        run: |
+          echo "✅ Images pushed to GHCR"
+          echo ""
+          echo "Backend: ghcr.io/${{ steps.repo.outputs.name }}/backend:latest"
+          echo "Frontend: ghcr.io/${{ steps.repo.outputs.name }}/frontend:latest"

@@ -1,0 +1,67 @@
+name: Build and Push to GAR
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_LOCATION: ${{ vars.GAR_LOCATION }}
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write  # Workload Identity Federation用
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # GCPへの認証（Workload Identity Federation）
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      
+      # gcloud CLI セットアップ
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      # Artifact Registry への Docker 認証設定
+      - name: Configure Docker for GAR
+        run: |
+          gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+      
+      # Docker Buildx セットアップ（キャッシュ用）
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # Backend イメージをビルド＆プッシュ
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:latest
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      # 結果表示
+      - name: Summary
+        run: |
+          echo "✅ Backend image pushed to GAR"
+          echo ""
+          echo "Image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:latest"
+          echo "SHA tag: ${{ github.sha }}"
