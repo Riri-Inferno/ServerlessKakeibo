@@ -19,7 +19,7 @@ const { user, effectiveDisplayName, logout } = useAuth();
           @click="emit('toggleSidebar')"
           class="p-2 hover:bg-gray-100 rounded-lg md:hidden"
         >
-          <BaseIcon name="chevron-down" size="md" />
+          <BaseIcon name="bars-3" size="md" />
         </button>
 
         <BaseText variant="h2" class="hidden md:block"> 家計簿アプリ </BaseText>
