@@ -4,14 +4,13 @@ services:
     image: postgres:16
     container_name: kakeibo-db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Password
-      - POSTGRES_DB=appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password
+      POSTGRES_DB: appdb
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
     networks:
       - kakeibo-network
     healthcheck:
@@ -26,12 +25,12 @@ services:
       context: ./Backend
       dockerfile: ServerlessKakeibo.Api/Dockerfile
     container_name: kakeibo-backend
+    env_file:
+      - ./Backend/.env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=appdb;Username=postgres;Password=Password
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -47,15 +46,18 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
     container_name: kakeibo-frontend
+    env_file:
+      - ./Frontend/.env
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
+      - VITE_ENVIRONMENT=${VITE_ENVIRONMENT:-development}
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
     restart: unless-stopped
     networks:
       - kakeibo-network
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8080
 
 volumes:
   pgdata:
