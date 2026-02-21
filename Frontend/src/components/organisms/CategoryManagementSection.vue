@@ -20,7 +20,6 @@ type CategoryDto =
   | ItemCategoryDto
   | IncomeItemCategoryDto;
 
-// 各カテゴリのcomposable
 const transactionCategories = useTransactionCategories();
 const itemCategories = useItemCategories();
 const incomeItemCategories = useIncomeItemCategories();
@@ -211,16 +210,14 @@ const toggleHiddenCategories = () => {
 </script>
 
 <template>
-  <BaseCard>
-    <div class="space-y-4">
-      <!-- ヘッダー -->
+  <BaseCard class="p-4 md:p-6">
+    <div class="space-y-3 md:space-y-4">
       <div class="flex items-center gap-2">
         <BaseIcon name="tag" size="md" class="text-gray-500" />
         <BaseText variant="h3">カテゴリ管理</BaseText>
       </div>
 
-      <!-- タブ -->
-      <div class="flex gap-2 border-b border-gray-200">
+      <div class="flex gap-1 md:gap-2 border-b border-gray-200 overflow-x-auto">
         <button
           v-for="type in [
             'transaction',
@@ -229,7 +226,7 @@ const toggleHiddenCategories = () => {
           ] as CategoryType[]"
           :key="type"
           @click="handleTabChange(type)"
-          class="px-4 py-2 font-medium transition-colors border-b-2"
+          class="px-3 py-2 md:px-4 font-medium transition-colors border-b-2 whitespace-nowrap text-sm md:text-base flex-shrink-0"
           :class="
             activeTab === type
               ? 'border-blue-500 text-blue-600'
@@ -240,48 +237,43 @@ const toggleHiddenCategories = () => {
         </button>
       </div>
 
-      <!-- 成功メッセージ -->
       <div
         v-if="activeComposable.successMessage.value"
-        class="bg-green-50 border border-green-200 rounded-lg p-3"
+        class="bg-green-50 border border-green-200 rounded-lg p-2.5 md:p-3"
       >
         <div class="flex items-center gap-2">
-          <BaseIcon name="check-circle" size="sm" class="text-green-600" />
-          <BaseText variant="body" class="text-green-800">
+          <BaseIcon name="check-circle" size="sm" class="text-green-600 flex-shrink-0" />
+          <BaseText variant="body" class="text-green-800 text-sm md:text-base">
             {{ activeComposable.successMessage.value }}
           </BaseText>
         </div>
       </div>
 
-      <!-- エラーメッセージ -->
       <div
         v-if="activeComposable.errorMessage.value"
-        class="bg-red-50 border border-red-200 rounded-lg p-3"
+        class="bg-red-50 border border-red-200 rounded-lg p-2.5 md:p-3"
       >
         <div class="flex items-center gap-2">
           <BaseIcon
             name="exclamation-triangle"
             size="sm"
-            class="text-red-600"
+            class="text-red-600 flex-shrink-0"
           />
-          <BaseText variant="body" class="text-red-800">
+          <BaseText variant="body" class="text-red-800 text-sm md:text-base">
             {{ activeComposable.errorMessage.value }}
           </BaseText>
         </div>
       </div>
 
-      <!-- ローディング: スケルトン表示 -->
       <div v-if="activeComposable.isLoading.value" class="space-y-2">
         <div
           v-for="i in 5"
           :key="i"
-          class="h-16 bg-gray-100 rounded-lg animate-pulse"
+          class="h-14 md:h-16 bg-gray-100 rounded-lg animate-pulse"
         />
       </div>
 
-      <!-- カテゴリリスト -->
-      <div v-else class="space-y-4">
-        <!-- ドラッグ可能リスト -->
+      <div v-else class="space-y-3 md:space-y-4">
         <draggable
           v-if="localCategories.length > 0"
           v-model="localCategories"
@@ -301,25 +293,23 @@ const toggleHiddenCategories = () => {
           </template>
         </draggable>
 
-        <!-- カテゴリが0件の場合 -->
-        <div v-else class="text-center py-8 text-gray-500">
+        <div v-else class="text-center py-6 md:py-8 text-gray-500">
           <BaseIcon name="tag" size="lg" class="mx-auto mb-2 opacity-50" />
-          <BaseText variant="body" color="gray">
+          <BaseText variant="body" color="gray" class="text-sm md:text-base">
             カテゴリがありません
           </BaseText>
         </div>
 
-        <!-- アクションボタン -->
-        <div class="flex gap-2 pt-4">
+        <div class="flex gap-1.5 md:gap-2 pt-3 md:pt-4">
           <BaseButton
             variant="primary"
             @click="openCreateModal"
             :disabled="activeComposable.isSaving.value"
             class="flex-1"
           >
-            <span class="flex items-center justify-center gap-2">
+            <span class="flex items-center justify-center gap-1.5 md:gap-2">
               <BaseIcon name="plus" size="sm" />
-              <span>カテゴリを追加</span>
+              <span class="text-sm md:text-base">カテゴリを追加</span>
             </span>
           </BaseButton>
 
@@ -330,15 +320,14 @@ const toggleHiddenCategories = () => {
           >
             <span class="flex items-center gap-1">
               <BaseIcon name="arrow-path" size="sm" />
-              <span class="hidden sm:inline">マスタに戻す</span>
+              <span class="hidden sm:inline text-sm md:text-base">マスタに戻す</span>
             </span>
           </BaseButton>
         </div>
 
-        <!-- 削除済みカテゴリ -->
         <div
           v-if="activeComposable.hiddenCategories.value.length > 0"
-          class="pt-4 border-t border-gray-200"
+          class="pt-3 md:pt-4 border-t border-gray-200"
         >
           <button
             @click="toggleHiddenCategories"
@@ -348,25 +337,24 @@ const toggleHiddenCategories = () => {
               :name="showHiddenCategories ? 'chevron-up' : 'chevron-down'"
               size="sm"
             />
-            <BaseText variant="body">
+            <BaseText variant="body" class="text-sm md:text-base">
               削除済みカテゴリ ({{
                 activeComposable.hiddenCategories.value.length
               }})
             </BaseText>
           </button>
 
-          <!-- 削除済みカテゴリリスト -->
-          <div v-if="showHiddenCategories" class="mt-3 space-y-2">
+          <div v-if="showHiddenCategories" class="mt-2 md:mt-3 space-y-2">
             <div
               v-for="category in activeComposable.hiddenCategories.value"
               :key="category.id"
-              class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+              class="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-lg"
             >
               <div
                 :style="{ backgroundColor: category.colorCode }"
-                class="w-6 h-6 rounded-full border border-gray-300 opacity-50"
+                class="w-5 h-5 md:w-6 md:h-6 rounded-full border border-gray-300 opacity-50 flex-shrink-0"
               />
-              <BaseText variant="body" color="gray" class="flex-1">
+              <BaseText variant="body" color="gray" class="flex-1 text-sm md:text-base truncate">
                 {{ category.name }}
               </BaseText>
               <BaseButton
@@ -376,7 +364,7 @@ const toggleHiddenCategories = () => {
               >
                 <span class="flex items-center gap-1 text-blue-600">
                   <BaseIcon name="arrow-path" size="sm" />
-                  <span>復元</span>
+                  <span class="text-xs md:text-sm">復元</span>
                 </span>
               </BaseButton>
             </div>
