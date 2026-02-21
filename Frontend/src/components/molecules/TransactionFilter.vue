@@ -166,13 +166,13 @@ const toggleExpand = () => {
 </script>
 
 <template>
-  <BaseCard padding="md">
-    <div class="space-y-4">
+  <BaseCard class="p-3 md:p-4 lg:p-6">
+    <div class="space-y-3 md:space-y-4">
       <div class="flex items-center justify-between">
-        <BaseText variant="h3">検索条件</BaseText>
+        <BaseText variant="h3" class="text-base md:text-lg">検索条件</BaseText>
         <button
           @click="toggleExpand"
-          class="p-2 hover:bg-gray-100 rounded-lg transition-colors tap-transparent"
+          class="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors tap-transparent"
           aria-label="検索条件を展開"
         >
           <BaseIcon
@@ -182,18 +182,18 @@ const toggleExpand = () => {
         </button>
       </div>
 
-      <div v-show="isExpanded" class="space-y-4">
+      <div v-show="isExpanded" class="space-y-3 md:space-y-4">
         <!-- 日付範囲 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               開始日
             </BaseText>
             <BaseInput v-model="filters.startDate" type="date" size="md" />
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               終了日
             </BaseText>
             <BaseInput v-model="filters.endDate" type="date" size="md" />
@@ -201,9 +201,9 @@ const toggleExpand = () => {
         </div>
 
         <!-- 種別・カテゴリ -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               取引種別
             </BaseText>
             <BaseSelect
@@ -215,7 +215,7 @@ const toggleExpand = () => {
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               カテゴリ
             </BaseText>
             <BaseSelect
@@ -229,7 +229,7 @@ const toggleExpand = () => {
 
         <!-- 支払元/支払先を type に応じて切り替え -->
         <div>
-          <BaseText variant="caption" color="gray" class="mb-1">
+          <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
             {{ payerPayeeLabel }}
           </BaseText>
           <BaseInput
@@ -256,9 +256,9 @@ const toggleExpand = () => {
         </div>
 
         <!-- 金額範囲 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               最小金額
             </BaseText>
             <BaseInputNumber
@@ -269,7 +269,7 @@ const toggleExpand = () => {
           </div>
 
           <div>
-            <BaseText variant="caption" color="gray" class="mb-1">
+            <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
               最大金額
             </BaseText>
             <BaseInputNumber
@@ -287,14 +287,14 @@ const toggleExpand = () => {
             class="w-full sm:flex-1"
             @click="handleSearch"
           >
-            検索
+            <span class="text-sm md:text-base">検索</span>
           </BaseButton>
           <BaseButton
             variant="outline"
             class="w-full sm:w-auto sm:flex-shrink-0"
             @click="handleClear"
           >
-            クリア
+            <span class="text-sm md:text-base">クリア</span>
           </BaseButton>
         </div>
       </div>
