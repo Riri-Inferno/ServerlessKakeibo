@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { useTransactions } from "../composables/useTransactions";
-import { TransactionType, TaxInclusionTypeLabels } from "../types/transaction";
 import type { GetTransactionsRequest } from "../types/transaction";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
-import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseButton from "../components/atoms/BaseButton.vue";
-import BaseBadge from "../components/atoms/BaseBadge.vue";
 import TransactionFilter from "../components/molecules/TransactionFilter.vue";
+import TransactionListItem from "../components/molecules/TransactionListItem.vue";
 import TransactionCreateSelectModal from "../components/organisms/TransactionCreateSelectModal.vue";
 import TransactionFormModal from "../components/organisms/TransactionFormModal.vue";
 import TransactionDetailModal from "../components/organisms/TransactionDetailModal.vue";
@@ -42,20 +40,6 @@ const isExportModalOpen = ref(false);
 const listContainerRef = ref<HTMLElement>();
 let resizeObserver: ResizeObserver | null = null;
 
-/**
- * 取引の表示名を取得
- * - 収入: Payer（支払者）
- * - 支出: Payee（受取者）
- */
-const getDisplayName = (
-  transaction: (typeof transactions.value)[0],
-): string => {
-  if (transaction.type === TransactionType.Income) {
-    return transaction.payer || "不明"; // 未登録なら不明
-  }
-  return transaction.payee || "不明"; // 未登録なら不明
-};
-
 const measureHeights = () => {
   if (!listContainerRef.value) return;
 
@@ -69,7 +53,6 @@ const measureHeights = () => {
 
   const isMobile = window.innerWidth < 768;
   const bottomNavHeight = isMobile ? 80 : 0;
-
   const BOTTOM_PADDING = 16;
 
   const availableHeight =
@@ -81,12 +64,10 @@ const measureHeights = () => {
 
   setContainerHeight(availableHeight);
 
-  const firstCard = listContainerRef.value.querySelector(
-    "[data-transaction-card]",
-  );
+  const firstCard = listContainerRef.value.querySelector("[data-transaction-item]");
   if (firstCard) {
     const itemRect = firstCard.getBoundingClientRect();
-    const gap = 16;
+    const gap = isMobile ? 0 : 16;
     setItemHeight(itemRect.height + gap);
   }
 };
@@ -147,20 +128,6 @@ const handleClearFilters = () => {
   fetchTransactions();
 };
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-};
-
-const formatAmount = (amount: number, type: string) => {
-  const sign = type === TransactionType.Income ? "+" : "-";
-  return `${sign}${amount.toLocaleString()}円`;
-};
-
 const handleEdit = () => {
   isDetailModalOpen.value = false;
   isEditModalOpen.value = true;
@@ -200,6 +167,8 @@ onMounted(async () => {
     });
     resizeObserver.observe(listContainerRef.value);
   }
+
+  window.addEventListener("resize", measureHeights);
 });
 
 onUnmounted(() => {
@@ -207,33 +176,22 @@ onUnmounted(() => {
     resizeObserver.disconnect();
     resizeObserver = null;
   }
+  window.removeEventListener("resize", measureHeights);
 });
 </script>
 
 <template>
   <DefaultLayout>
     <div class="max-w-7xl mx-auto h-full flex flex-col">
-      <!-- ヘッダー部分 -->
-      <div class="flex-shrink-0 space-y-4 mb-6">
-        <!-- タイトルとボタン：PCは横並び、モバイルは縦並び -->
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-          <!-- タイトル -->
+      <div class="flex-shrink-0 space-y-3 md:space-y-4 mb-4 md:mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
           <div>
-            <BaseText variant="h1" class="mb-2">取引一覧</BaseText>
-            <BaseText variant="caption" color="gray">
-              全{{ totalCount }}件
-            </BaseText>
+            <BaseText variant="h1" class="mb-1 md:mb-2">取引一覧</BaseText>
+            <BaseText variant="caption" color="gray">全{{ totalCount }}件</BaseText>
           </div>
 
-          <!-- ボタン：モバイルは2列グリッド、PCは横並び -->
           <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
-            <BaseButton
-              variant="outline"
-              class="w-full sm:w-auto"
-              @click="openExportModal"
-            >
+            <BaseButton variant="outline" class="w-full sm:w-auto" @click="openExportModal">
               <span class="flex items-center justify-center gap-1">
                 <BaseIcon name="download" size="sm" />
                 <span class="hidden sm:inline">エクスポート</span>
@@ -241,11 +199,7 @@ onUnmounted(() => {
               </span>
             </BaseButton>
 
-            <BaseButton
-              variant="primary"
-              class="w-full sm:w-auto"
-              @click="openCreateModal"
-            >
+            <BaseButton variant="primary" class="w-full sm:w-auto" @click="openCreateModal">
               <span class="flex items-center justify-center gap-1">
                 <BaseIcon name="plus" size="sm" />
                 <span>新規登録</span>
@@ -261,120 +215,58 @@ onUnmounted(() => {
       <div class="flex-1 flex flex-col min-h-0">
         <div v-if="isLoading" class="flex-1 flex items-center justify-center">
           <div class="text-center">
-            <BaseSpinner
-              icon="refresh"
-              size="lg"
-              color="primary"
-              label="取引一覧を読み込み中"
-              class="mb-2"
-            />
+            <BaseSpinner icon="refresh" size="lg" color="primary" label="取引一覧を読み込み中" class="mb-2" />
             <BaseText variant="body" color="gray">読み込み中...</BaseText>
           </div>
         </div>
 
-        <div
-          v-else-if="errorMessage"
-          class="flex-1 flex items-center justify-center"
-        >
+        <div v-else-if="errorMessage" class="flex-1 flex items-center justify-center">
           <BaseText variant="body" color="danger">{{ errorMessage }}</BaseText>
         </div>
 
-        <div
-          v-else-if="transactions.length === 0"
-          class="flex-1 flex items-center justify-center"
-        >
+        <div v-else-if="transactions.length === 0" class="flex-1 flex items-center justify-center">
           <BaseText variant="body" color="gray">取引がありません</BaseText>
         </div>
 
         <template v-else>
-          <div
-            ref="listContainerRef"
-            class="flex-1 space-y-4 overflow-y-auto pr-2"
-          >
-            <BaseCard
-              v-for="transaction in transactions"
-              :key="transaction.id"
-              data-transaction-card
-              clickable
-              @click="openDetail(transaction.id)"
-              class="hover:shadow-lg transition-shadow"
-            >
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-2 flex-wrap">
-                    <BaseBadge
-                      :color="
-                        transaction.type === TransactionType.Income
-                          ? 'success'
-                          : 'danger'
-                      "
-                      size="sm"
-                    >
-                      {{
-                        transaction.type === TransactionType.Income
-                          ? "収入"
-                          : "支出"
-                      }}
-                    </BaseBadge>
-                    <!-- ユーザー設定のカテゴリ -->
-                    <BaseBadge
-                      v-if="transaction.userTransactionCategory"
-                      :custom-color="
-                        transaction.userTransactionCategory.colorCode
-                      "
-                      size="sm"
-                    >
-                      {{ transaction.userTransactionCategory.name }}
-                    </BaseBadge>
-                    <!-- 税区分バッジ -->
-                    <BaseBadge
-                      v-if="transaction.taxInclusionType"
-                      color="info"
-                      size="sm"
-                    >
-                      {{ TaxInclusionTypeLabels[transaction.taxInclusionType] }}
-                    </BaseBadge>
-                  </div>
-                  <BaseText variant="body" weight="bold" class="mb-1">
-                    {{ getDisplayName(transaction) }}
-                  </BaseText>
-                  <BaseText variant="caption" color="gray">
-                    {{ formatDate(transaction.transactionDate) }}
-                  </BaseText>
-                </div>
+          <div ref="listContainerRef" class="flex-1 overflow-y-auto pr-2">
+            <div class="md:hidden bg-white rounded-lg border border-gray-200 shadow-sm">
+              <TransactionListItem
+                v-for="transaction in transactions"
+                :key="transaction.id"
+                :transaction="transaction"
+                variant="compact"
+                data-transaction-item
+                @click="openDetail"
+              />
+            </div>
 
-                <div class="text-right flex-shrink-0">
-                  <BaseText
-                    variant="h3"
-                    :color="
-                      transaction.type === TransactionType.Income
-                        ? 'success'
-                        : 'danger'
-                    "
-                    weight="bold"
-                  >
-                    {{
-                      formatAmount(transaction.amountTotal, transaction.type)
-                    }}
-                  </BaseText>
-                </div>
-              </div>
-            </BaseCard>
+            <div class="hidden md:block space-y-4">
+              <TransactionListItem
+                v-for="transaction in transactions"
+                :key="transaction.id"
+                :transaction="transaction"
+                variant="card"
+                data-transaction-item
+                @click="openDetail"
+              />
+            </div>
           </div>
 
           <div
-            class="flex items-center justify-between pt-4 flex-shrink-0 border-t border-gray-200 mt-4"
+            class="flex items-center justify-between pt-3 md:pt-4 flex-shrink-0 border-t border-gray-200 mt-3 md:mt-4"
             data-pagination
           >
             <BaseButton
               variant="outline"
               :disabled="currentPage === 1"
               @click="prevPage"
+              class="text-sm md:text-base px-3 py-1.5 md:px-4 md:py-2"
             >
               前へ
             </BaseButton>
 
-            <BaseText variant="body" color="gray">
+            <BaseText variant="body" color="gray" class="text-sm md:text-base">
               {{ currentPage }} / {{ totalPages }}
             </BaseText>
 
@@ -382,6 +274,7 @@ onUnmounted(() => {
               variant="outline"
               :disabled="currentPage === totalPages"
               @click="nextPage"
+              class="text-sm md:text-base px-3 py-1.5 md:px-4 md:py-2"
             >
               次へ
             </BaseButton>
@@ -397,12 +290,7 @@ onUnmounted(() => {
       @select-receipt="selectReceipt"
     />
 
-    <TransactionFormModal
-      :is-open="isFormModalOpen"
-      :mode="formMode"
-      @close="closeFormModal"
-      @success="handleCreateSuccess"
-    />
+    <TransactionFormModal :is-open="isFormModalOpen" :mode="formMode" @close="closeFormModal" @success="handleCreateSuccess" />
 
     <TransactionDetailModal
       v-if="selectedTransactionId"
@@ -421,11 +309,7 @@ onUnmounted(() => {
       @close="closeEditModal"
       @success="handleEditSuccess"
     />
-    <TransactionExportModal
-      :is-open="isExportModalOpen"
-      :filters="currentFilters"
-      :total-count="totalCount"
-      @close="closeExportModal"
-    />
+
+    <TransactionExportModal :is-open="isExportModalOpen" :filters="currentFilters" :total-count="totalCount" @close="closeExportModal" />
   </DefaultLayout>
 </template>
