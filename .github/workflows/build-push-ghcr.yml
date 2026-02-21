@@ -41,9 +41,8 @@ jobs:
           context: ./Backend
           file: ./Backend/ServerlessKakeibo.Api/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}/backend:latest
-            ghcr.io/${{ steps.repo.outputs.name }}/backend:${{ github.sha }}
+          platforms: linux/amd64
+          tags: ghcr.io/${{ steps.repo.outputs.name }}/backend:latest  # ← SHAタグ削除
       
       # Frontend
     #   - name: Build and Push Frontend
