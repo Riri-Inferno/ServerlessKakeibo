@@ -204,9 +204,9 @@ const handleDelete = () => {
             transaction.type === TransactionType.Income ? "支払元" : "支払先"
           }}
         </BaseText>
-        <BaseText variant="body" weight="bold" class="text-sm md:text-base">{{
-          transaction.payee
-        }}</BaseText>
+        <BaseText variant="body" weight="bold" class="text-sm md:text-base">
+          {{ transaction.type === TransactionType.Income ? transaction.payer : transaction.payee }}
+        </BaseText>
       </div>
 
       <!-- 取引日 -->
