@@ -2,7 +2,7 @@ import type {
   TransactionDetail,
   TransactionSummary,
 } from "../types/transaction";
-import { mockTransactions } from "./data/transactions";
+import { getMockTransactions } from "./data/transactions";
 import type {
   MonthlySummaryResult,
   MonthlyComparisonResult,
@@ -76,7 +76,8 @@ function parseYearMonth(dateString: string): { year: number; month: number } {
  * 指定年月の取引をフィルタ
  */
 function filterByYearMonth(year: number, month: number) {
-  return mockTransactions.filter((t) => {
+  const transactions = getMockTransactions();
+  return transactions.filter((t) => {
     const { year: y, month: m } = parseYearMonth(t.transactionDate);
     return y === year && m === month;
   });
@@ -520,5 +521,53 @@ export function generateIncomeItemCategories(
   return {
     categories,
     totalCount: categories.length,
+  };
+}
+
+/**
+ * IDから商品カテゴリを取得
+ */
+export function findItemCategoryById(id: string) {
+  const category = mockItemCategories.find((cat) => cat.id === id);
+  if (!category) return null;
+
+  // isHidden を除外して返す（UserItemCategory型に合わせる）
+  return {
+    id: category.id,
+    name: category.name,
+    colorCode: category.colorCode,
+    isCustom: category.isCustom,
+  };
+}
+
+/**
+ * IDから収入項目カテゴリを取得
+ */
+export function findIncomeItemCategoryById(id: string) {
+  const category = mockIncomeItemCategories.find((cat) => cat.id === id);
+  if (!category) return null;
+
+  // isHidden を除外して返す（UserIncomeItemCategory型に合わせる）
+  return {
+    id: category.id,
+    name: category.name,
+    colorCode: category.colorCode,
+    isCustom: category.isCustom,
+  };
+}
+
+/**
+ * IDから取引カテゴリを取得
+ */
+export function findTransactionCategoryById(id: string) {
+  const category = mockTransactionCategories.find((cat) => cat.id === id);
+  if (!category) return null;
+
+  return {
+    id: category.id,
+    name: category.name,
+    colorCode: category.colorCode,
+    isIncome: category.isIncome,
+    isCustom: category.isCustom,
   };
 }

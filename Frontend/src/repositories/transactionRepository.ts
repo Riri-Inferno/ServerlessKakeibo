@@ -1,6 +1,6 @@
 import apiClient from "../api/axios";
 import { isDemoMode } from "../utils/env";
-import { mockTransactions } from "../mocks/data/transactions";
+import { getMockTransactions } from "../mocks/data/transactions";
 import { toTransactionSummaries } from "../mocks/helpers";
 import type {
   TransactionSummary,
@@ -29,7 +29,7 @@ export const transactionRepository = {
     if (isDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 300)); // 遅延シミュレート
 
-      let filtered = [...mockTransactions];
+      let filtered = [...getMockTransactions()];
 
       // フィルタリング
       if (params.startDate) {
@@ -81,12 +81,14 @@ export const transactionRepository = {
     return response.data.data;
   },
 
-  async getDetail(id: string): Promise<TransactionDetail> {
+   async getDetail(id: string): Promise<TransactionDetail> {
     // デモモード：モックデータを返す
     if (isDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const transaction = mockTransactions.find((t) => t.id === id);
+      const transactions = getMockTransactions();
+      const transaction = transactions.find((t) => t.id === id);
+
       if (!transaction) {
         throw new Error(`取引が見つかりません（ID: ${id}）`);
       }
@@ -220,7 +222,8 @@ async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     // 取引を検索
-    const transaction = mockTransactions.find((t) => t.id === id);
+    const transactions = getMockTransactions();
+    const transaction = transactions.find((t) => t.id === id);
     if (!transaction) {
       throw new Error(`取引が見つかりません（ID: ${id}）`);
     }
