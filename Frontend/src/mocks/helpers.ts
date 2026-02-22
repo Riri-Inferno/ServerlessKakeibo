@@ -20,6 +20,11 @@ import type {
   TransactionCategoryDto,
   TransactionCategoryListResult,
 } from "../types/transactionCategory";
+import { mockItemCategories } from "./data/itemCategories";
+import type {
+  ItemCategoryDto,
+  ItemCategoryListResult,
+} from "../types/itemCategory";
 
 /**
  * TransactionDetail から TransactionSummary に変換
@@ -420,6 +425,46 @@ export function generateTransactionCategories(
 ): TransactionCategoryListResult {
   let categories = mockTransactionCategories.map((cat, index) =>
     toTransactionCategoryDto(cat, index)
+  );
+
+  // includeHidden=false の場合、削除済みカテゴリを除外
+  if (!includeHidden) {
+    categories = categories.filter((cat) => !cat.isHidden);
+  }
+
+  return {
+    categories,
+    totalCount: categories.length,
+  };
+}
+
+/**
+ * モックデータを ItemCategoryDto に変換
+ */
+function toItemCategoryDto(
+  category: (typeof mockItemCategories)[0],
+  index: number
+): ItemCategoryDto {
+  return {
+    id: category.id,
+    name: category.name,
+    code: category.name,
+    colorCode: category.colorCode,
+    displayOrder: index + 1,
+    isCustom: category.isCustom,
+    isHidden: category.isHidden,
+    masterCategoryId: category.isCustom ? null : category.id,
+  };
+}
+
+/**
+ * 商品カテゴリ一覧を生成
+ */
+export function generateItemCategories(
+  includeHidden = false
+): ItemCategoryListResult {
+  let categories = mockItemCategories.map((cat, index) =>
+    toItemCategoryDto(cat, index)
   );
 
   // includeHidden=false の場合、削除済みカテゴリを除外

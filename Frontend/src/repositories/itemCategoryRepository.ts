@@ -1,4 +1,6 @@
 import apiClient from "../api/axios";
+import { isDemoMode } from "../utils/env";
+import { generateItemCategories } from "../mocks/helpers";
 import type { ApiResponse } from "../types/api";
 import type {
   //   ItemCategoryDto,
@@ -16,16 +18,23 @@ export const itemCategoryRepository = {
    * @returns カテゴリ一覧
    */
   async getCategories(includeHidden = false): Promise<ItemCategoryListResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return generateItemCategories(includeHidden);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<ItemCategoryListResult>>(
       "/api/categories/item",
       {
         params: { includeHidden },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "商品カテゴリの取得に失敗しました",
+        response.data.message || "商品カテゴリの取得に失敗しました"
       );
     }
 
@@ -39,16 +48,24 @@ export const itemCategoryRepository = {
    * @returns 作成結果
    */
   async createCategory(
-    request: CreateItemCategoryRequest,
+    request: CreateItemCategoryRequest
   ): Promise<ItemCategoryResult> {
+    // デモモード：作成不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの作成はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<ApiResponse<ItemCategoryResult>>(
       "/api/categories/item",
-      request,
+      request
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "商品カテゴリの作成に失敗しました",
+        response.data.message || "商品カテゴリの作成に失敗しました"
       );
     }
 
@@ -64,16 +81,24 @@ export const itemCategoryRepository = {
    */
   async updateCategory(
     id: string,
-    request: UpdateItemCategoryRequest,
+    request: UpdateItemCategoryRequest
   ): Promise<ItemCategoryResult> {
+    // デモモード：更新不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの更新はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.put<ApiResponse<ItemCategoryResult>>(
       `/api/categories/item/${id}`,
-      request,
+      request
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "商品カテゴリの更新に失敗しました",
+        response.data.message || "商品カテゴリの更新に失敗しました"
       );
     }
 
@@ -87,13 +112,21 @@ export const itemCategoryRepository = {
    * @returns 削除結果
    */
   async deleteCategory(id: string): Promise<ItemCategoryResult> {
+    // デモモード：削除不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの削除はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.delete<ApiResponse<ItemCategoryResult>>(
-      `/api/categories/item/${id}`,
+      `/api/categories/item/${id}`
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "商品カテゴリの削除に失敗しました",
+        response.data.message || "商品カテゴリの削除に失敗しました"
       );
     }
 
@@ -107,13 +140,21 @@ export const itemCategoryRepository = {
    * @returns 復元結果
    */
   async restoreCategory(id: string): Promise<ItemCategoryResult> {
+    // デモモード：復元不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの復元はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<ApiResponse<ItemCategoryResult>>(
-      `/api/categories/item/${id}/restore`,
+      `/api/categories/item/${id}/restore`
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "商品カテゴリの復元に失敗しました",
+        response.data.message || "商品カテゴリの復元に失敗しました"
       );
     }
 
@@ -126,13 +167,21 @@ export const itemCategoryRepository = {
    * @returns リセット結果
    */
   async resetToMaster(): Promise<ItemCategoryListResult> {
+    // デモモード：リセット不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではマスタ設定へのリセットはできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<ApiResponse<ItemCategoryListResult>>(
-      "/api/categories/item/reset",
+      "/api/categories/item/reset"
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "マスタ設定への復元に失敗しました",
+        response.data.message || "マスタ設定への復元に失敗しました"
       );
     }
 
@@ -143,13 +192,21 @@ export const itemCategoryRepository = {
    * 商品カテゴリの並び順を一括更新
    */
   async updateCategoryOrders(
-    orders: Array<{ id: string; displayOrder: number }>,
+    orders: Array<{ id: string; displayOrder: number }>
   ): Promise<ItemCategoryListResult> {
+    // デモモード：並び順変更不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードでは並び順の変更はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.put<ApiResponse<ItemCategoryListResult>>(
       "/api/categories/item/order",
       {
         orders,
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
