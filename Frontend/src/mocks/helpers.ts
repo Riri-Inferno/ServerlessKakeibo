@@ -2,7 +2,6 @@ import type {
   TransactionDetail,
   TransactionSummary,
 } from "../types/transaction";
-
 import { mockTransactions } from "./data/transactions";
 import type {
   MonthlySummaryResult,
@@ -14,6 +13,8 @@ import type {
   CategoryFrequency,
   MonthLabel,
 } from "../types/statistics";
+import { mockDemoUser } from "./data/demoUser";
+import type { UserSettings } from "../types/settings";
 
 /**
  * TransactionDetail から TransactionSummary に変換
@@ -368,5 +369,20 @@ export function generateHighlights(
     mostFrequentCategory,
     averageExpensePerDay,
     daysWithExpense,
+  };
+}
+
+/**
+ * デモ用のユーザー設定を生成
+ */
+export function generateMockSettings(): UserSettings {
+  return {
+    displayName: mockDemoUser.displayName,
+    email: "demo@example.com",
+    pictureUrl: mockDemoUser.pictureUrl,
+    closingDay: null, // 月末締め
+    timeZone: "Asia/Tokyo",
+    currencyCode: "JPY",
+    displayNameOverride: null, // 上書きなし（デフォルト表示名を使用）
   };
 }
