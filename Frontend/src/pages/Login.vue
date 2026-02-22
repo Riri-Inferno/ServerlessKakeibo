@@ -34,12 +34,17 @@ const handleGitHubLogin = () => {
   }
 };
 
+const googleClientId = 
+  (window as any).ENV?.GOOGLE_CLIENT_ID || 
+  import.meta.env.VITE_GOOGLE_CLIENT_ID || 
+  '';
+
 onMounted(() => {
   googleSdkLoaded((google) => {
     if (!googleButtonContainer.value) return;
 
     google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: googleClientId,
       callback: handleCredentialResponse,
       use_fedcm_for_prompt: false, // FedCM を無効化
     });

@@ -1,7 +1,14 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "../stores/authStore";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// window.ENVを優先、フォールバックでimport.meta.env
+const API_BASE_URL = 
+  (window as any).ENV?.API_BASE_URL ||        // Docker環境
+  import.meta.env.VITE_API_BASE_URL ||         // ローカル開発
+  'http://localhost:8080';                     // デフォルト
+
+// デバッグ用ログ
+console.log('API Base URL:', API_BASE_URL);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

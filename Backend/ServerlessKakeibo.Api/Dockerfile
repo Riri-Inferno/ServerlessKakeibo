@@ -1,3 +1,6 @@
+# ===================================
+# ビルドステージ
+# ===================================
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -12,6 +15,9 @@ COPY . .
 WORKDIR "/src/ServerlessKakeibo.Api"
 RUN dotnet build "ServerlessKakeibo.Api.csproj" -c Release -o /app/build
 
+# ===================================
+# 実行ステージ
+# ===================================
 FROM build AS publish
 RUN dotnet publish "ServerlessKakeibo.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 

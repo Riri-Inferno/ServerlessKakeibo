@@ -45,13 +45,14 @@ onMounted(async () => {
   <DefaultLayout>
     <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
       <div class="mb-4 md:mb-6">
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4 mb-3 md:mb-4"
-        >
-          <BaseText variant="h1" class="text-xl md:text-2xl lg:text-3xl">統計</BaseText>
-          <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
-            月次統計情報
-          </BaseText>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4 mb-3 md:mb-4">
+          
+          <div>
+            <BaseText variant="h1" class="text-xl md:text-2xl lg:text-3xl">統計</BaseText>
+            <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
+              月次統計情報
+            </BaseText>
+          </div>
 
           <div
             class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3"
