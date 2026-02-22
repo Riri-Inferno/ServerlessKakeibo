@@ -15,6 +15,11 @@ import type {
 } from "../types/statistics";
 import { mockDemoUser } from "./data/demoUser";
 import type { UserSettings } from "../types/settings";
+import { mockTransactionCategories } from "./data/transactionCategories";
+import type {
+  TransactionCategoryDto,
+  TransactionCategoryListResult,
+} from "../types/transactionCategory";
 
 /**
  * TransactionDetail から TransactionSummary に変換
@@ -384,5 +389,46 @@ export function generateMockSettings(): UserSettings {
     timeZone: "Asia/Tokyo",
     currencyCode: "JPY",
     displayNameOverride: null, // 上書きなし（デフォルト表示名を使用）
+  };
+}
+
+/**
+ * UserTransactionCategory から TransactionCategoryDto に変換
+ */
+function toTransactionCategoryDto(
+  category: (typeof mockTransactionCategories)[0],
+  index: number
+): TransactionCategoryDto {
+  return {
+    id: category.id,
+    name: category.name,
+    code: category.name,
+    colorCode: category.colorCode,
+    displayOrder: index + 1,
+    isIncome: category.isIncome,
+    isCustom: category.isCustom,
+    isHidden: category.isHidden,
+    masterCategoryId: category.isCustom ? null : category.id,
+  };
+}
+
+/**
+ * 取引カテゴリ一覧を生成
+ */
+export function generateTransactionCategories(
+  includeHidden = false
+): TransactionCategoryListResult {
+  let categories = mockTransactionCategories.map((cat, index) =>
+    toTransactionCategoryDto(cat, index)
+  );
+
+  // includeHidden=false の場合、削除済みカテゴリを除外
+  if (!includeHidden) {
+    categories = categories.filter((cat) => !cat.isHidden);
+  }
+
+  return {
+    categories,
+    totalCount: categories.length,
   };
 }
