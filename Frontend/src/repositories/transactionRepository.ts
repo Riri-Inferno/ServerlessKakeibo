@@ -208,32 +208,48 @@ export const transactionRepository = {
     return response.data.data;
   },
 
-  /**
-   * レシート画像の署名付きURLを取得
-   *
-   * @param id 取引ID
-   * @returns 署名付きURL（1時間有効）
-   */
-  async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
-    // デモモード：エラーを投げる
-    if (isDemoMode()) {
-      throw new Error(
-        "デモモードではレシート画像の取得はできません。実際のアカウントでお試しください。"
-      );
+/**
+ * レシート画像の署名付きURLを取得
+ *
+ * @param id 取引ID
+ * @returns 署名付きURL（1時間有効）
+ */
+async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
+  // デモモード
+  if (isDemoMode()) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // 取引を検索
+    const transaction = mockTransactions.find((t) => t.id === id);
+    if (!transaction) {
+      throw new Error(`取引が見つかりません（ID: ${id}）`);
     }
 
-    const response = await apiClient.get<ApiResponse<ReceiptImageUrlResult>>(
-      `/Transaction/${id}/receipt-image-url`,
+    // レシート画像が添付されているか確認
+    if (!transaction.sourceUrl) {
+      throw new Error("この取引にはレシート画像が添付されていません");
+    }
+
+    // パブリックパスをそのまま返す
+    return {
+      signedUrl: transaction.sourceUrl,
+      expiresAt: "2099-12-31T23:59:59Z",
+    };
+  }
+
+  // 実API
+  const response = await apiClient.get<ApiResponse<ReceiptImageUrlResult>>(
+    `/Transaction/${id}/receipt-image-url`,
+  );
+
+  if (response.data.status !== "Success") {
+    throw new Error(
+      response.data.message || "レシート画像URLの取得に失敗しました",
     );
+  }
 
-    if (response.data.status !== "Success") {
-      throw new Error(
-        response.data.message || "レシート画像URLの取得に失敗しました",
-      );
-    }
-
-    return response.data.data;
-  },
+  return response.data.data;
+},
 
   /**
    * 取引をエクスポート（CSV + 画像）
