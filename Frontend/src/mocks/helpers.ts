@@ -25,6 +25,11 @@ import type {
   ItemCategoryDto,
   ItemCategoryListResult,
 } from "../types/itemCategory";
+import { mockIncomeItemCategories } from "./data/incomeItemCategories";
+import type {
+  IncomeItemCategoryDto,
+  IncomeItemCategoryListResult,
+} from "../types/incomeItemCategory";
 
 /**
  * TransactionDetail から TransactionSummary に変換
@@ -465,6 +470,46 @@ export function generateItemCategories(
 ): ItemCategoryListResult {
   let categories = mockItemCategories.map((cat, index) =>
     toItemCategoryDto(cat, index)
+  );
+
+  // includeHidden=false の場合、削除済みカテゴリを除外
+  if (!includeHidden) {
+    categories = categories.filter((cat) => !cat.isHidden);
+  }
+
+  return {
+    categories,
+    totalCount: categories.length,
+  };
+}
+
+/**
+ * モックデータを IncomeItemCategoryDto に変換
+ */
+function toIncomeItemCategoryDto(
+  category: (typeof mockIncomeItemCategories)[0],
+  index: number
+): IncomeItemCategoryDto {
+  return {
+    id: category.id,
+    name: category.name,
+    code: category.name,
+    colorCode: category.colorCode,
+    displayOrder: index + 1,
+    isCustom: category.isCustom,
+    isHidden: category.isHidden,
+    masterCategoryId: category.isCustom ? null : category.id,
+  };
+}
+
+/**
+ * 収入項目カテゴリ一覧を生成
+ */
+export function generateIncomeItemCategories(
+  includeHidden = false
+): IncomeItemCategoryListResult {
+  let categories = mockIncomeItemCategories.map((cat, index) =>
+    toIncomeItemCategoryDto(cat, index)
   );
 
   // includeHidden=false の場合、削除済みカテゴリを除外
