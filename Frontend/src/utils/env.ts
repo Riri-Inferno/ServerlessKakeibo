@@ -1,3 +1,11 @@
+/**
+ * デモモード判定
+ * window.ENV.ENVIRONMENT が優先、なければ import.meta.env.VITE_ENVIRONMENT を使用
+ */
 export const isDemoMode = (): boolean => {
-  return import.meta.env.VITE_ENVIRONMENT === "demo";
+  const env =
+    (window as any).ENV?.ENVIRONMENT ||
+    import.meta.env.VITE_ENVIRONMENT ||
+    "";
+  return env === "demo";
 };
