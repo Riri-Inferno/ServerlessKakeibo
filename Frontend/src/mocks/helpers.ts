@@ -3,6 +3,18 @@ import type {
   TransactionSummary,
 } from "../types/transaction";
 
+import { mockTransactions } from "./data/transactions";
+import type {
+  MonthlySummaryResult,
+  MonthlyComparisonResult,
+  CategoryBreakdownResult,
+  MonthlyTrendResult,
+  HighlightsResult,
+  TransactionHighlight,
+  CategoryFrequency,
+  MonthLabel,
+} from "../types/statistics";
+
 /**
  * TransactionDetail から TransactionSummary に変換
  */
@@ -31,4 +43,330 @@ export function toTransactionSummaries(
   details: TransactionDetail[]
 ): TransactionSummary[] {
   return details.map(toTransactionSummary);
+}
+
+/**
+ * 取引日から年月を抽出
+ */
+function parseYearMonth(dateString: string): { year: number; month: number } {
+  const date = new Date(dateString);
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+  };
+}
+
+/**
+ * 指定年月の取引をフィルタ
+ */
+function filterByYearMonth(year: number, month: number) {
+  return mockTransactions.filter((t) => {
+    const { year: y, month: m } = parseYearMonth(t.transactionDate);
+    return y === year && m === month;
+  });
+}
+
+/**
+ * 月次サマリーを生成
+ */
+export function generateMonthlySummary(
+  year: number,
+  month: number
+): MonthlySummaryResult {
+  const transactions = filterByYearMonth(year, month);
+
+  let income = 0;
+  let expense = 0;
+  let incomeCount = 0;
+  let expenseCount = 0;
+
+  // カテゴリ別集計用Map
+  const categoryMap = new Map<
+    string,
+    {
+      categoryId: string;
+      categoryName: string;
+      colorCode: string;
+      amount: number;
+      count: number;
+    }
+  >();
+
+  transactions.forEach((t) => {
+    if (t.type === "Income") {
+      income += t.amountTotal;
+      incomeCount++;
+    } else {
+      expense += t.amountTotal;
+      expenseCount++;
+
+      // カテゴリ別集計（支出のみ）
+      if (t.userTransactionCategory) {
+        const catId = t.userTransactionCategory.id;
+        const existing = categoryMap.get(catId);
+        if (existing) {
+          existing.amount += t.amountTotal;
+          existing.count++;
+        } else {
+          categoryMap.set(catId, {
+            categoryId: catId,
+            categoryName: t.userTransactionCategory.name,
+            colorCode: t.userTransactionCategory.colorCode,
+            amount: t.amountTotal,
+            count: 1,
+          });
+        }
+      }
+    }
+  });
+
+  // 上位カテゴリを取得（金額降順）
+  const topExpenseCategories = Array.from(categoryMap.values())
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3);
+
+  return {
+    year,
+    month,
+    income,
+    expense,
+    balance: income - expense,
+    transactionCount: transactions.length,
+    incomeCount,
+    expenseCount,
+    topExpenseCategories,
+  };
+}
+
+/**
+ * 前月比込みサマリーを生成
+ */
+export function generateMonthlyComparison(
+  year: number,
+  month: number
+): MonthlyComparisonResult {
+  const current = generateMonthlySummary(year, month);
+
+  // 前月を計算
+  let prevYear = year;
+  let prevMonth = month - 1;
+  if (prevMonth === 0) {
+    prevMonth = 12;
+    prevYear--;
+  }
+
+  const previous = generateMonthlySummary(prevYear, prevMonth);
+  const hasPreviousData = previous.transactionCount > 0;
+
+  // 前月比計算
+  const incomeChangePercent =
+    hasPreviousData && previous.income > 0
+      ? ((current.income - previous.income) / previous.income) * 100
+      : null;
+
+  const expenseChangePercent =
+    hasPreviousData && previous.expense > 0
+      ? ((current.expense - previous.expense) / previous.expense) * 100
+      : null;
+
+  const balanceChangePercent =
+    hasPreviousData && previous.balance !== 0
+      ? ((current.balance - previous.balance) / Math.abs(previous.balance)) *
+        100
+      : null;
+
+  return {
+    current,
+    previous: hasPreviousData ? previous : null,
+    incomeChangePercent,
+    expenseChangePercent,
+    balanceChangePercent,
+  };
+}
+
+/**
+ * カテゴリ別内訳を生成
+ */
+export function generateCategoryBreakdown(
+  year: number,
+  month: number
+): CategoryBreakdownResult {
+  const transactions = filterByYearMonth(year, month);
+  const expenses = transactions.filter((t) => t.type === "Expense");
+
+  const categoryMap = new Map<
+    string,
+    {
+      categoryId: string;
+      categoryName: string;
+      colorCode: string;
+      amount: number;
+      count: number;
+    }
+  >();
+
+  let totalExpense = 0;
+
+  expenses.forEach((t) => {
+    totalExpense += t.amountTotal;
+
+    if (t.userTransactionCategory) {
+      const catId = t.userTransactionCategory.id;
+      const existing = categoryMap.get(catId);
+      if (existing) {
+        existing.amount += t.amountTotal;
+        existing.count++;
+      } else {
+        categoryMap.set(catId, {
+          categoryId: catId,
+          categoryName: t.userTransactionCategory.name,
+          colorCode: t.userTransactionCategory.colorCode,
+          amount: t.amountTotal,
+          count: 1,
+        });
+      }
+    }
+  });
+
+  // 全カテゴリを金額降順で返す
+  const categories = Array.from(categoryMap.values()).sort(
+    (a, b) => b.amount - a.amount
+  );
+
+  return {
+    year,
+    month,
+    totalExpense,
+    categories,
+  };
+}
+
+/**
+ * 月次推移を生成
+ */
+export function generateMonthlyTrend(months: number = 6): MonthlyTrendResult {
+  // 最新の取引データから現在月を判定（仮に2026年2月とする）
+  const currentYear = 2026;
+  const currentMonth = 2;
+
+  const result: {
+    months: MonthLabel[];
+    incomes: number[];
+    expenses: number[];
+    balances: number[];
+  } = {
+    months: [],
+    incomes: [],
+    expenses: [],
+    balances: [],
+  };
+
+  for (let i = months - 1; i >= 0; i--) {
+    let targetYear = currentYear;
+    let targetMonth = currentMonth - i;
+
+    while (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear--;
+    }
+
+    const summary = generateMonthlySummary(targetYear, targetMonth);
+
+    result.months.push({
+      year: targetYear,
+      month: targetMonth,
+      label: `${targetYear}/${targetMonth}`,
+    });
+
+    result.incomes.push(summary.income);
+    result.expenses.push(summary.expense);
+    result.balances.push(summary.balance);
+  }
+
+  return result;
+}
+
+/**
+ * ハイライトを生成
+ */
+export function generateHighlights(
+  year: number,
+  month: number
+): HighlightsResult {
+  const transactions = filterByYearMonth(year, month);
+  const expenses = transactions.filter((t) => t.type === "Expense");
+
+  // 最大支出取引
+  let maxExpense = expenses.length > 0 ? expenses[0] : null;
+  expenses.forEach((t) => {
+    if (maxExpense && t.amountTotal > maxExpense.amountTotal) {
+      maxExpense = t;
+    }
+  });
+
+  const maxExpenseTransaction: TransactionHighlight | null = maxExpense
+    ? {
+        id: maxExpense.id,
+        payee: maxExpense.payee || "",
+        amount: maxExpense.amountTotal,
+        transactionDate: maxExpense.transactionDate,
+        categoryId: maxExpense.userTransactionCategory?.id || "",
+        categoryName: maxExpense.userTransactionCategory?.name || "未分類",
+        colorCode: maxExpense.userTransactionCategory?.colorCode || "#999999",
+      }
+    : null;
+
+  // 最頻出カテゴリ
+  const categoryFreqMap = new Map<
+    string,
+    {
+      categoryId: string;
+      categoryName: string;
+      colorCode: string;
+      count: number;
+      totalAmount: number;
+    }
+  >();
+
+  expenses.forEach((t) => {
+    if (t.userTransactionCategory) {
+      const catId = t.userTransactionCategory.id;
+      const existing = categoryFreqMap.get(catId);
+      if (existing) {
+        existing.count++;
+        existing.totalAmount += t.amountTotal;
+      } else {
+        categoryFreqMap.set(catId, {
+          categoryId: catId,
+          categoryName: t.userTransactionCategory.name,
+          colorCode: t.userTransactionCategory.colorCode,
+          count: 1,
+          totalAmount: t.amountTotal,
+        });
+      }
+    }
+  });
+
+  let mostFrequentCategory: CategoryFrequency | null = null;
+  categoryFreqMap.forEach((cat) => {
+    if (!mostFrequentCategory || cat.count > mostFrequentCategory.count) {
+      mostFrequentCategory = cat;
+    }
+  });
+
+  // 日別平均支出
+  const totalExpense = expenses.reduce((sum, t) => sum + t.amountTotal, 0);
+  const uniqueDays = new Set(
+    expenses.map((t) => t.transactionDate.split("T")[0])
+  );
+  const daysWithExpense = uniqueDays.size;
+  const averageExpensePerDay =
+    daysWithExpense > 0 ? totalExpense / daysWithExpense : 0;
+
+  return {
+    maxExpenseTransaction,
+    mostFrequentCategory,
+    averageExpensePerDay,
+    daysWithExpense,
+  };
 }
