@@ -12,8 +12,13 @@ import logo from "../assets/icons/logo.svg?url";
 type CredentialResponse = CallbackTypes.CredentialPopupResponse;
 
 const router = useRouter();
-const { loginWithGoogle, startGitHubLogin, isLoading, errorMessage } =
-  useAuth();
+const { 
+  loginWithGoogle, 
+  startGitHubLogin, 
+  loginWithDemo,
+  isLoading, 
+  errorMessage 
+} = useAuth();
 const googleButtonContainer = ref<HTMLDivElement>();
 const isDemo = isDemoMode(); // デモモード判定
 
@@ -40,9 +45,7 @@ const handleGitHubLogin = () => {
 // デモログイン処理
 const handleDemoLogin = async () => {
   try {
-    // TODO: ここにデモログイン処理を追加
-    // 方針が決まったら実装する
-    console.log("デモログイン");
+    await loginWithDemo();
     router.push({ name: "dashboard" });
   } catch (error) {
     console.error("デモログインエラー:", error);

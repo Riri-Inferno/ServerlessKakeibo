@@ -158,6 +158,30 @@ export function useAuth() {
     window.location.href = authUrl;
   };
 
+    /**
+   * デモモードでログイン
+   */
+  const loginWithDemo = async () => {
+    isLoading.value = true;
+    errorMessage.value = "";
+
+    try {
+      const userData = await authRepository.loginWithDemo();
+      authStore.setAuthData(userData);
+      
+      // デモモードでは設定取得をスキップ
+      // （必要なら別途モック設定を用意してfetchSettings()を呼ぶ）
+      
+      return userData;
+    } catch (error) {
+      console.error("デモログインエラー:", error);
+      errorMessage.value = "デモログインに失敗しました";
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   return {
     // State
     isLoading,
@@ -170,6 +194,7 @@ export function useAuth() {
     // Actions
     loginWithGoogle,
     loginWithGitHub,
+    loginWithDemo,
     logout,
     fetchCurrentUser,
     fetchSettings,
