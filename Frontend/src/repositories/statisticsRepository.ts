@@ -1,4 +1,12 @@
 import apiClient from "../api/axios";
+import { isDemoMode } from "../utils/env";
+import {
+  generateMonthlySummary,
+  generateMonthlyComparison,
+  generateCategoryBreakdown,
+  generateMonthlyTrend,
+  generateHighlights,
+} from "../mocks/helpers";
 import type {
   MonthlySummaryResult,
   MonthlyComparisonResult,
@@ -23,18 +31,25 @@ export const statisticsRepository = {
    */
   async getMonthlySummary(
     year: number,
-    month: number,
+    month: number
   ): Promise<MonthlySummaryResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateMonthlySummary(year, month);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<MonthlySummaryResult>>(
       "/TransactionSummary/monthly",
       {
         params: { Year: year, Month: month },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "月次サマリーの取得に失敗しました",
+        response.data.message || "月次サマリーの取得に失敗しました"
       );
     }
 
@@ -50,18 +65,25 @@ export const statisticsRepository = {
    */
   async getMonthlyComparison(
     year: number,
-    month: number,
+    month: number
   ): Promise<MonthlyComparisonResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateMonthlyComparison(year, month);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<MonthlyComparisonResult>>(
       "/api/Statistics/monthly-comparison",
       {
         params: { Year: year, Month: month },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "前月比サマリーの取得に失敗しました",
+        response.data.message || "前月比サマリーの取得に失敗しました"
       );
     }
 
@@ -77,18 +99,25 @@ export const statisticsRepository = {
    */
   async getCategoryBreakdown(
     year: number,
-    month: number,
+    month: number
   ): Promise<CategoryBreakdownResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateCategoryBreakdown(year, month);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<CategoryBreakdownResult>>(
       "/api/Statistics/category-breakdown",
       {
         params: { Year: year, Month: month },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "カテゴリ別内訳の取得に失敗しました",
+        response.data.message || "カテゴリ別内訳の取得に失敗しました"
       );
     }
 
@@ -102,11 +131,18 @@ export const statisticsRepository = {
    * @returns 直近N ヶ月の推移データ
    */
   async getMonthlyTrend(months: number = 6): Promise<MonthlyTrendResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateMonthlyTrend(months);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<MonthlyTrendResult>>(
       "/api/Statistics/trend",
       {
         params: { Months: months },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
@@ -124,16 +160,23 @@ export const statisticsRepository = {
    * @returns ハイライト情報
    */
   async getHighlights(year: number, month: number): Promise<HighlightsResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateHighlights(year, month);
+    }
+
+    // 実API
     const response = await apiClient.get<ApiResponse<HighlightsResult>>(
       "/api/Statistics/highlights",
       {
         params: { Year: year, Month: month },
-      },
+      }
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "ハイライトの取得に失敗しました",
+        response.data.message || "ハイライトの取得に失敗しました"
       );
     }
 
