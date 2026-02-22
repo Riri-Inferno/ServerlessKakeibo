@@ -64,9 +64,24 @@ const measureHeights = () => {
 
   setContainerHeight(availableHeight);
 
-  const firstCard = listContainerRef.value.querySelector("[data-transaction-item]");
-  if (firstCard) {
-    const itemRect = firstCard.getBoundingClientRect();
+  // スマホとPCで異なるセレクタを使用
+  const containerSelector = isMobile ? '.md\\:hidden' : '.md\\:block';
+  const container = listContainerRef.value.querySelector(containerSelector);
+  
+  if (!container) return;
+  
+  const items = container.querySelectorAll('[data-transaction-item]');
+  
+  if (items.length >= 2 && items[0] && items[1]) {
+    // 2つの要素から正確な gap を計算
+    const firstRect = items[0].getBoundingClientRect();
+    const secondRect = items[1].getBoundingClientRect();
+    const gap = secondRect.top - firstRect.bottom;
+    
+    setItemHeight(firstRect.height + gap);
+  } else if (items.length === 1 && items[0]) {
+    // 1つしかない場合はデフォルト値を使用
+    const itemRect = items[0].getBoundingClientRect();
     const gap = isMobile ? 0 : 16;
     setItemHeight(itemRect.height + gap);
   }
