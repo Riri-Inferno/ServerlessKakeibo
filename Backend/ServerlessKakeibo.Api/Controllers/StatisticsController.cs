@@ -162,7 +162,7 @@ public class StatisticsController : ControllerBase
     [SwaggerOperation(
         Summary = "月次推移を取得",
         Description = "直近N ヶ月の収入・支出・収支を取得し、グラフ表示用データを返す。\n\n" +
-                      "デフォルトは直近6ヶ月です。")]
+                      "デフォルトは直近240ヶ月です。")]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status401Unauthorized)]
