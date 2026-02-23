@@ -7,7 +7,7 @@
  * - ログイン・リフレッシュ系APIは fetch を使用（axios インターセプターを避けるため）
  * - 認証後のAPIは apiClient (axios) を使用（自動トークン付与とリフレッシュ対応）
  */
-
+import { mockDemoUser } from "../mocks/data/demoUser";
 import apiClient from "../api/axios";
 import type {
   ApiResponse,
@@ -134,5 +134,15 @@ export const authRepository = {
 
       throw new Error(error.message || "ユーザー情報取得に失敗しました");
     }
+  },
+
+  /**
+   * デモモードでログイン（モック）
+   * @returns モックユーザー情報
+   */
+  async loginWithDemo(): Promise<LoginResult> {
+    // 遅延をシミュレート
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return mockDemoUser;
   },
 };

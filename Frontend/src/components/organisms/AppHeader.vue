@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
+import { isDemoMode as checkDemoMode } from "../../utils/env";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -13,13 +14,7 @@ const emit = defineEmits<{
 const { user, effectiveDisplayName, logout } = useAuth();
 
 // デモモード判定
-const isDemoMode = computed(() => {
-  const env =
-    (window as any).ENV?.ENVIRONMENT ||
-    import.meta.env.VITE_ENVIRONMENT ||
-    "";
-  return env === "demo";
-});
+const isDemoMode = computed(() => checkDemoMode());
 </script>
 
 <template>

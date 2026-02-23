@@ -20,6 +20,7 @@ const {
   monthlyTrend,
   highlights,
   isLoading,
+  isPreviousMonthDisabled,
   errorMessage,
   currentYear,
   currentMonth,
@@ -87,7 +88,7 @@ onMounted(async () => {
                 variant="outline"
                 size="sm"
                 @click="goToPreviousMonth"
-                :disabled="isLoading"
+                :disabled="isLoading || isPreviousMonthDisabled"
                 aria-label="前月"
               >
                 <BaseIcon name="chevron-left" size="sm" />

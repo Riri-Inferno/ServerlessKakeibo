@@ -10,12 +10,14 @@ import BaseSelect from "../atoms/BaseSelect.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
+import { isDemoMode } from "../../utils/env";
 
 const emit = defineEmits<{
   search: [filters: GetTransactionsRequest];
   clear: [];
 }>();
 
+const isDemo = isDemoMode(); // デモモード判定
 const isExpanded = ref(false);
 
 // カスタムカテゴリ取得
@@ -296,6 +298,15 @@ const toggleExpand = () => {
           >
             <span class="text-sm md:text-base">クリア</span>
           </BaseButton>
+        </div>
+        <!-- デモモード時の警告 -->
+        <div v-if="isDemo" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div class="flex items-center gap-2">
+            <BaseIcon name="exclamation-triangle" size="sm" class="text-yellow-700" />
+            <BaseText variant="caption" class="text-yellow-700">
+              デモモードでは検索機能は一部制限されています
+            </BaseText>
+          </div>
         </div>
       </div>
     </div>

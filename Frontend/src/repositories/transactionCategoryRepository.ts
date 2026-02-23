@@ -1,4 +1,6 @@
 import apiClient from "../api/axios";
+import { isDemoMode } from "../utils/env";
+import { generateTransactionCategories } from "../mocks/helpers";
 import type { ApiResponse } from "../types/api";
 import type {
   //   TransactionCategoryDto,
@@ -16,8 +18,15 @@ export const transactionCategoryRepository = {
    * @returns カテゴリ一覧
    */
   async getCategories(
-    includeHidden = false,
+    includeHidden = false
   ): Promise<TransactionCategoryListResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return generateTransactionCategories(includeHidden);
+    }
+
+    // 実API
     const response = await apiClient.get<
       ApiResponse<TransactionCategoryListResult>
     >("/api/categories/transaction", {
@@ -26,7 +35,7 @@ export const transactionCategoryRepository = {
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "取引カテゴリの取得に失敗しました",
+        response.data.message || "取引カテゴリの取得に失敗しました"
       );
     }
 
@@ -40,15 +49,23 @@ export const transactionCategoryRepository = {
    * @returns 作成結果
    */
   async createCategory(
-    request: CreateTransactionCategoryRequest,
+    request: CreateTransactionCategoryRequest
   ): Promise<TransactionCategoryResult> {
+    // デモモード：作成不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの作成はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<
       ApiResponse<TransactionCategoryResult>
     >("/api/categories/transaction", request);
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "取引カテゴリの作成に失敗しました",
+        response.data.message || "取引カテゴリの作成に失敗しました"
       );
     }
 
@@ -64,15 +81,23 @@ export const transactionCategoryRepository = {
    */
   async updateCategory(
     id: string,
-    request: UpdateTransactionCategoryRequest,
+    request: UpdateTransactionCategoryRequest
   ): Promise<TransactionCategoryResult> {
+    // デモモード：更新不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの更新はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.put<
       ApiResponse<TransactionCategoryResult>
     >(`/api/categories/transaction/${id}`, request);
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "取引カテゴリの更新に失敗しました",
+        response.data.message || "取引カテゴリの更新に失敗しました"
       );
     }
 
@@ -86,13 +111,21 @@ export const transactionCategoryRepository = {
    * @returns 削除結果
    */
   async deleteCategory(id: string): Promise<TransactionCategoryResult> {
+    // デモモード：削除不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの削除はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.delete<
       ApiResponse<TransactionCategoryResult>
     >(`/api/categories/transaction/${id}`);
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "取引カテゴリの削除に失敗しました",
+        response.data.message || "取引カテゴリの削除に失敗しました"
       );
     }
 
@@ -106,13 +139,21 @@ export const transactionCategoryRepository = {
    * @returns 復元結果
    */
   async restoreCategory(id: string): Promise<TransactionCategoryResult> {
+    // デモモード：復元不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではカテゴリの復元はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<
       ApiResponse<TransactionCategoryResult>
     >(`/api/categories/transaction/${id}/restore`);
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "取引カテゴリの復元に失敗しました",
+        response.data.message || "取引カテゴリの復元に失敗しました"
       );
     }
 
@@ -125,13 +166,21 @@ export const transactionCategoryRepository = {
    * @returns リセット結果
    */
   async resetToMaster(): Promise<TransactionCategoryListResult> {
+    // デモモード：リセット不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードではマスタ設定へのリセットはできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.post<
       ApiResponse<TransactionCategoryListResult>
     >("/api/categories/transaction/reset");
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "マスタ設定への復元に失敗しました",
+        response.data.message || "マスタ設定への復元に失敗しました"
       );
     }
 
@@ -142,8 +191,16 @@ export const transactionCategoryRepository = {
    * カテゴリの並び順を一括更新
    */
   async updateCategoryOrders(
-    orders: Array<{ id: string; displayOrder: number }>,
+    orders: Array<{ id: string; displayOrder: number }>
   ): Promise<TransactionCategoryListResult> {
+    // デモモード：並び順変更不可
+    if (isDemoMode()) {
+      throw new Error(
+        "デモモードでは並び順の変更はできません。実際のアカウントでお試しください。"
+      );
+    }
+
+    // 実API
     const response = await apiClient.put<
       ApiResponse<TransactionCategoryListResult>
     >("/api/categories/transaction/order", {
