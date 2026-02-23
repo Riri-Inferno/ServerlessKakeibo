@@ -429,29 +429,43 @@ export function useStatistics() {
   /**
    * 表示中の月が現在の締め日月かどうかを判定
    */
-const isCurrentMonth = computed(() => {
-  const now = getUserNow();
-  return (
-    currentYear.value === now.year() && 
-    currentMonth.value === now.month() + 1
-  );
-});
+  const isCurrentMonth = computed(() => {
+    const now = getUserNow();
+    return (
+      currentYear.value === now.year() && 
+      currentMonth.value === now.month() + 1
+    );
+  });
 
   /**
    * 表示中の月が未来の締め日月かどうかを判定
    */
   const isFutureMonth = computed(() => {
-  const latestSelectable = getLatestSelectableMonth();
+    const latestSelectable = getLatestSelectableMonth();
 
-  if (currentYear.value > latestSelectable.year) return true;
+    if (currentYear.value > latestSelectable.year) return true;
 
-  if (
-    currentYear.value === latestSelectable.year &&
-    currentMonth.value > latestSelectable.month
-  ) return true;
+    if (
+      currentYear.value === latestSelectable.year &&
+      currentMonth.value > latestSelectable.month
+    ) return true;
 
-  return false;
+    return false;
 });
+
+  /**
+   * 前月ボタンが無効かどうか
+   */
+  const isPreviousMonthDisabled = computed(() => {
+    if (oldestYear.value === null || oldestMonth.value === null) {
+      return false;
+    }
+    
+    return (
+      currentYear.value === oldestYear.value && 
+      currentMonth.value === oldestMonth.value
+    );
+  });
 
   return {
     // State
@@ -472,6 +486,7 @@ const isCurrentMonth = computed(() => {
     isFutureMonth,
     yearOptions,
     monthOptions,
+    isPreviousMonthDisabled,
 
     // Methods
     fetchMonthlySummary,
