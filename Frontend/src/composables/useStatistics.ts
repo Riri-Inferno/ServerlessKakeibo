@@ -168,7 +168,10 @@ export function useStatistics() {
       // 各APIを順次実行
       await fetchMonthlyComparison(currentYear.value, currentMonth.value);
       await fetchCategoryBreakdown(currentYear.value, currentMonth.value);
-      await fetchMonthlyTrend(6);
+      
+      // TODO: 将来的に最古データ取得APIを呼ぶ
+      // 暫定的に過去10年取得
+      await fetchMonthlyTrend(120);
       await fetchHighlights(currentYear.value, currentMonth.value);
     } catch (error) {
       console.error("統計データ取得エラー:", error);

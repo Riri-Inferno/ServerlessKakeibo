@@ -262,7 +262,6 @@ export function generateCategoryBreakdown(
  * 月次推移を生成
  */
 export function generateMonthlyTrend(months: number = 6): MonthlyTrendResult {
-  // 最新の取引データから現在月を判定（仮に2026年2月とする）
   const currentYear = 2026;
   const currentMonth = 2;
 
