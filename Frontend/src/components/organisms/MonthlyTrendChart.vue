@@ -1,4 +1,3 @@
-<!-- src/components/organisms/MonthlyTrendChart.vue -->
 <script setup lang="ts">
 import { computed } from "vue";
 import { Line } from "vue-chartjs";

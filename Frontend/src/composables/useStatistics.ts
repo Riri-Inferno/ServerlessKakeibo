@@ -36,6 +36,9 @@ export function useStatistics() {
   const currentYear = ref<number>(new Date().getFullYear());
   const currentMonth = ref<number>(new Date().getMonth() + 1);
 
+  // 初回ロードフラグ
+  const isInitialLoad = ref(true);
+
   // 表示用ラベル
   const currentMonthLabel = computed(
     () => `${currentYear.value}年${currentMonth.value}月`,
@@ -135,11 +138,14 @@ export function useStatistics() {
   /**
    * 月次推移を取得
    */
-  const fetchMonthlyTrend = async (months: number = 240) => {
+  const fetchMonthlyTrend = async () => {
     isLoading.value = true;
     errorMessage.value = "";
 
     try {
+      // 初回は全データ（240ヶ月）、2回目以降は12ヶ月
+      const months = isInitialLoad.value ? 240 : 12;
+      
       monthlyTrend.value = await statisticsRepository.getMonthlyTrend(months);
 
       const monthsData = monthlyTrend.value?.months;
@@ -147,24 +153,28 @@ export function useStatistics() {
       const expenses = monthlyTrend.value?.expenses;
       
       if (monthsData && incomes && expenses && monthsData.length > 0) {
-        // 取引が存在する月のみをフィルタ
-        const dataWithTransactions = monthsData.filter((_, index) => {
-          const income = incomes[index];
-          const expense = expenses[index];
-          return (income ?? 0) > 0 || (expense ?? 0) > 0;
-        });
-        
-        if (dataWithTransactions.length > 0) {
-          const oldest = dataWithTransactions[0];
-          const newest = dataWithTransactions[dataWithTransactions.length - 1];
-          if (oldest) {
-            oldestYear.value = oldest.year;
-            oldestMonth.value = oldest.month;
+        // 初回のみ最古/最新を記録
+        if (isInitialLoad.value) {
+          const dataWithTransactions = monthsData.filter((_, index) => {
+            const income = incomes[index];
+            const expense = expenses[index];
+            return (income ?? 0) > 0 || (expense ?? 0) > 0;
+          });
+          
+          if (dataWithTransactions.length > 0) {
+            const oldest = dataWithTransactions[0];
+            const newest = dataWithTransactions[dataWithTransactions.length - 1];
+            if (oldest) {
+              oldestYear.value = oldest.year;
+              oldestMonth.value = oldest.month;
+            }
+            if (newest) {
+              newestYear.value = newest.year;
+              newestMonth.value = newest.month;
+            }
           }
-          if (newest) {
-            newestYear.value = newest.year;
-            newestMonth.value = newest.month;
-          }
+          
+          isInitialLoad.value = false;
         }
       }
     } catch (error) {
@@ -230,9 +240,10 @@ export function useStatistics() {
       await fetchMonthlyComparison(currentYear.value, currentMonth.value);
       await fetchCategoryBreakdown(currentYear.value, currentMonth.value);
       
-      // TODO: 将来的に最古データ取得APIを呼ぶ
-      // 暫定的に過去10年取得
-      await fetchMonthlyTrend(120);
+      // 月次推移を取得（初回240ヶ月、2回目以降12ヶ月）
+      // TODO: 最古・最新取引日時を返す専用API（/api/statistics/date-range）に置き換える
+      await fetchMonthlyTrend();
+      
       await fetchHighlights(currentYear.value, currentMonth.value);
     } catch (error) {
       console.error("統計データ取得エラー:", error);
