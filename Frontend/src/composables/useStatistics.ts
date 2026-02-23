@@ -76,24 +76,38 @@ export function useStatistics() {
    * 前月比込みサマリーを取得
    */
   const fetchMonthlyComparison = async (year: number, month: number) => {
-    isLoading.value = true;
-    errorMessage.value = "";
+      isLoading.value = true;
+      errorMessage.value = "";
 
-    try {
-      monthlyComparison.value = await statisticsRepository.getMonthlyComparison(
-        year,
-        month,
-      );
-    } catch (error) {
-      console.error("前月比サマリー取得エラー:", error);
-      errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : "前月比サマリーの取得に失敗しました";
-    } finally {
-      isLoading.value = false;
-    }
-  };
+      try {
+      const data = await statisticsRepository.getMonthlyComparison(year, month);
+
+      // 整形ロジック
+      const formatPercent = (current: number, previous: number) => {
+        // 前月が0の場合の特別ルール
+        if (previous === 0) {
+          return current > 0 ? 100 : 0; // 0→100なら100%、0→0なら0%
+        }
+        
+        const rawPercent = ((current - previous) / previous) * 100;
+        
+        // 小数点1桁で切り落とし
+        return Math.floor(rawPercent * 10) / 10;
+      };
+
+      monthlyComparison.value = {
+        ...data,
+        incomeChangePercent: formatPercent(data.current.income, data.previous?.income ?? 0),
+        expenseChangePercent: formatPercent(data.current.expense, data.previous?.expense ?? 0),
+      };
+
+      } catch (error) {
+        console.error("前月比サマリー取得エラー:", error);
+        errorMessage.value = error instanceof Error ? error.message : "取得失敗";
+      } finally {
+        isLoading.value = false;
+      }
+    };
 
   /**
    * カテゴリ別内訳を取得
