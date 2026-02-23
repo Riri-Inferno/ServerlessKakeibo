@@ -81,7 +81,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-002.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-01-06T16:20:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.95,
@@ -174,7 +174,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-003.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-01-10T12:15:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.98,
@@ -267,7 +267,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "同僚とランチ",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-004.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-01-15T13:00:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.92,
@@ -387,7 +387,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "常備薬と日用品",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-006.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-01-28T19:45:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.93,
@@ -469,7 +469,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-007.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-02-05T07:30:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.97,
@@ -540,7 +540,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-008.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-02-11T15:10:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.96,
@@ -677,7 +677,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "技術書購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-009.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-02-18T14:20:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.94,
@@ -786,7 +786,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "残業後の夜食",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-011.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-03-03T21:30:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.96,
@@ -857,7 +857,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "読書タイム",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-012.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-03-08T15:00:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.91,
@@ -928,7 +928,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-013.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-03-12T17:30:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.95,
@@ -1076,7 +1076,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "歓送迎会",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-014.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-03-15T21:30:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.89,
@@ -1136,7 +1136,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("37f02cfd-cc4f-4618-98df-6bafe9037a1d"), // 娯楽
       notes: "映画鑑賞とポップコーン",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-015.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-03-20T19:00:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.93,
@@ -1277,7 +1277,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-017.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-04-02T07:45:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.98,
@@ -1348,7 +1348,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "医薬品購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-018.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-04-07T18:20:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.94,
@@ -1408,7 +1408,7 @@ export function getMockTransactions(): TransactionDetail[] {
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
       taxInclusionType: TaxInclusionType.Inclusive,
-      sourceUrl: "/receipts/mock-receipt-019.png",
+      sourceUrl: "/receipts/receipt-001.png",
       receiptAttachedAt: "2024-04-14T16:00:00.0000000+00:00",
       receiptType: ReceiptType.Receipt,
       confidence: 0.96,
