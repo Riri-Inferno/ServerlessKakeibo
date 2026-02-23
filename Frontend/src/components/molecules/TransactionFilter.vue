@@ -299,14 +299,14 @@ const toggleExpand = () => {
             <span class="text-sm md:text-base">クリア</span>
           </BaseButton>
         </div>
-      </div>
-      <!-- デモモード時の警告 -->
-      <div v-if="isDemo" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div class="flex items-center gap-2">
-          <BaseIcon name="exclamation-triangle" size="sm" class="text-yellow-700" />
-          <BaseText variant="caption" class="text-yellow-700">
-            デモモードでは検索機能は一部制限されています
-          </BaseText>
+        <!-- デモモード時の警告 -->
+        <div v-if="isDemo" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div class="flex items-center gap-2">
+            <BaseIcon name="exclamation-triangle" size="sm" class="text-yellow-700" />
+            <BaseText variant="caption" class="text-yellow-700">
+              デモモードでは検索機能は一部制限されています
+            </BaseText>
+          </div>
         </div>
       </div>
     </div>
