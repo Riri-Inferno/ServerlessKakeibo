@@ -76,7 +76,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3280.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -169,7 +169,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 756.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -262,7 +262,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1680.0,
       currency: "JPY",
       payer: "",
-      payee: "サイゼリヤ 津駅前店",
+      payee: "サイゼリヤ 架空駅前店",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "同僚とランチ",
@@ -336,7 +336,7 @@ export function getMockTransactions(): TransactionDetail[] {
       payee: "JR東海",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000004"), // 交通費
-      notes: "津→名古屋 往復",
+      notes: "架空→名古屋 往復",
       taxInclusionType: TaxInclusionType.Inclusive,
       sourceUrl: null,
       receiptAttachedAt: null,
@@ -382,7 +382,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2850.0,
       currency: "JPY",
       payer: "",
-      payee: "ウエルシア津店",
+      payee: "ウエルシア架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "常備薬と日用品",
@@ -464,7 +464,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 648.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食購入",
@@ -535,7 +535,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4680.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -672,7 +672,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1980.0,
       currency: "JPY",
       payer: "",
-      payee: "紀伊國屋書店 津店",
+      payee: "紀伊國屋書店 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "技術書購入",
@@ -781,7 +781,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 892.0,
       currency: "JPY",
       payer: "",
-      payee: "ファミリーマート津駅前店",
+      payee: "ファミリーマート架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "残業後の夜食",
@@ -852,7 +852,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1250.0,
       currency: "JPY",
       payer: "",
-      payee: "ドトールコーヒー 津駅前店",
+      payee: "ドトールコーヒー 架空駅前店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "読書タイム",
@@ -923,7 +923,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 5280.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -1071,7 +1071,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4800.0,
       currency: "JPY",
       payer: "",
-      payee: "魚民 津駅前店",
+      payee: "魚民 架空駅前店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "歓送迎会",
@@ -1131,7 +1131,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2200.0,
       currency: "JPY",
       payer: "",
-      payee: "イオンシネマ 津",
+      payee: "イオンシネマ 架空",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("37f02cfd-cc4f-4618-98df-6bafe9037a1d"), // 娯楽
       notes: "映画鑑賞とポップコーン",
@@ -1272,7 +1272,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 518.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
@@ -1343,7 +1343,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1680.0,
       currency: "JPY",
       payer: "",
-      payee: "マツモトキヨシ 津店",
+      payee: "マツモトキヨシ 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "医薬品購入",
@@ -1403,7 +1403,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3890.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -1532,7 +1532,7 @@ export function getMockTransactions(): TransactionDetail[] {
       payee: "近鉄電車",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000004"), // 交通費
-      notes: "津→大阪難波 往復",
+      notes: "架空→大阪難波 往復",
       taxInclusionType: TaxInclusionType.Inclusive,
       sourceUrl: null,
       receiptAttachedAt: null,
@@ -1639,7 +1639,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1080.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "休日の昼食",
@@ -1710,7 +1710,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4150.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -1847,7 +1847,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2380.0,
       currency: "JPY",
       payer: "",
-      payee: "ガスト 津店",
+      payee: "ガスト 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "家族でランチ",
@@ -1918,7 +1918,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 980.0,
       currency: "JPY",
       payer: "",
-      payee: "タリーズコーヒー 津駅前店",
+      payee: "タリーズコーヒー 架空駅前店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "休憩",
@@ -2039,7 +2039,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 648.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
@@ -2121,7 +2121,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2180.0,
       currency: "JPY",
       payer: "",
-      payee: "ウエルシア津店",
+      payee: "ウエルシア架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "常備薬購入",
@@ -2181,7 +2181,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2640.0,
       currency: "JPY",
       payer: "",
-      payee: "TSUTAYA 津店",
+      payee: "TSUTAYA 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "ビジネス書購入",
@@ -2241,7 +2241,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 5680.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -2450,7 +2450,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 780.0,
       currency: "JPY",
       payer: "",
-      payee: "ファミリーマート津駅前店",
+      payee: "ファミリーマート架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -2560,7 +2560,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4890.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -2675,7 +2675,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 5800.0,
       currency: "JPY",
       payer: "",
-      payee: "牛角 津店",
+      payee: "牛角 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "賞与のお祝い",
@@ -2724,7 +2724,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3200.0,
       currency: "JPY",
       payer: "",
-      payee: "津市民プール",
+      payee: "架空市民プール",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("37f02cfd-cc4f-4618-98df-6bafe9037a1d"), // 娯楽
       notes: "夏のレジャー",
@@ -2867,7 +2867,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 972.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食と飲料",
@@ -2949,7 +2949,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3280.0,
       currency: "JPY",
       payer: "",
-      payee: "マツモトキヨシ 津店",
+      payee: "マツモトキヨシ 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "夏バテ対策",
@@ -3069,7 +3069,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4520.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -3278,7 +3278,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 842.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -3371,7 +3371,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1380.0,
       currency: "JPY",
       payer: "",
-      payee: "コメダ珈琲店 津店",
+      payee: "コメダ珈琲店 架空店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "モーニング",
@@ -3431,7 +3431,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1580.0,
       currency: "JPY",
       payer: "",
-      payee: "やよい軒 津店",
+      payee: "やよい軒 架空店",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "平日のランチ",
@@ -3513,7 +3513,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3520.0,
       currency: "JPY",
       payer: "",
-      payee: "紀伊國屋書店 津店",
+      payee: "紀伊國屋書店 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "新刊購入",
@@ -3634,7 +3634,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 5280.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -3782,7 +3782,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1980.0,
       currency: "JPY",
       payer: "",
-      payee: "ウエルシア津店",
+      payee: "ウエルシア架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "風邪の予防",
@@ -3856,7 +3856,7 @@ export function getMockTransactions(): TransactionDetail[] {
       payee: "近鉄電車",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000004"), // 交通費
-      notes: "津→伊勢市 往復",
+      notes: "架空→伊勢市 往復",
       taxInclusionType: TaxInclusionType.Inclusive,
       sourceUrl: null,
       receiptAttachedAt: null,
@@ -3901,7 +3901,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 648.0,
       currency: "JPY",
       payer: "",
-      payee: "ファミリーマート津駅前店",
+      payee: "ファミリーマート架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
@@ -4022,7 +4022,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 980.0,
       currency: "JPY",
       payer: "",
-      payee: "一蘭 津店",
+      payee: "一蘭 架空店",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "ランチ",
@@ -4071,7 +4071,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3280.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -4142,7 +4142,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 680.0,
       currency: "JPY",
       payer: "",
-      payee: "スターバックス 津駅前店",
+      payee: "スターバックス 架空駅前店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "休憩",
@@ -4191,7 +4191,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1900.0,
       currency: "JPY",
       payer: "",
-      payee: "イオンシネマ 津",
+      payee: "イオンシネマ 架空",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("37f02cfd-cc4f-4618-98df-6bafe9037a1d"), // 娯楽
       notes: "映画鑑賞",
@@ -4301,7 +4301,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 756.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -4361,7 +4361,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1580.0,
       currency: "JPY",
       payer: "",
-      payee: "マツモトキヨシ 津店",
+      payee: "マツモトキヨシ 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "風邪薬",
@@ -4449,7 +4449,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 5500.0,
       currency: "JPY",
       payer: "",
-      payee: "鳥貴族 津店",
+      payee: "鳥貴族 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "忘年会",
@@ -4498,7 +4498,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4280.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "年末の食材購入",
@@ -4619,7 +4619,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 842.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
@@ -4679,7 +4679,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2640.0,
       currency: "JPY",
       payer: "",
-      payee: "TSUTAYA 津店",
+      payee: "TSUTAYA 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "自己啓発書",
@@ -4777,7 +4777,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3280.0,
       currency: "JPY",
       payer: "",
-      payee: "くら寿司 津店",
+      payee: "くら寿司 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "夕食",
@@ -4887,7 +4887,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3680.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -4958,7 +4958,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 880.0,
       currency: "JPY",
       payer: "",
-      payee: "ドトールコーヒー 津駅前店",
+      payee: "ドトールコーヒー 架空駅前店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "休憩",
@@ -5017,7 +5017,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 718.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -5077,7 +5077,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4180.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -5209,7 +5209,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1280.0,
       currency: "JPY",
       payer: "",
-      payee: "CoCo壱番屋 津店",
+      payee: "CoCo壱番屋 架空店",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "ランチ",
@@ -5258,7 +5258,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1380.0,
       currency: "JPY",
       payer: "",
-      payee: "ウエルシア津店",
+      payee: "ウエルシア架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "花粉症対策",
@@ -5307,7 +5307,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3580.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -5367,7 +5367,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 750.0,
       currency: "JPY",
       payer: "",
-      payee: "スターバックス 津駅前店",
+      payee: "スターバックス 架空駅前店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "休憩",
@@ -5477,7 +5477,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 648.0,
       currency: "JPY",
       payer: "",
-      payee: "ファミリーマート津駅前店",
+      payee: "ファミリーマート架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "朝食",
@@ -5537,7 +5537,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1980.0,
       currency: "JPY",
       payer: "",
-      payee: "紀伊國屋書店 津店",
+      payee: "紀伊國屋書店 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("728bab2d-01f2-4b6a-9e86-614c2629e64c"), // 書籍・雑誌
       notes: "新刊購入",
@@ -5586,7 +5586,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1680.0,
       currency: "JPY",
       payer: "",
-      payee: "大戸屋 津店",
+      payee: "大戸屋 架空店",
       paymentMethod: "Cash",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "ランチ",
@@ -5638,7 +5638,7 @@ export function getMockTransactions(): TransactionDetail[] {
       payee: "近鉄電車",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000004"), // 交通費
-      notes: "津→名古屋",
+      notes: "架空→名古屋",
       taxInclusionType: TaxInclusionType.Inclusive,
       sourceUrl: null,
       receiptAttachedAt: null,
@@ -5745,7 +5745,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4380.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "連休の食材購入",
@@ -5816,7 +5816,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 2400.0,
       currency: "JPY",
       payer: "",
-      payee: "カラオケ館 津店",
+      payee: "カラオケ館 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("37f02cfd-cc4f-4618-98df-6bafe9037a1d"), // 娯楽
       notes: "カラオケ",
@@ -5865,7 +5865,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 842.0,
       currency: "JPY",
       payer: "",
-      payee: "セブンイレブン津駅前店",
+      payee: "セブンイレブン架空駅前店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -5925,7 +5925,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 1280.0,
       currency: "JPY",
       payer: "",
-      payee: "マツモトキヨシ 津店",
+      payee: "マツモトキヨシ 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000005"), // 医療・健康
       notes: "日用品購入",
@@ -6035,7 +6035,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4800.0,
       currency: "JPY",
       payer: "",
-      payee: "焼肉きんぐ 津店",
+      payee: "焼肉きんぐ 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
       notes: "夕食",
@@ -6084,7 +6084,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3980.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -6144,7 +6144,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 920.0,
       currency: "JPY",
       payer: "",
-      payee: "コメダ珈琲店 津店",
+      payee: "コメダ珈琲店 架空店",
       paymentMethod: "QRCodePayment",
       userTransactionCategory: findTransactionCategoryById("18cf6a37-a1b4-4e83-a19d-19ee50821a55"), // カフェ・喫茶
       notes: "休憩",
@@ -6293,7 +6293,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 756.0,
       currency: "JPY",
       payer: "",
-      payee: "ローソン津駅西店",
+      payee: "ローソン架空駅西店",
       paymentMethod: "ElectronicMoney",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "昼食",
@@ -6414,7 +6414,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 4580.0,
       currency: "JPY",
       payer: "",
-      payee: "マックスバリュ 津南店",
+      payee: "マックスバリュ 架空南店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
@@ -6646,7 +6646,7 @@ export function getMockTransactions(): TransactionDetail[] {
       amountTotal: 3880.0,
       currency: "JPY",
       payer: "",
-      payee: "イオン 津店",
+      payee: "イオン 架空店",
       paymentMethod: "CreditCard",
       userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
       notes: "週末の食材購入",
