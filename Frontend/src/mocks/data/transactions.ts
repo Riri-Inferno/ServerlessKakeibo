@@ -1,0 +1,377 @@
+import { findItemCategoryById, findIncomeItemCategoryById, findTransactionCategoryById } from "../helpers";
+import { ReceiptType } from "../../types/receipt";
+import { TaxInclusionType, type TransactionDetail } from "../../types/transaction";
+
+/**
+ * モック取引データを生成
+ */
+export function getMockTransactions(): TransactionDetail[] {
+  return [
+    // 1. 2024年1月分給与
+    {
+      id: "mock-transaction-001",
+      type: "Income",
+      transactionDate: "2024-01-25T00:00:00.0000000+00:00",
+      amountTotal: 285000.0,
+      currency: "JPY",
+      payer: "株式会社サンプル",
+      payee: "",
+      paymentMethod: "BankTransfer",
+      userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000100"), // 給与
+      notes: "2024年1月分給与",
+      taxInclusionType: TaxInclusionType.Inclusive,
+      sourceUrl: null,
+      receiptAttachedAt: null,
+      receiptType: null,
+      confidence: null,
+      parseStatus: null,
+      warnings: [],
+      missingFields: [],
+      items: [
+        {
+          id: "mock-item-001-1",
+          name: "基本給",
+          quantity: 1.0,
+          unitPrice: 250000.0,
+          amount: 250000.0,
+          userItemCategoryId: null,
+          userIncomeItemCategoryId: "33333333-3333-3333-3333-000000000001",
+          userItemCategory: null,
+          userIncomeItemCategory: findIncomeItemCategoryById("33333333-3333-3333-3333-000000000001"),
+        },
+        {
+          id: "mock-item-001-2",
+          name: "残業代",
+          quantity: 1.0,
+          unitPrice: 25000.0,
+          amount: 25000.0,
+          userItemCategoryId: null,
+          userIncomeItemCategoryId: "33333333-3333-3333-3333-000000000002",
+          userItemCategory: null,
+          userIncomeItemCategory: findIncomeItemCategoryById("33333333-3333-3333-3333-000000000002"),
+        },
+        {
+          id: "mock-item-001-3",
+          name: "通勤手当",
+          quantity: 1.0,
+          unitPrice: 10000.0,
+          amount: 10000.0,
+          userItemCategoryId: null,
+          userIncomeItemCategoryId: "33333333-3333-3333-3333-000000000004",
+          userItemCategory: null,
+          userIncomeItemCategory: findIncomeItemCategoryById("33333333-3333-3333-3333-000000000004"),
+        },
+      ],
+      taxes: [],
+      shopDetails: null,
+      createdAt: "2024-01-25T09:00:00.0000000+00:00",
+      updatedAt: "2024-01-25T09:00:00.0000000+00:00",
+    },
+
+    // 2. スーパーでの買い物
+    {
+      id: "mock-transaction-002",
+      type: "Expense",
+      transactionDate: "2024-01-06T00:00:00.0000000+00:00",
+      amountTotal: 3280.0,
+      currency: "JPY",
+      payer: "",
+      payee: "イオン 津店",
+      paymentMethod: "CreditCard",
+      userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
+      notes: "週末の食材購入",
+      taxInclusionType: TaxInclusionType.Inclusive,
+      sourceUrl: "/receipts/mock-receipt-002.png",
+      receiptAttachedAt: "2024-01-06T16:20:00.0000000+00:00",
+      receiptType: ReceiptType.Receipt,
+      confidence: 0.95,
+      parseStatus: "Complete",
+      warnings: [],
+      missingFields: [],
+      items: [
+        {
+          id: "mock-item-002-1",
+          name: "豚肉300g",
+          quantity: 1.0,
+          unitPrice: 580.0,
+          amount: 580.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-002-2",
+          name: "白菜",
+          quantity: 1.0,
+          unitPrice: 198.0,
+          amount: 198.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-002-3",
+          name: "豆腐3パック",
+          quantity: 1.0,
+          unitPrice: 298.0,
+          amount: 298.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-002-4",
+          name: "米5kg",
+          quantity: 1.0,
+          unitPrice: 1980.0,
+          amount: 1980.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-002-5",
+          name: "緑茶ペットボトル500ml×6本",
+          quantity: 1.0,
+          unitPrice: 498.0,
+          amount: 498.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000002",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000002"), // 飲料
+          userIncomeItemCategory: null,
+        },
+      ],
+      taxes: [
+        {
+          id: "mock-tax-002-1",
+          taxRate: 8,
+          taxAmount: 243.0,
+          taxableAmount: 3037.0,
+          taxType: "消費税（軽減税率）",
+          isFixedAmount: false,
+          applicableCategory: "食料品",
+        },
+      ],
+      shopDetails: null,
+      createdAt: "2024-01-06T16:20:00.0000000+00:00",
+      updatedAt: "2024-01-06T16:20:00.0000000+00:00",
+    },
+
+    // 3. コンビニでの購入
+    {
+      id: "mock-transaction-003",
+      type: "Expense",
+      transactionDate: "2024-01-10T00:00:00.0000000+00:00",
+      amountTotal: 756.0,
+      currency: "JPY",
+      payer: "",
+      payee: "セブンイレブン津駅前店",
+      paymentMethod: "ElectronicMoney",
+      userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000001"), // 食費
+      notes: "昼食",
+      taxInclusionType: TaxInclusionType.Inclusive,
+      sourceUrl: "/receipts/mock-receipt-003.png",
+      receiptAttachedAt: "2024-01-10T12:15:00.0000000+00:00",
+      receiptType: ReceiptType.Receipt,
+      confidence: 0.98,
+      parseStatus: "Complete",
+      warnings: [],
+      missingFields: [],
+      items: [
+        {
+          id: "mock-item-003-1",
+          name: "おにぎり 鮭",
+          quantity: 1.0,
+          unitPrice: 138.0,
+          amount: 138.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-003-2",
+          name: "おにぎり ツナマヨ",
+          quantity: 1.0,
+          unitPrice: 138.0,
+          amount: 138.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-003-3",
+          name: "お茶 600ml",
+          quantity: 1.0,
+          unitPrice: 150.0,
+          amount: 150.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000002",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000002"), // 飲料
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-003-4",
+          name: "サラダチキン",
+          quantity: 1.0,
+          unitPrice: 238.0,
+          amount: 238.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-003-5",
+          name: "ポテトチップス",
+          quantity: 1.0,
+          unitPrice: 108.0,
+          amount: 108.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000003",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000003"), // お菓子
+          userIncomeItemCategory: null,
+        },
+      ],
+      taxes: [
+        {
+          id: "mock-tax-003-1",
+          taxRate: 8,
+          taxAmount: 56.0,
+          taxableAmount: 700.0,
+          taxType: "消費税（軽減税率）",
+          isFixedAmount: false,
+          applicableCategory: "食料品",
+        },
+      ],
+      shopDetails: null,
+      createdAt: "2024-01-10T12:15:00.0000000+00:00",
+      updatedAt: "2024-01-10T12:15:00.0000000+00:00",
+    },
+
+    // 4. 外食（ランチ）
+    {
+      id: "mock-transaction-004",
+      type: "Expense",
+      transactionDate: "2024-01-15T00:00:00.0000000+00:00",
+      amountTotal: 1680.0,
+      currency: "JPY",
+      payer: "",
+      payee: "サイゼリヤ 津駅前店",
+      paymentMethod: "Cash",
+      userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000002"), // 外食
+      notes: "同僚とランチ",
+      taxInclusionType: TaxInclusionType.Inclusive,
+      sourceUrl: "/receipts/mock-receipt-004.png",
+      receiptAttachedAt: "2024-01-15T13:00:00.0000000+00:00",
+      receiptType: ReceiptType.Receipt,
+      confidence: 0.92,
+      parseStatus: "Complete",
+      warnings: [],
+      missingFields: [],
+      items: [
+        {
+          id: "mock-item-004-1",
+          name: "ミラノ風ドリア",
+          quantity: 1.0,
+          unitPrice: 330.0,
+          amount: 330.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-004-2",
+          name: "マルゲリータピザ",
+          quantity: 1.0,
+          unitPrice: 399.0,
+          amount: 399.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000001",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000001"), // 食品
+          userIncomeItemCategory: null,
+        },
+        {
+          id: "mock-item-004-3",
+          name: "ドリンクバー",
+          quantity: 2.0,
+          unitPrice: 330.0,
+          amount: 660.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000002",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000002"), // 飲料
+          userIncomeItemCategory: null,
+        },
+      ],
+      taxes: [
+        {
+          id: "mock-tax-004-1",
+          taxRate: 10,
+          taxAmount: 153.0,
+          taxableAmount: 1527.0,
+          taxType: "消費税（標準税率）",
+          isFixedAmount: false,
+          applicableCategory: "店内飲食",
+        },
+      ],
+      shopDetails: null,
+      createdAt: "2024-01-15T13:00:00.0000000+00:00",
+      updatedAt: "2024-01-15T13:00:00.0000000+00:00",
+    },
+
+    // 5. 電車移動（IC決済）
+    {
+      id: "mock-transaction-005",
+      type: "Expense",
+      transactionDate: "2024-01-20T00:00:00.0000000+00:00",
+      amountTotal: 320.0,
+      currency: "JPY",
+      payer: "",
+      payee: "JR東海",
+      paymentMethod: "ElectronicMoney",
+      userTransactionCategory: findTransactionCategoryById("11111111-1111-1111-1111-000000000004"), // 交通費
+      notes: "津→名古屋 往復",
+      taxInclusionType: TaxInclusionType.Inclusive,
+      sourceUrl: null,
+      receiptAttachedAt: null,
+      receiptType: null,
+      confidence: null,
+      parseStatus: null,
+      warnings: [],
+      missingFields: [],
+      items: [
+        {
+          id: "mock-item-005-1",
+          name: "IC乗車券",
+          quantity: 1.0,
+          unitPrice: 320.0,
+          amount: 320.0,
+          userItemCategoryId: "22222222-2222-2222-2222-000000000005",
+          userIncomeItemCategoryId: null,
+          userItemCategory: findItemCategoryById("22222222-2222-2222-2222-000000000005"), // 日用品
+          userIncomeItemCategory: null,
+        },
+      ],
+      taxes: [
+        {
+          id: "mock-tax-005-1",
+          taxRate: 10,
+          taxAmount: 29.0,
+          taxableAmount: 291.0,
+          taxType: "消費税（標準税率）",
+          isFixedAmount: false,
+          applicableCategory: "交通サービス",
+        },
+      ],
+      shopDetails: null,
+      createdAt: "2024-01-20T18:30:00.0000000+00:00",
+      updatedAt: "2024-01-20T18:30:00.0000000+00:00",
+    },
+  ];
+}
