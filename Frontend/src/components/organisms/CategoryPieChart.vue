@@ -36,15 +36,15 @@ const getChartOptions = (): ChartOptions<"pie"> => {
     layout: {
       padding: isMobile
         ? {
-            top: 20,
+            top: 50,
             right: 15,
-            bottom: 45, // ラベル用のスペースのみ確保
+            bottom: 45,
             left: 15,
           }
         : {
-            top: 30,
+            top: 70,
             right: 30,
-            bottom: 60, // ラベル用のスペースのみ確保
+            bottom: 60,
             left: 30,
           },
     },
