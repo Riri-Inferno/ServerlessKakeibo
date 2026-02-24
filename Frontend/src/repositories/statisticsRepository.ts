@@ -6,6 +6,7 @@ import {
   generateCategoryBreakdown,
   generateMonthlyTrend,
   generateHighlights,
+  generateDateRange,
 } from "../mocks/helpers";
 import type {
   MonthlySummaryResult,
@@ -13,6 +14,7 @@ import type {
   CategoryBreakdownResult,
   MonthlyTrendResult,
   HighlightsResult,
+  DateRangeResult,
 } from "../types/statistics";
 
 interface ApiResponse<T> {
@@ -31,7 +33,7 @@ export const statisticsRepository = {
    */
   async getMonthlySummary(
     year: number,
-    month: number
+    month: number,
   ): Promise<MonthlySummaryResult> {
     // デモモード
     if (isDemoMode()) {
@@ -44,12 +46,12 @@ export const statisticsRepository = {
       "/TransactionSummary/monthly",
       {
         params: { Year: year, Month: month },
-      }
+      },
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "月次サマリーの取得に失敗しました"
+        response.data.message || "月次サマリーの取得に失敗しました",
       );
     }
 
@@ -65,7 +67,7 @@ export const statisticsRepository = {
    */
   async getMonthlyComparison(
     year: number,
-    month: number
+    month: number,
   ): Promise<MonthlyComparisonResult> {
     // デモモード
     if (isDemoMode()) {
@@ -78,12 +80,12 @@ export const statisticsRepository = {
       "/api/Statistics/monthly-comparison",
       {
         params: { Year: year, Month: month },
-      }
+      },
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "前月比サマリーの取得に失敗しました"
+        response.data.message || "前月比サマリーの取得に失敗しました",
       );
     }
 
@@ -99,7 +101,7 @@ export const statisticsRepository = {
    */
   async getCategoryBreakdown(
     year: number,
-    month: number
+    month: number,
   ): Promise<CategoryBreakdownResult> {
     // デモモード
     if (isDemoMode()) {
@@ -112,12 +114,12 @@ export const statisticsRepository = {
       "/api/Statistics/category-breakdown",
       {
         params: { Year: year, Month: month },
-      }
+      },
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "カテゴリ別内訳の取得に失敗しました"
+        response.data.message || "カテゴリ別内訳の取得に失敗しました",
       );
     }
 
@@ -127,22 +129,32 @@ export const statisticsRepository = {
   /**
    * 月次推移を取得
    *
-   * @param months 取得する月数（デフォルト: 6）
-   * @returns 直近N ヶ月の推移データ
+   * @param months 取得する月数（デフォルト: 12）
+   * @param year 基準年（オプション）
+   * @param month 基準月（オプション）
+   * @returns 指定月から過去N ヶ月の推移データ
    */
-  async getMonthlyTrend(months: number = 6): Promise<MonthlyTrendResult> {
+  async getMonthlyTrend(
+    months: number = 12,
+    year?: number,
+    month?: number,
+  ): Promise<MonthlyTrendResult> {
     // デモモード
     if (isDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 300));
-      return generateMonthlyTrend(months);
+      return generateMonthlyTrend(months, year, month);
     }
 
     // 実API
     const response = await apiClient.get<ApiResponse<MonthlyTrendResult>>(
       "/api/Statistics/trend",
       {
-        params: { Months: months },
-      }
+        params: {
+          Months: months,
+          Year: year,
+          Month: month,
+        },
+      },
     );
 
     if (response.data.status !== "Success") {
@@ -171,12 +183,38 @@ export const statisticsRepository = {
       "/api/Statistics/highlights",
       {
         params: { Year: year, Month: month },
-      }
+      },
     );
 
     if (response.data.status !== "Success") {
       throw new Error(
-        response.data.message || "ハイライトの取得に失敗しました"
+        response.data.message || "ハイライトの取得に失敗しました",
+      );
+    }
+
+    return response.data.data;
+  },
+
+  /**
+   * 取引データの日付範囲を取得
+   *
+   * @returns 最古・最新の取引年月
+   */
+  async getDateRange(): Promise<DateRangeResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return generateDateRange();
+    }
+
+    // 実API
+    const response = await apiClient.get<ApiResponse<DateRangeResult>>(
+      "/api/Statistics/date-range",
+    );
+
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "データ範囲の取得に失敗しました",
       );
     }
 

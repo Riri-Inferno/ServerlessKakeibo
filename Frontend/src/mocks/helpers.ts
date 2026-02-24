@@ -35,7 +35,7 @@ import type {
  * TransactionDetail から TransactionSummary に変換
  */
 export function toTransactionSummary(
-  detail: TransactionDetail
+  detail: TransactionDetail,
 ): TransactionSummary {
   return {
     id: detail.id,
@@ -56,7 +56,7 @@ export function toTransactionSummary(
  * 複数の Detail を Summary に一括変換
  */
 export function toTransactionSummaries(
-  details: TransactionDetail[]
+  details: TransactionDetail[],
 ): TransactionSummary[] {
   return details.map(toTransactionSummary);
 }
@@ -88,7 +88,7 @@ function filterByYearMonth(year: number, month: number) {
  */
 export function generateMonthlySummary(
   year: number,
-  month: number
+  month: number,
 ): MonthlySummaryResult {
   const transactions = filterByYearMonth(year, month);
 
@@ -160,7 +160,7 @@ export function generateMonthlySummary(
  */
 export function generateMonthlyComparison(
   year: number,
-  month: number
+  month: number,
 ): MonthlyComparisonResult {
   const current = generateMonthlySummary(year, month);
 
@@ -206,7 +206,7 @@ export function generateMonthlyComparison(
  */
 export function generateCategoryBreakdown(
   year: number,
-  month: number
+  month: number,
 ): CategoryBreakdownResult {
   const transactions = filterByYearMonth(year, month);
   const expenses = transactions.filter((t) => t.type === "Expense");
@@ -247,7 +247,7 @@ export function generateCategoryBreakdown(
 
   // 全カテゴリを金額降順で返す
   const categories = Array.from(categoryMap.values()).sort(
-    (a, b) => b.amount - a.amount
+    (a, b) => b.amount - a.amount,
   );
 
   return {
@@ -261,9 +261,24 @@ export function generateCategoryBreakdown(
 /**
  * 月次推移を生成
  */
-export function generateMonthlyTrend(months: number = 6): MonthlyTrendResult {
-  const currentYear = 2026;
-  const currentMonth = 2;
+export function generateMonthlyTrend(
+  months: number = 12,
+  targetYear?: number,
+  targetMonth?: number,
+): MonthlyTrendResult {
+  // 基準年月を決定（指定がなければデータの最新月を使用）
+  let baseYear: number;
+  let baseMonth: number;
+
+  if (targetYear !== undefined && targetMonth !== undefined) {
+    baseYear = targetYear;
+    baseMonth = targetMonth;
+  } else {
+    // データ範囲から最新月を動的に取得
+    const dateRange = generateDateRange();
+    baseYear = dateRange.newestYear ?? 2026;
+    baseMonth = dateRange.newestMonth ?? 2;
+  }
 
   const result: {
     months: MonthLabel[];
@@ -278,20 +293,21 @@ export function generateMonthlyTrend(months: number = 6): MonthlyTrendResult {
   };
 
   for (let i = months - 1; i >= 0; i--) {
-    let targetYear = currentYear;
-    let targetMonth = currentMonth - i;
+    let year = baseYear;
+    let month = baseMonth - i;
 
-    while (targetMonth <= 0) {
-      targetMonth += 12;
-      targetYear--;
+    // 月が0以下になった場合、前年に繰り上げ
+    while (month <= 0) {
+      month += 12;
+      year--;
     }
 
-    const summary = generateMonthlySummary(targetYear, targetMonth);
+    const summary = generateMonthlySummary(year, month);
 
     result.months.push({
-      year: targetYear,
-      month: targetMonth,
-      label: `${targetYear}/${targetMonth}`,
+      year: year,
+      month: month,
+      label: `${year}年${month}月`,
     });
 
     result.incomes.push(summary.income);
@@ -307,7 +323,7 @@ export function generateMonthlyTrend(months: number = 6): MonthlyTrendResult {
  */
 export function generateHighlights(
   year: number,
-  month: number
+  month: number,
 ): HighlightsResult {
   const transactions = filterByYearMonth(year, month);
   const expenses = transactions.filter((t) => t.type === "Expense");
@@ -373,7 +389,7 @@ export function generateHighlights(
   // 日別平均支出
   const totalExpense = expenses.reduce((sum, t) => sum + t.amountTotal, 0);
   const uniqueDays = new Set(
-    expenses.map((t) => t.transactionDate.split("T")[0])
+    expenses.map((t) => t.transactionDate.split("T")[0]),
   );
   const daysWithExpense = uniqueDays.size;
   const averageExpensePerDay =
@@ -407,7 +423,7 @@ export function generateMockSettings(): UserSettings {
  */
 function toTransactionCategoryDto(
   category: (typeof mockTransactionCategories)[0],
-  index: number
+  index: number,
 ): TransactionCategoryDto {
   return {
     id: category.id,
@@ -426,10 +442,10 @@ function toTransactionCategoryDto(
  * 取引カテゴリ一覧を生成
  */
 export function generateTransactionCategories(
-  includeHidden = false
+  includeHidden = false,
 ): TransactionCategoryListResult {
   let categories = mockTransactionCategories.map((cat, index) =>
-    toTransactionCategoryDto(cat, index)
+    toTransactionCategoryDto(cat, index),
   );
 
   // includeHidden=false の場合、削除済みカテゴリを除外
@@ -448,7 +464,7 @@ export function generateTransactionCategories(
  */
 function toItemCategoryDto(
   category: (typeof mockItemCategories)[0],
-  index: number
+  index: number,
 ): ItemCategoryDto {
   return {
     id: category.id,
@@ -466,10 +482,10 @@ function toItemCategoryDto(
  * 商品カテゴリ一覧を生成
  */
 export function generateItemCategories(
-  includeHidden = false
+  includeHidden = false,
 ): ItemCategoryListResult {
   let categories = mockItemCategories.map((cat, index) =>
-    toItemCategoryDto(cat, index)
+    toItemCategoryDto(cat, index),
   );
 
   // includeHidden=false の場合、削除済みカテゴリを除外
@@ -488,7 +504,7 @@ export function generateItemCategories(
  */
 function toIncomeItemCategoryDto(
   category: (typeof mockIncomeItemCategories)[0],
-  index: number
+  index: number,
 ): IncomeItemCategoryDto {
   return {
     id: category.id,
@@ -506,10 +522,10 @@ function toIncomeItemCategoryDto(
  * 収入項目カテゴリ一覧を生成
  */
 export function generateIncomeItemCategories(
-  includeHidden = false
+  includeHidden = false,
 ): IncomeItemCategoryListResult {
   let categories = mockIncomeItemCategories.map((cat, index) =>
-    toIncomeItemCategoryDto(cat, index)
+    toIncomeItemCategoryDto(cat, index),
   );
 
   // includeHidden=false の場合、削除済みカテゴリを除外
@@ -568,5 +584,47 @@ export function findTransactionCategoryById(id: string) {
     colorCode: category.colorCode,
     isIncome: category.isIncome,
     isCustom: category.isCustom,
+  };
+}
+
+/**
+ * データ範囲を生成（最古・最新の取引年月）
+ */
+export function generateDateRange(): {
+  oldestYear: number | null;
+  oldestMonth: number | null;
+  newestYear: number | null;
+  newestMonth: number | null;
+} {
+  const transactions = getMockTransactions();
+
+  if (transactions.length === 0) {
+    return {
+      oldestYear: null,
+      oldestMonth: null,
+      newestYear: null,
+      newestMonth: null,
+    };
+  }
+
+  // 取引日時でソート
+  const sortedTransactions = [...transactions].sort(
+    (a, b) =>
+      new Date(a.transactionDate).getTime() -
+      new Date(b.transactionDate).getTime(),
+  );
+
+  // 最古・最新の取引を取得（lengthチェック済みなので必ず存在）
+  const oldestTransaction = sortedTransactions[0]!;
+  const newestTransaction = sortedTransactions[sortedTransactions.length - 1]!;
+
+  const oldest = parseYearMonth(oldestTransaction.transactionDate);
+  const newest = parseYearMonth(newestTransaction.transactionDate);
+
+  return {
+    oldestYear: oldest.year,
+    oldestMonth: oldest.month,
+    newestYear: newest.year,
+    newestMonth: newest.month,
   };
 }

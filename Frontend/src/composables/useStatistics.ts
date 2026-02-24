@@ -29,15 +29,12 @@ export function useStatistics() {
 
   const oldestYear = ref<number | null>(null);
   const oldestMonth = ref<number | null>(null);
-  const newestYear = ref<number | null>(null); 
+  const newestYear = ref<number | null>(null);
   const newestMonth = ref<number | null>(null);
 
   // 現在表示中の年月
   const currentYear = ref<number>(new Date().getFullYear());
   const currentMonth = ref<number>(new Date().getMonth() + 1);
-
-  // 初回ロードフラグ
-  const isInitialLoad = ref(true);
 
   // 表示用ラベル
   const currentMonthLabel = computed(
@@ -50,6 +47,22 @@ export function useStatistics() {
   const getUserNow = () => {
     const tz = authStore.settings?.timeZone || "Asia/Tokyo";
     return dayjs().tz(tz);
+  };
+
+  /**
+   * データ範囲を取得（最古・最新の取引年月）
+   */
+  const fetchDateRange = async () => {
+    try {
+      const range = await statisticsRepository.getDateRange();
+      oldestYear.value = range.oldestYear;
+      oldestMonth.value = range.oldestMonth;
+      newestYear.value = range.newestYear;
+      newestMonth.value = range.newestMonth;
+    } catch (error) {
+      console.error("データ範囲取得エラー:", error);
+      // エラーでもアプリは続行（デフォルト値で動作）
+    }
   };
 
   /**
@@ -79,10 +92,10 @@ export function useStatistics() {
    * 前月比込みサマリーを取得
    */
   const fetchMonthlyComparison = async (year: number, month: number) => {
-      isLoading.value = true;
-      errorMessage.value = "";
+    isLoading.value = true;
+    errorMessage.value = "";
 
-      try {
+    try {
       const data = await statisticsRepository.getMonthlyComparison(year, month);
 
       // 整形ロジック
@@ -91,26 +104,31 @@ export function useStatistics() {
         if (previous === 0) {
           return current > 0 ? 100 : 0; // 0→100なら100%、0→0なら0%
         }
-        
+
         const rawPercent = ((current - previous) / previous) * 100;
-        
+
         // 小数点1桁で切り落とし
         return Math.floor(rawPercent * 10) / 10;
       };
 
       monthlyComparison.value = {
         ...data,
-        incomeChangePercent: formatPercent(data.current.income, data.previous?.income ?? 0),
-        expenseChangePercent: formatPercent(data.current.expense, data.previous?.expense ?? 0),
+        incomeChangePercent: formatPercent(
+          data.current.income,
+          data.previous?.income ?? 0,
+        ),
+        expenseChangePercent: formatPercent(
+          data.current.expense,
+          data.previous?.expense ?? 0,
+        ),
       };
-
-      } catch (error) {
-        console.error("前月比サマリー取得エラー:", error);
-        errorMessage.value = error instanceof Error ? error.message : "取得失敗";
-      } finally {
-        isLoading.value = false;
-      }
-    };
+    } catch (error) {
+      console.error("前月比サマリー取得エラー:", error);
+      errorMessage.value = error instanceof Error ? error.message : "取得失敗";
+    } finally {
+      isLoading.value = false;
+    }
+  };
 
   /**
    * カテゴリ別内訳を取得
@@ -136,47 +154,19 @@ export function useStatistics() {
   };
 
   /**
-   * 月次推移を取得
+   * 月次推移を取得（選択月を基準に12ヶ月）
    */
   const fetchMonthlyTrend = async () => {
     isLoading.value = true;
     errorMessage.value = "";
 
     try {
-      // 初回は全データ（240ヶ月）、2回目以降は12ヶ月
-      const months = isInitialLoad.value ? 240 : 12;
-      
-      monthlyTrend.value = await statisticsRepository.getMonthlyTrend(months);
-
-      const monthsData = monthlyTrend.value?.months;
-      const incomes = monthlyTrend.value?.incomes;
-      const expenses = monthlyTrend.value?.expenses;
-      
-      if (monthsData && incomes && expenses && monthsData.length > 0) {
-        // 初回のみ最古/最新を記録
-        if (isInitialLoad.value) {
-          const dataWithTransactions = monthsData.filter((_, index) => {
-            const income = incomes[index];
-            const expense = expenses[index];
-            return (income ?? 0) > 0 || (expense ?? 0) > 0;
-          });
-          
-          if (dataWithTransactions.length > 0) {
-            const oldest = dataWithTransactions[0];
-            const newest = dataWithTransactions[dataWithTransactions.length - 1];
-            if (oldest) {
-              oldestYear.value = oldest.year;
-              oldestMonth.value = oldest.month;
-            }
-            if (newest) {
-              newestYear.value = newest.year;
-              newestMonth.value = newest.month;
-            }
-          }
-          
-          isInitialLoad.value = false;
-        }
-      }
+      // 選択中の年月を基準に12ヶ月取得
+      monthlyTrend.value = await statisticsRepository.getMonthlyTrend(
+        12,
+        currentYear.value,
+        currentMonth.value,
+      );
     } catch (error) {
       console.error("月次推移取得エラー:", error);
       errorMessage.value =
@@ -187,26 +177,28 @@ export function useStatistics() {
   };
 
   /**
-   * 最新の選択可能付きを返す
+   * 最新の選択可能月を返す
    */
   const getLatestSelectableMonth = () => {
     const now = getUserNow();
     const currentYearMonth = { year: now.year(), month: now.month() + 1 };
-    
+
     if (newestYear.value === null || newestMonth.value === null) {
       return currentYearMonth;
     }
-    
+
     const dataYearMonth = { year: newestYear.value, month: newestMonth.value };
-    
+
     if (dataYearMonth.year > currentYearMonth.year) {
       return dataYearMonth;
     }
-    if (dataYearMonth.year === currentYearMonth.year && 
-        dataYearMonth.month >= currentYearMonth.month) {
+    if (
+      dataYearMonth.year === currentYearMonth.year &&
+      dataYearMonth.month >= currentYearMonth.month
+    ) {
       return dataYearMonth;
     }
-    
+
     return currentYearMonth;
   };
 
@@ -239,11 +231,10 @@ export function useStatistics() {
       // 各APIを順次実行
       await fetchMonthlyComparison(currentYear.value, currentMonth.value);
       await fetchCategoryBreakdown(currentYear.value, currentMonth.value);
-      
-      // 月次推移を取得（初回240ヶ月、2回目以降12ヶ月）
-      // TODO: 最古・最新取引日時を返す専用API（/api/statistics/date-range）に置き換える
+
+      // 月次推移を取得（常に12ヶ月）
       await fetchMonthlyTrend();
-      
+
       await fetchHighlights(currentYear.value, currentMonth.value);
     } catch (error) {
       console.error("統計データ取得エラー:", error);
@@ -351,7 +342,8 @@ export function useStatistics() {
     const latestSelectable = getLatestSelectableMonth();
 
     if (year > latestSelectable.year) return false;
-    if (year === latestSelectable.year && month > latestSelectable.month) return false;
+    if (year === latestSelectable.year && month > latestSelectable.month)
+      return false;
 
     if (oldestYear.value !== null && oldestMonth.value !== null) {
       if (year < oldestYear.value) return false;
@@ -422,43 +414,12 @@ export function useStatistics() {
   };
 
   /**
-   * 現在日が属する締め日月を取得
-   */
-  // const getCurrentClosingMonth = () => {
-  //   const now = getUserNow();
-  //   const closingDay = authStore.settings?.closingDay;
-
-  //   // 月末締めの場合は通常のカレンダー月
-  //   if (closingDay === null || closingDay === undefined) {
-  //     return {
-  //       year: now.year(),
-  //       month: now.month() + 1,
-  //     };
-  //   }
-
-  //   // N日締めの場合
-  //   const currentDay = now.date();
-  //   let targetMonth = now;
-
-  //   // 今日が締め日より後なら、次の締め日月に属する
-  //   if (currentDay > closingDay) {
-  //     targetMonth = now.add(1, "month");
-  //   }
-
-  //   return {
-  //     year: targetMonth.year(),
-  //     month: targetMonth.month() + 1,
-  //   };
-  // };
-
-  /**
    * 表示中の月が現在の締め日月かどうかを判定
    */
   const isCurrentMonth = computed(() => {
     const now = getUserNow();
     return (
-      currentYear.value === now.year() && 
-      currentMonth.value === now.month() + 1
+      currentYear.value === now.year() && currentMonth.value === now.month() + 1
     );
   });
 
@@ -473,10 +434,11 @@ export function useStatistics() {
     if (
       currentYear.value === latestSelectable.year &&
       currentMonth.value > latestSelectable.month
-    ) return true;
+    )
+      return true;
 
     return false;
-});
+  });
 
   /**
    * 前月ボタンが無効かどうか
@@ -485,9 +447,9 @@ export function useStatistics() {
     if (oldestYear.value === null || oldestMonth.value === null) {
       return false;
     }
-    
+
     return (
-      currentYear.value === oldestYear.value && 
+      currentYear.value === oldestYear.value &&
       currentMonth.value === oldestMonth.value
     );
   });
@@ -514,6 +476,7 @@ export function useStatistics() {
     isPreviousMonthDisabled,
 
     // Methods
+    fetchDateRange,
     fetchMonthlySummary,
     fetchMonthlyComparison,
     fetchCategoryBreakdown,
