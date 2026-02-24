@@ -43,10 +43,7 @@ const isDemoMode = computed(() => checkDemoMode());
               size="sm"
               class="text-yellow-700"
             />
-            <BaseText
-              variant="caption"
-              class="text-yellow-700 font-bold hidden sm:inline"
-            >
+            <BaseText variant="caption" class="text-yellow-700 font-bold">
               DEMO
             </BaseText>
           </div>

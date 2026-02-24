@@ -142,4 +142,14 @@ public interface ITransactionRepository
     Task<(int Transactions, int Items, int Taxes, int Shops)> SoftDeleteAllUserTransactionsAsync(
         Guid userId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// ユーザーの取引日時範囲を取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="ct">キャンセルトークン</param>
+    /// <returns>最古・最新の取引日時</returns>
+    Task<(DateTimeOffset? Oldest, DateTimeOffset? Newest)> GetTransactionDateRangeAsync(
+        Guid userId,
+        CancellationToken ct = default);
 }

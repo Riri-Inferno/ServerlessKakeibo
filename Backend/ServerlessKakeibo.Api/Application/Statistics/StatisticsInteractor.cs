@@ -162,6 +162,8 @@ public class StatisticsInteractor : IStatisticsUseCase
     public async Task<MonthlyTrendResult> GetMonthlyTrendAsync(
         int months,
         Guid userId,
+        int? targetYear = null,
+        int? targetMonth = null,
         CancellationToken cancellationToken = default)
     {
         if (userId == Guid.Empty)
@@ -170,19 +172,40 @@ public class StatisticsInteractor : IStatisticsUseCase
         if (months < 1 || months > 24)
             throw new ArgumentException("Months must be between 1 and 24", nameof(months));
 
+        // Year と Month は両方指定されているか、両方未指定である必要がある
+        if ((targetYear.HasValue && !targetMonth.HasValue) ||
+            (!targetYear.HasValue && targetMonth.HasValue))
+        {
+            throw new ArgumentException("Year and Month must be specified together");
+        }
+
         try
         {
             _logger.LogInformation(
-                "月次推移取得を開始します。UserId: {UserId}, Months: {Months}",
-                userId, months);
+                "月次推移取得を開始します。UserId: {UserId}, Months: {Months}, TargetYear: {TargetYear}, TargetMonth: {TargetMonth}",
+                userId, months, targetYear, targetMonth);
 
-            // 直近N ヶ月の年月リストを生成
-            var now = DateTimeOffset.UtcNow;
+            // 基準日時を決定
+            DateTimeOffset baseDate;
+            if (targetYear.HasValue && targetMonth.HasValue)
+            {
+                // 指定された年月の末日を基準とする
+                baseDate = new DateTimeOffset(targetYear.Value, targetMonth.Value, 1, 0, 0, 0, TimeSpan.Zero)
+                    .AddMonths(1)
+                    .AddDays(-1);
+            }
+            else
+            {
+                // 現在時刻を基準とする
+                baseDate = DateTimeOffset.UtcNow;
+            }
+
+            // 直近N ヶ月の年月リストを生成（baseDate を最新として過去に遡る）
             var monthlyRanges = new List<(int Year, int Month)>();
 
             for (int i = months - 1; i >= 0; i--)
             {
-                var targetDate = now.AddMonths(-i);
+                var targetDate = baseDate.AddMonths(-i);
                 monthlyRanges.Add((targetDate.Year, targetDate.Month));
             }
 
@@ -203,8 +226,8 @@ public class StatisticsInteractor : IStatisticsUseCase
             var balances = aggregates.Select(x => x.Balance).ToList();
 
             _logger.LogInformation(
-                "月次推移を取得しました。UserId: {UserId}, Months: {Months}",
-                userId, months);
+                "月次推移を取得しました。UserId: {UserId}, Months: {Months}, BaseDate: {BaseDate:yyyy-MM}",
+                userId, months, baseDate);
 
             return new MonthlyTrendResult
             {
@@ -328,6 +351,67 @@ public class StatisticsInteractor : IStatisticsUseCase
             _logger.LogError(ex,
                 "月次ハイライト取得中にエラーが発生しました。UserId: {UserId}, Year: {Year}, Month: {Month}",
                 userId, year, month);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 取引データの日付範囲を取得
+    /// </summary>
+    public async Task<DateRangeResult> GetDateRangeAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        try
+        {
+            _logger.LogInformation(
+                "データ範囲取得を開始します。UserId: {UserId}",
+                userId);
+
+            var (oldest, newest) = await _transactionRepository.GetTransactionDateRangeAsync(
+                userId, cancellationToken);
+
+            DateRangeResult result;
+
+            if (oldest.HasValue && newest.HasValue)
+            {
+                result = new DateRangeResult
+                {
+                    OldestYear = oldest.Value.Year,
+                    OldestMonth = oldest.Value.Month,
+                    NewestYear = newest.Value.Year,
+                    NewestMonth = newest.Value.Month
+                };
+
+                _logger.LogInformation(
+                    "データ範囲を取得しました。UserId: {UserId}, Oldest: {Oldest:yyyy-MM}, Newest: {Newest:yyyy-MM}",
+                    userId, oldest.Value, newest.Value);
+            }
+            else
+            {
+                result = new DateRangeResult
+                {
+                    OldestYear = null,
+                    OldestMonth = null,
+                    NewestYear = null,
+                    NewestMonth = null
+                };
+
+                _logger.LogInformation(
+                    "取引データが存在しません。UserId: {UserId}",
+                    userId);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "データ範囲取得中にエラーが発生しました。UserId: {UserId}",
+                userId);
             throw;
         }
     }

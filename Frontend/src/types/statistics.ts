@@ -115,4 +115,16 @@ export interface GetMonthlySummaryRequest {
  */
 export interface GetMonthlyTrendRequest {
   months?: number;
+  year?: number;
+  month?: number;
+}
+
+/**
+ * データ範囲結果
+ */
+export interface DateRangeResult {
+  oldestYear: number | null;
+  oldestMonth: number | null;
+  newestYear: number | null;
+  newestMonth: number | null;
 }
