@@ -154,15 +154,16 @@ public class StatisticsController : ControllerBase
     /// <summary>
     /// 月次推移を取得
     /// </summary>
-    /// <param name="request">取得月数</param>
+    /// <param name="request">取得月数と基準年月</param>
     /// <param name="useCase">統計ユースケース</param>
     /// <param name="environment">ホスト環境</param>
     /// <returns>直近N ヶ月の収入・支出推移</returns>
     [HttpGet("trend")]
     [SwaggerOperation(
         Summary = "月次推移を取得",
-        Description = "直近N ヶ月の収入・支出・収支を取得し、グラフ表示用データを返す。\n\n" +
-                      "デフォルトは直近240ヶ月です。")]
+        Description = "指定された基準月から過去N ヶ月の収入・支出・収支を取得し、グラフ表示用データを返す。\n\n" +
+                    "Year/Month を指定しない場合は現在時刻から過去N ヶ月を取得します。\n" +
+                    "デフォルトは直近12ヶ月です。")]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<MonthlyTrendResult>), StatusCodes.Status401Unauthorized)]
@@ -178,7 +179,9 @@ public class StatisticsController : ControllerBase
 
             var result = await useCase.GetMonthlyTrendAsync(
                 request.Months,
-                userId);
+                userId,
+                request.Year,
+                request.Month);
 
             return Ok(ApiResponse<MonthlyTrendResult>.Success(result));
         }

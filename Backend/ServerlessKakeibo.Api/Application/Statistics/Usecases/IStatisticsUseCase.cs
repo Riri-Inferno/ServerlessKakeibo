@@ -45,6 +45,8 @@ public interface IStatisticsUseCase
     Task<MonthlyTrendResult> GetMonthlyTrendAsync(
         int months,
         Guid userId,
+        int? targetYear = null,
+        int? targetMonth = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
