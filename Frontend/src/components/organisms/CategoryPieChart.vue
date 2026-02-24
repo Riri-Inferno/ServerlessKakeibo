@@ -26,26 +26,26 @@ let chartInstance: ChartJS<"pie"> | null = null;
 const getChartOptions = (): ChartOptions<"pie"> => {
   // スマホ判定
   const isMobile = window.innerWidth < 768;
-  
+
   return {
     responsive: true,
     maintainAspectRatio: true,
-    aspectRatio: 1,
+    aspectRatio: 1.15,
     devicePixelRatio: 2,
 
     layout: {
       padding: isMobile
         ? {
-            top: 30,
-            right: 30,
-            bottom: 15,
-            left: 30,
+            top: 20,
+            right: 15,
+            bottom: 45, // ラベル用のスペースのみ確保
+            left: 15,
           }
         : {
-            top: 60,
-            right: 60,
-            bottom: 20,
-            left: 60,
+            top: 30,
+            right: 30,
+            bottom: 60, // ラベル用のスペースのみ確保
+            left: 30,
           },
     },
 
@@ -65,13 +65,16 @@ const getChartOptions = (): ChartOptions<"pie"> => {
         color: "#374151",
         font: {
           weight: "bold",
-          size: isMobile ? 10 : 12, // スマホで文字を小さく
+          size: isMobile ? 10 : 12,
         },
         formatter: (value, context) => {
           const dataset = context.chart.data.datasets[0];
           if (!dataset || !dataset.data) return "";
 
-          const total = (dataset.data as number[]).reduce((sum, v) => sum + v, 0);
+          const total = (dataset.data as number[]).reduce(
+            (sum, v) => sum + v,
+            0,
+          );
           const percentage = ((value / total) * 100).toFixed(1);
 
           const label = context.chart.data.labels![context.dataIndex];
@@ -79,10 +82,10 @@ const getChartOptions = (): ChartOptions<"pie"> => {
         },
         anchor: "end",
         align: "end",
-        offset: isMobile ? 6 : 10, // スマホでオフセット削減
+        offset: isMobile ? 8 : 12,
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         borderRadius: 4,
-        padding: isMobile ? 4 : 6, // スマホでパディング削減
+        padding: isMobile ? 4 : 6,
         borderWidth: 2,
         borderColor: (context) => {
           const bgColors = context.dataset.backgroundColor;
@@ -196,7 +199,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full h-[320px] md:h-[460px]" style="max-width: 400px; margin: 0 auto">
-    <canvas ref="canvasRef"></canvas>
+  <div class="flex justify-center items-center w-full">
+    <div class="w-full h-[350px] md:h-[480px] max-w-[400px] md:max-w-[500px]">
+      <canvas ref="canvasRef"></canvas>
+    </div>
   </div>
 </template>
