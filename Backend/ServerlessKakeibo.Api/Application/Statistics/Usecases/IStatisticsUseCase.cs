@@ -60,4 +60,14 @@ public interface IStatisticsUseCase
         int month,
         Guid userId,
         CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// 取引データの日付範囲を取得
+    /// </summary>
+    /// <param name="userId">ユーザーID</param>
+    /// <param name="cancellationToken">キャンセルトークン</param>
+    /// <returns>最古・最新の取引年月</returns>
+    Task<DateRangeResult> GetDateRangeAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

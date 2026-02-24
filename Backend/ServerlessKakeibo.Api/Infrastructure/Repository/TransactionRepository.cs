@@ -460,4 +460,35 @@ public class TransactionRepository : ITransactionRepository
 
         return (deletedTransactions, deletedItems, deletedTaxes, deletedShops);
     }
+
+    /// <summary>
+    /// ユーザーの取引日時範囲を取得
+    /// </summary>
+    public async Task<(DateTimeOffset? Oldest, DateTimeOffset? Newest)> GetTransactionDateRangeAsync(
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        var query = _context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId && !t.IsDeleted && t.TransactionDate.HasValue);
+
+        // 最古の取引日時を取得
+        var oldest = await query
+            .OrderBy(t => t.TransactionDate)
+            .Select(t => t.TransactionDate!.Value)
+            .FirstOrDefaultAsync(ct);
+
+        if (oldest == default)
+        {
+            return (null, null);
+        }
+
+        // 最新の取引日時を取得
+        var newest = await query
+            .OrderByDescending(t => t.TransactionDate)
+            .Select(t => t.TransactionDate!.Value)
+            .FirstOrDefaultAsync(ct);
+
+        return (oldest, newest);
+    }
 }

@@ -286,4 +286,59 @@ public class StatisticsController : ControllerBase
             );
         }
     }
+
+    /// <summary>
+    /// 取引データの日付範囲を取得
+    /// </summary>
+    /// <param name="useCase">統計ユースケース</param>
+    /// <param name="environment">ホスト環境</param>
+    /// <returns>最古・最新の取引年月</returns>
+    [HttpGet("date-range")]
+    [SwaggerOperation(
+        Summary = "取引データの日付範囲を取得",
+        Description = "ユーザーの最古・最新の取引年月を取得します。\n\n" +
+                    "取引が1件も存在しない場合、すべて null になります。")]
+    [ProducesResponseType(typeof(ApiResponse<DateRangeResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<DateRangeResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<DateRangeResult>), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<DateRangeResult>>> GetDateRange(
+        [FromServices] IStatisticsUseCase useCase,
+        [FromServices] IHostEnvironment environment)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+
+            var result = await useCase.GetDateRangeAsync(userId);
+
+            return Ok(ApiResponse<DateRangeResult>.Success(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(
+                ApiResponse<DateRangeResult>.Fail(
+                    ApiStatus.Unauthorized,
+                    ex.Message
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<DateRangeResult>.Fail(ApiStatus.InternalError)
+                );
+            }
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<DateRangeResult>.Fail(
+                    ApiStatus.InternalError,
+                    ex.ToString()
+                )
+            );
+        }
+    }
 }

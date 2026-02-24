@@ -333,6 +333,67 @@ public class StatisticsInteractor : IStatisticsUseCase
     }
 
     /// <summary>
+    /// 取引データの日付範囲を取得
+    /// </summary>
+    public async Task<DateRangeResult> GetDateRangeAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        try
+        {
+            _logger.LogInformation(
+                "データ範囲取得を開始します。UserId: {UserId}",
+                userId);
+
+            var (oldest, newest) = await _transactionRepository.GetTransactionDateRangeAsync(
+                userId, cancellationToken);
+
+            DateRangeResult result;
+
+            if (oldest.HasValue && newest.HasValue)
+            {
+                result = new DateRangeResult
+                {
+                    OldestYear = oldest.Value.Year,
+                    OldestMonth = oldest.Value.Month,
+                    NewestYear = newest.Value.Year,
+                    NewestMonth = newest.Value.Month
+                };
+
+                _logger.LogInformation(
+                    "データ範囲を取得しました。UserId: {UserId}, Oldest: {Oldest:yyyy-MM}, Newest: {Newest:yyyy-MM}",
+                    userId, oldest.Value, newest.Value);
+            }
+            else
+            {
+                result = new DateRangeResult
+                {
+                    OldestYear = null,
+                    OldestMonth = null,
+                    NewestYear = null,
+                    NewestMonth = null
+                };
+
+                _logger.LogInformation(
+                    "取引データが存在しません。UserId: {UserId}",
+                    userId);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "データ範囲取得中にエラーが発生しました。UserId: {UserId}",
+                userId);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 共通パラメータのバリデーション
     /// </summary>
     private static void ValidateCommonParameters(Guid userId, int year, int month)
