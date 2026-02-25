@@ -41,7 +41,7 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.DEMO_GOOGLE_CLIENT_ID }}
           VITE_GITHUB_CLIENT_ID: ${{ vars.DEMO_GITHUB_CLIENT_ID }}
           VITE_ENVIRONMENT: demo
-        run: npm run build
+        run: npm run build -- --base=/ServerlessKakeibo/ # 一旦直指定
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
