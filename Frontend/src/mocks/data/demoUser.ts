@@ -8,5 +8,5 @@ export const mockDemoUser: LoginResult = {
   refreshToken: "demo-refresh-token-xxxxxxxxxxxxxxxxxxxxxxxx",
   userId: "00000000-0000-0000-0000-000000000000",
   displayName: "デモユーザー",
-  pictureUrl: "/demo-user.png",
+  pictureUrl: `${import.meta.env.BASE_URL}demo-user.png`,
 };
