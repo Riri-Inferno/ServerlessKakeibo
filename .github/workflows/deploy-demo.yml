@@ -32,10 +32,6 @@ jobs:
         working-directory: Frontend
         run: npm ci
 
-      - name: Generate mock data
-        working-directory: Frontend
-        run: npm run generate-mock
-
       - name: Build for Demo
         working-directory: Frontend
         env:
