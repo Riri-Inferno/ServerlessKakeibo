@@ -75,8 +75,8 @@ function parseYearMonth(dateString: string): { year: number; month: number } {
 /**
  * 指定年月の取引をフィルタ
  */
-function filterByYearMonth(year: number, month: number) {
-  const transactions = getMockTransactions();
+async function filterByYearMonth(year: number, month: number) {
+  const transactions = await getMockTransactions();
   return transactions.filter((t) => {
     const { year: y, month: m } = parseYearMonth(t.transactionDate);
     return y === year && m === month;
@@ -86,11 +86,11 @@ function filterByYearMonth(year: number, month: number) {
 /**
  * 月次サマリーを生成
  */
-export function generateMonthlySummary(
+export async function generateMonthlySummary(
   year: number,
   month: number,
-): MonthlySummaryResult {
-  const transactions = filterByYearMonth(year, month);
+): Promise<MonthlySummaryResult> {
+  const transactions = await filterByYearMonth(year, month);
 
   let income = 0;
   let expense = 0;
@@ -158,11 +158,11 @@ export function generateMonthlySummary(
 /**
  * 前月比込みサマリーを生成
  */
-export function generateMonthlyComparison(
+export async function generateMonthlyComparison(
   year: number,
   month: number,
-): MonthlyComparisonResult {
-  const current = generateMonthlySummary(year, month);
+): Promise<MonthlyComparisonResult> {
+  const current = await generateMonthlySummary(year, month);
 
   // 前月を計算
   let prevYear = year;
@@ -172,7 +172,7 @@ export function generateMonthlyComparison(
     prevYear--;
   }
 
-  const previous = generateMonthlySummary(prevYear, prevMonth);
+  const previous = await generateMonthlySummary(prevYear, prevMonth);
   const hasPreviousData = previous.transactionCount > 0;
 
   // 前月比計算
@@ -204,11 +204,11 @@ export function generateMonthlyComparison(
 /**
  * カテゴリ別内訳を生成
  */
-export function generateCategoryBreakdown(
+export async function generateCategoryBreakdown(
   year: number,
   month: number,
-): CategoryBreakdownResult {
-  const transactions = filterByYearMonth(year, month);
+): Promise<CategoryBreakdownResult> {
+  const transactions = await filterByYearMonth(year, month);
   const expenses = transactions.filter((t) => t.type === "Expense");
 
   const categoryMap = new Map<
@@ -261,11 +261,11 @@ export function generateCategoryBreakdown(
 /**
  * 月次推移を生成
  */
-export function generateMonthlyTrend(
+export async function generateMonthlyTrend(
   months: number = 12,
   targetYear?: number,
   targetMonth?: number,
-): MonthlyTrendResult {
+): Promise<MonthlyTrendResult> {
   // 基準年月を決定（指定がなければデータの最新月を使用）
   let baseYear: number;
   let baseMonth: number;
@@ -275,7 +275,7 @@ export function generateMonthlyTrend(
     baseMonth = targetMonth;
   } else {
     // データ範囲から最新月を動的に取得
-    const dateRange = generateDateRange();
+    const dateRange = await generateDateRange();
     baseYear = dateRange.newestYear ?? 2026;
     baseMonth = dateRange.newestMonth ?? 2;
   }
@@ -302,7 +302,7 @@ export function generateMonthlyTrend(
       year--;
     }
 
-    const summary = generateMonthlySummary(year, month);
+    const summary = await generateMonthlySummary(year, month);
 
     result.months.push({
       year: year,
@@ -321,11 +321,11 @@ export function generateMonthlyTrend(
 /**
  * ハイライトを生成
  */
-export function generateHighlights(
+export async function generateHighlights(
   year: number,
   month: number,
-): HighlightsResult {
-  const transactions = filterByYearMonth(year, month);
+): Promise<HighlightsResult> {
+  const transactions = await filterByYearMonth(year, month);
   const expenses = transactions.filter((t) => t.type === "Expense");
 
   // 最大支出取引
@@ -590,13 +590,13 @@ export function findTransactionCategoryById(id: string) {
 /**
  * データ範囲を生成（最古・最新の取引年月）
  */
-export function generateDateRange(): {
+export async function generateDateRange(): Promise<{
   oldestYear: number | null;
   oldestMonth: number | null;
   newestYear: number | null;
   newestMonth: number | null;
-} {
-  const transactions = getMockTransactions();
+}> {
+  const transactions = await getMockTransactions();
 
   if (transactions.length === 0) {
     return {

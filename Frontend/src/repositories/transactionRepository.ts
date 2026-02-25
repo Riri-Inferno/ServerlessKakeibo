@@ -29,11 +29,14 @@ export const transactionRepository = {
     if (isDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 300)); // 遅延シミュレート
 
-      let filtered = [...getMockTransactions()];
+      const transactions = await getMockTransactions();
+      let filtered = [...transactions];
 
       // フィルタリング
       if (params.startDate) {
-        filtered = filtered.filter((t) => t.transactionDate >= params.startDate!);
+        filtered = filtered.filter(
+          (t) => t.transactionDate >= params.startDate!,
+        );
       }
       if (params.endDate) {
         filtered = filtered.filter((t) => t.transactionDate <= params.endDate!);
@@ -43,12 +46,15 @@ export const transactionRepository = {
       }
       if (params.userTransactionCategoryId) {
         filtered = filtered.filter(
-          (t) => t.userTransactionCategory?.id === params.userTransactionCategoryId
+          (t) =>
+            t.userTransactionCategory?.id === params.userTransactionCategoryId,
         );
       }
 
       // 日付降順ソート
-      filtered.sort((a, b) => b.transactionDate.localeCompare(a.transactionDate));
+      filtered.sort((a, b) =>
+        b.transactionDate.localeCompare(a.transactionDate),
+      );
 
       // ページング
       const page = params.page || 1;
@@ -81,12 +87,12 @@ export const transactionRepository = {
     return response.data.data;
   },
 
-   async getDetail(id: string): Promise<TransactionDetail> {
+  async getDetail(id: string): Promise<TransactionDetail> {
     // デモモード：モックデータを返す
     if (isDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const transactions = getMockTransactions();
+      const transactions = await getMockTransactions();
       const transaction = transactions.find((t) => t.id === id);
 
       if (!transaction) {
@@ -111,7 +117,7 @@ export const transactionRepository = {
     // デモモード：エラーを投げる
     if (isDemoMode()) {
       throw new Error(
-        "デモモードでは取引の作成はできません。実際のアカウントでお試しください。"
+        "デモモードでは取引の作成はできません。実際のアカウントでお試しください。",
       );
     }
 
@@ -137,7 +143,7 @@ export const transactionRepository = {
     // デモモード：エラーを投げる
     if (isDemoMode()) {
       throw new Error(
-        "デモモードでは取引の更新はできません。実際のアカウントでお試しください。"
+        "デモモードでは取引の更新はできません。実際のアカウントでお試しください。",
       );
     }
 
@@ -160,7 +166,7 @@ export const transactionRepository = {
     // デモモード：エラーを投げる
     if (isDemoMode()) {
       throw new Error(
-        "デモモードでは取引の削除はできません。実際のアカウントでお試しください。"
+        "デモモードでは取引の削除はできません。実際のアカウントでお試しください。",
       );
     }
 
@@ -184,7 +190,7 @@ export const transactionRepository = {
     // デモモード：エラーを投げる
     if (isDemoMode()) {
       throw new Error(
-        "デモモードではレシート画像の添付はできません。実際のアカウントでお試しください。"
+        "デモモードではレシート画像の添付はできません。実際のアカウントでお試しください。",
       );
     }
 
@@ -210,49 +216,49 @@ export const transactionRepository = {
     return response.data.data;
   },
 
-/**
- * レシート画像の署名付きURLを取得
- *
- * @param id 取引ID
- * @returns 署名付きURL（1時間有効）
- */
-async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
-  // デモモード
-  if (isDemoMode()) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+  /**
+   * レシート画像の署名付きURLを取得
+   *
+   * @param id 取引ID
+   * @returns 署名付きURL（1時間有効）
+   */
+  async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
+    // デモモード
+    if (isDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // 取引を検索
-    const transactions = getMockTransactions();
-    const transaction = transactions.find((t) => t.id === id);
-    if (!transaction) {
-      throw new Error(`取引が見つかりません（ID: ${id}）`);
+      // 取引を検索
+      const transactions = await getMockTransactions();
+      const transaction = transactions.find((t) => t.id === id);
+      if (!transaction) {
+        throw new Error(`取引が見つかりません（ID: ${id}）`);
+      }
+
+      // レシート画像が添付されているか確認
+      if (!transaction.sourceUrl) {
+        throw new Error("この取引にはレシート画像が添付されていません");
+      }
+
+      // パブリックパスをそのまま返す
+      return {
+        signedUrl: transaction.sourceUrl,
+        expiresAt: "2099-12-31T23:59:59Z",
+      };
     }
 
-    // レシート画像が添付されているか確認
-    if (!transaction.sourceUrl) {
-      throw new Error("この取引にはレシート画像が添付されていません");
-    }
-
-    // パブリックパスをそのまま返す
-    return {
-      signedUrl: transaction.sourceUrl,
-      expiresAt: "2099-12-31T23:59:59Z",
-    };
-  }
-
-  // 実API
-  const response = await apiClient.get<ApiResponse<ReceiptImageUrlResult>>(
-    `/Transaction/${id}/receipt-image-url`,
-  );
-
-  if (response.data.status !== "Success") {
-    throw new Error(
-      response.data.message || "レシート画像URLの取得に失敗しました",
+    // 実API
+    const response = await apiClient.get<ApiResponse<ReceiptImageUrlResult>>(
+      `/Transaction/${id}/receipt-image-url`,
     );
-  }
 
-  return response.data.data;
-},
+    if (response.data.status !== "Success") {
+      throw new Error(
+        response.data.message || "レシート画像URLの取得に失敗しました",
+      );
+    }
+
+    return response.data.data;
+  },
 
   /**
    * 取引をエクスポート（CSV + 画像）
@@ -266,7 +272,7 @@ async getReceiptImageUrl(id: string): Promise<ReceiptImageUrlResult> {
     // デモモード：エラーを投げる
     if (isDemoMode()) {
       throw new Error(
-        "デモモードではエクスポートはできません。実際のアカウントでお試しください。"
+        "デモモードではエクスポートはできません。実際のアカウントでお試しください。",
       );
     }
 
