@@ -7,9 +7,6 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||         // ローカル開発
   'http://localhost:8080';                     // デフォルト
 
-// デバッグ用ログ
-console.log('API Base URL:', API_BASE_URL);
-
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {

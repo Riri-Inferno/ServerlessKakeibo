@@ -190,51 +190,40 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
+        // 環境変数からAllowedOriginsを取得
+        var allowedOrigins = builder.Configuration
+            .GetSection("AllowedOrigins")
+            .Get<string[]>() ?? Array.Empty<string>();
+
         if (builder.Environment.IsDevelopment())
         {
-            // 開発環境: localhost とプライベートネットワークを許可
+            // 開発環境: 設定されたOrigin + localhost
             policy.SetIsOriginAllowed(origin =>
             {
                 if (string.IsNullOrWhiteSpace(origin))
                     return false;
 
+                // 設定されたOrigin
+                if (allowedOrigins.Any(allowed => 
+                    origin.Equals(allowed, StringComparison.OrdinalIgnoreCase)))
+                    return true;
+
                 // ローカルホスト
                 if (origin.StartsWith("http://localhost") ||
-                    origin.StartsWith("http://127.0.0.1") ||
-                    origin.StartsWith("http://[::1]") ||           // IPv6 localhost
-                    origin.StartsWith("http://[0:0:0:0:0:0:0:1]")) // IPv6 localhost (完全表記)
+                    origin.StartsWith("http://127.0.0.1"))
                     return true;
 
-                // プライベートIPアドレス (RFC 1918)
-                if (origin.StartsWith("http://10."))              // Class A: 10.0.0.0/8
+                // プライベートIP
+                if (origin.StartsWith("http://10.") ||
+                    origin.StartsWith("http://192.168."))
                     return true;
-
-                if (origin.StartsWith("http://192.168."))         // Class C: 192.168.0.0/16
-                    return true;
-
-                // Class B: 172.16.0.0/12 (172.16.0.0 ~ 172.31.255.255)
-                if (origin.StartsWith("http://172."))
-                {
-                    var match = System.Text.RegularExpressions.Regex.Match(
-                        origin,
-                        @"^http://172\.(\d+)\.");
-
-                    if (match.Success &&
-                        int.TryParse(match.Groups[1].Value, out var secondOctet) &&
-                        secondOctet >= 16 && secondOctet <= 31)
-                        return true;
-                }
 
                 return false;
             });
         }
         else
         {
-            // 本番環境: appsettings.json の AllowedOrigins を使用
-            var allowedOrigins = builder.Configuration
-                .GetSection("AllowedOrigins")
-                .Get<string[]>() ?? Array.Empty<string>();
-
+            // 本番環境: 設定されたOriginのみ
             policy.WithOrigins(allowedOrigins);
         }
 
@@ -297,8 +286,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ServerlessKakeibo API v1");
         c.RoutePrefix = string.Empty;
     });
-    app.UseCors("AllowAll");
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 app.UseRouting();

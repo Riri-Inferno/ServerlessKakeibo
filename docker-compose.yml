@@ -27,18 +27,14 @@ services:
     container_name: kakeibo-backend
     env_file:
       - ./Backend/.env
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - kakeibo-network
-    volumes:
-      - ./Backend/ServerlessKakeibo.Api/service_account.json:/app/service_account.json:ro
 
   # フロントエンド
   frontend:
@@ -48,15 +44,26 @@ services:
     container_name: kakeibo-frontend
     env_file:
       - ./Frontend/.env
-    environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "3000:80"
     depends_on:
       - backend
     restart: unless-stopped
     networks:
       - kakeibo-network
+  
+  # Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
+    networks:
+      - kakeibo-network
+    depends_on:
+      - frontend
 
 volumes:
   pgdata:

@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory, createWebHashHistory } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import ComponentGallery from "../pages/ComponentGallery.vue";
 import Login from "../pages/Login.vue";
@@ -9,7 +9,10 @@ import Settings from "../pages/Settings.vue";
 import AuthCallback from "../pages/AuthCallback.vue";
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  // 環境に応じてモードを切り替え
+  history: import.meta.env.VITE_ENVIRONMENT === 'demo'
+    ? createWebHashHistory(import.meta.env.BASE_URL)  // demo: ハッシュモード
+    : createWebHistory(import.meta.env.BASE_URL),     // それ以外: ヒストリーモード
   routes: [
     {
       path: "/",
