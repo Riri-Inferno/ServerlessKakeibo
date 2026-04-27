@@ -130,10 +130,20 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ### 3. 起動
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-### 4. アクセス
+### 4. マスタデータの投入
+
+初回起動時のみ、カテゴリのマスタデータを投入します。マイグレーション適用後に実行してください。
+
+```bash
+docker compose exec -T db psql -U postgres -d appdb < db/seed/001_master_categories.sql
+```
+
+詳細は [db/README.md](./db/README.md) を参照してください。
+
+### 5. アクセス
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
@@ -162,13 +172,13 @@ VITE_ENVIRONMENT=demo
 ## 停止
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 データベースを含めて削除する場合:
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ---
@@ -181,6 +191,7 @@ docker-compose down -v
 - [モバイル端末でのテスト](./Document/Development/mobile-testing.md)
 - [アーキテクチャ](./Document/Architecture/)
 - [API仕様](./Document/API/)
+- [DB初期データ・SQLファイル](./db/README.md)
 
 ---
 
@@ -216,27 +227,38 @@ Copyright (c) 2026 u.takayo
 
 ```bash
 # DBが起動しているか確認
-docker-compose ps db
+docker compose ps db
 
 # DBのヘルスチェック
-docker-compose exec db pg_isready -U postgres
+docker compose exec db pg_isready -U postgres
 ```
 
 ### 環境変数が反映されない
 
 ```bash
 # コンテナを再ビルド
-docker-compose down
-docker-compose up --build -d
+docker compose down
+docker compose up --build -d
+```
+
+### マスタデータが入っていない（カテゴリが空）
+
+```bash
+# 投入されているか確認
+docker compose exec db psql -U postgres -d appdb -c \
+  'SELECT COUNT(*) FROM "TransactionCategoryMasters";'
+
+# 0件なら投入
+docker compose exec -T db psql -U postgres -d appdb < db/seed/001_master_categories.sql
 ```
 
 ### ログの確認
 
 ```bash
 # 全体のログ
-docker-compose logs
+docker compose logs
 
 # 特定のサービス
-docker-compose logs frontend
-docker-compose logs backend
+docker compose logs frontend
+docker compose logs backend
 ```
