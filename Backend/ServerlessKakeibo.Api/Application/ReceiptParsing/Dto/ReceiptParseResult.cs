@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 
@@ -115,6 +116,12 @@ public class NormalizedTransaction
 /// </summary>
 public class NormalizedItem
 {
+    /// <summary>
+    /// 項目種別（商品/値引き）。既定は Product。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionItemType ItemType { get; set; } = TransactionItemType.Product;
+
     /// <summary>
     /// 項目名
     /// </summary>

@@ -14,6 +14,12 @@ public class TransactionItemDto
     public Guid Id { get; set; }
 
     /// <summary>
+    /// 項目種別（商品/値引き）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionItemType ItemType { get; set; } = TransactionItemType.Product;
+
+    /// <summary>
     /// 項目名
     /// </summary>
     public string? Name { get; set; }

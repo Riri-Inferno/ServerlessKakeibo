@@ -108,8 +108,14 @@ public class CreateTransactionRequest : IValidatableObject
 /// <summary>
 /// 取引項目作成リクエスト
 /// </summary>
-public class CreateTransactionItemRequest
+public class CreateTransactionItemRequest : IValidatableObject
 {
+    /// <summary>
+    /// 項目種別（商品/値引き）。既定は Product。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TransactionItemType ItemType { get; set; } = TransactionItemType.Product;
+
     /// <summary>
     /// 項目名
     /// </summary>
@@ -124,16 +130,14 @@ public class CreateTransactionItemRequest
     public decimal Quantity { get; set; } = 1;
 
     /// <summary>
-    /// 単価
+    /// 単価（値引きの場合はマイナス値を許容）
     /// </summary>
-    [Range(0, double.MaxValue, ErrorMessage = "単価は0以上を指定してください")]
     public decimal? UnitPrice { get; set; }
 
     /// <summary>
-    /// 金額
+    /// 金額（値引きの場合はマイナス値）
     /// </summary>
     [Required(ErrorMessage = "金額は必須です")]
-    [Range(0, double.MaxValue, ErrorMessage = "金額は0以上を指定してください")]
     public decimal Amount { get; set; }
 
     /// <summary>
@@ -145,6 +149,40 @@ public class CreateTransactionItemRequest
     /// ユーザー収入項目カテゴリID（収入用・カスタムカテゴリ対応）
     /// </summary>
     public Guid? UserIncomeItemCategoryId { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (ItemType == TransactionItemType.Discount)
+        {
+            if (Amount > 0)
+            {
+                yield return new ValidationResult(
+                    "値引き項目の金額は0以下で指定してください",
+                    new[] { nameof(Amount) });
+            }
+            if (UnitPrice.HasValue && UnitPrice.Value > 0)
+            {
+                yield return new ValidationResult(
+                    "値引き項目の単価は0以下で指定してください",
+                    new[] { nameof(UnitPrice) });
+            }
+        }
+        else // Product
+        {
+            if (Amount < 0)
+            {
+                yield return new ValidationResult(
+                    "金額は0以上を指定してください",
+                    new[] { nameof(Amount) });
+            }
+            if (UnitPrice.HasValue && UnitPrice.Value < 0)
+            {
+                yield return new ValidationResult(
+                    "単価は0以上を指定してください",
+                    new[] { nameof(UnitPrice) });
+            }
+        }
+    }
 }
 
 /// <summary>
