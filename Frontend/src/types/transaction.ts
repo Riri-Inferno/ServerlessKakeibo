@@ -10,6 +10,25 @@ export type TransactionType =
   (typeof TransactionType)[keyof typeof TransactionType];
 
 /**
+ * 取引項目種別（商品/値引き）
+ */
+export const TransactionItemType = {
+  Product: "Product",
+  Discount: "Discount",
+} as const;
+
+export type TransactionItemType =
+  (typeof TransactionItemType)[keyof typeof TransactionItemType];
+
+/**
+ * 取引項目種別の日本語ラベル
+ */
+export const TransactionItemTypeLabels: Record<TransactionItemType, string> = {
+  Product: "商品",
+  Discount: "値引き",
+};
+
+/**
  * 税の扱い（内税・外税）
  */
 export const TaxInclusionType = {
@@ -54,6 +73,7 @@ export interface TransactionSummary {
  */
 export interface TransactionItem {
   id: string;
+  itemType: TransactionItemType;
   name: string;
   quantity: number;
   unitPrice: number;
@@ -155,6 +175,7 @@ export interface GetTransactionsRequest {
  */
 export interface CreateTransactionItem {
   id?: string;
+  itemType: TransactionItemType;
   name: string;
   quantity: number;
   unitPrice: number | null;
@@ -225,6 +246,7 @@ export interface TransactionResult {
  */
 export interface UpdateTransactionItem {
   id?: string;
+  itemType: TransactionItemType;
   name: string;
   quantity: number;
   unitPrice: number | null;
