@@ -40,10 +40,11 @@ public class BuildSystemPromptFactory
   ],
   ""items"": [
     {
-      ""name"": ""商品名"",
+      ""item_type"": ""Product|Discount"",
+      ""name"": ""商品名または値引き名"",
       ""quantity"": 数量,
-      ""unit_price"": 単価,
-      ""amount"": 金額,
+      ""unit_price"": 単価（値引きの場合はマイナス値、または null）,
+      ""amount"": 金額（値引きの場合はマイナス値）,
       ""category"": ""商品カテゴリ（後述）""
     }
   ],
@@ -86,7 +87,10 @@ public class BuildSystemPromptFactory
 8. インボイス番号が記載されている場合は必ず抽出してください
 9. 取引全体のcategoryと、各商品のcategoryを必ず判定してください
 10. 店舗名や商品名から適切なカテゴリを推論してください
-11. categoryとitems内のcategoryは、必ず提供されたカテゴリリストのCodeから選択してください";
+11. categoryとitems内のcategoryは、必ず提供されたカテゴリリストのCodeから選択してください
+12. items内のitem_typeは、通常の商品行は'Product'、セット値引・クーポン・会員割引・○○OFF等の値引き行は'Discount'を指定してください
+13. item_type='Discount'の行は、unit_priceとamountを必ずマイナス値（例: -2300）で返してください。レシート上で△や▲、-などで負数表記されている明細も同様にマイナス値で返してください
+14. 値引きは値引き対象商品と同じcategoryを設定してください（カテゴリ別集計でマイナス計上できるようにするため）";
 
     if (expectedType.HasValue && expectedType != ReceiptType.Unknown)
     {
