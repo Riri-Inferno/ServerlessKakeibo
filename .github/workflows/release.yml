@@ -134,11 +134,16 @@ jobs:
           EOF
 
           # ラズパイ上でデプロイ実行
-          ssh raspi << REMOTE
+          # 'REMOTE' をクォートして、変数展開をラズパイ側で行う
+          ssh raspi << 'REMOTE'
             set -e
-            echo "🚀 Deploying version ${IMAGE_TAG}..."
 
             cd ~/ServerlessKakeibo
+
+            # .env.prod から変数を読み込む
+            export $(grep -v '^#' .env.prod | xargs)
+
+            echo "🚀 Deploying version ${IMAGE_TAG}..."
 
             # GAR からイメージを pull
             docker compose -f docker-compose.prod.yml pull
@@ -151,9 +156,9 @@ jobs:
             # マイグレーション実行（migrator イメージを使用）
             echo "🗄️ Running database migration..."
             docker run --rm \
-              --network kakeibo-network \
-              -e ConnectionStrings__DefaultConnection="Host=kakeibo-db;Port=5432;Database=appdb;Username=postgres;Password=\$(grep POSTGRES_PASSWORD .env.prod | cut -d= -f2-)" \
-              \${GAR_IMAGE_BASE}/migrator:\${IMAGE_TAG}
+              --network serverlesskakeibo_kakeibo-network \
+              -e "ConnectionStrings__DefaultConnection=Host=kakeibo-db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}" \
+              ${GAR_IMAGE_BASE}/migrator:${IMAGE_TAG}
 
             # コンテナを更新（DB は維持、アプリだけ再作成）
             docker compose -f docker-compose.prod.yml up -d --no-build
