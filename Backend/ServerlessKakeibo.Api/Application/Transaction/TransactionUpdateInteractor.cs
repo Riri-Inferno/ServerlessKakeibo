@@ -209,6 +209,7 @@ public class TransactionUpdateInteractor : ITransactionUpdateUseCase
                     UpdatedBy = userId,
                     CreatedAt = now,
                     UpdatedAt = now,
+                    ItemType = itemReq.ItemType,
                     Name = itemReq.Name,
                     Quantity = itemReq.Quantity,
                     UnitPrice = itemReq.UnitPrice,
