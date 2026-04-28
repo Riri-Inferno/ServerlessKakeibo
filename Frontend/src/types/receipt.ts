@@ -1,4 +1,8 @@
-import type { CreateTaxDetail, ShopDetails } from "./transaction";
+import type {
+  CreateTaxDetail,
+  ShopDetails,
+  TransactionItemType,
+} from "./transaction";
 
 /**
  * 領収書タイプ
@@ -86,6 +90,7 @@ export interface NormalizedTransaction {
  * OCR解析結果の取引項目
  */
 export interface NormalizedTransactionItem {
+  itemType: TransactionItemType;
   name: string | null;
   quantity: number;
   unitPrice: number | null;

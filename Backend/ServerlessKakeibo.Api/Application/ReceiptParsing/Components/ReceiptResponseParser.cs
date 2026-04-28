@@ -3,6 +3,7 @@ using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto;
 using ServerlessKakeibo.Api.Application.ReceiptParsing.Dto.Enum;
 using ServerlessKakeibo.Api.Common.Helpers;
 using ServerlessKakeibo.Api.Domain.Receipt.Models;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Application.ReceiptParsing.Components;
 
@@ -196,12 +197,16 @@ public class ReceiptResponseParser
 
         foreach (var itemElement in itemsProp.EnumerateArray())
         {
+            var amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount");
+            var itemType = ParseItemType(itemElement, amount);
+
             var item = new NormalizedItem
             {
+                ItemType = itemType,
                 Name = JsonHelper.GetStringOrNull(itemElement, "name"),
                 Quantity = JsonHelper.ParseDecimalFromJson(itemElement, "quantity") ?? 1.0m,
                 UnitPrice = JsonHelper.ParseDecimalFromJson(itemElement, "unit_price"),
-                Amount = JsonHelper.ParseDecimalFromJson(itemElement, "amount"),
+                Amount = amount,
                 CategoryCode = JsonHelper.GetStringOrNull(itemElement, "category")  // Code文字列をそのまま取得
             };
 
@@ -209,5 +214,33 @@ public class ReceiptResponseParser
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// item_type をパース。明示指定がなくても amount が負数なら Discount と推定する。
+    /// </summary>
+    private static TransactionItemType ParseItemType(JsonElement itemElement, decimal? amount)
+    {
+        if (itemElement.TryGetProperty("item_type", out var typeProp) &&
+            typeProp.ValueKind == JsonValueKind.String)
+        {
+            var typeString = typeProp.GetString();
+            if (!string.IsNullOrWhiteSpace(typeString))
+            {
+                return typeString.ToUpperInvariant() switch
+                {
+                    "DISCOUNT" => TransactionItemType.Discount,
+                    "PRODUCT" => TransactionItemType.Product,
+                    _ => amount.HasValue && amount.Value < 0
+                        ? TransactionItemType.Discount
+                        : TransactionItemType.Product
+                };
+            }
+        }
+
+        // item_type 未指定でも amount がマイナスなら値引きとみなす
+        return amount.HasValue && amount.Value < 0
+            ? TransactionItemType.Discount
+            : TransactionItemType.Product;
     }
 }

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import type { CreateTransactionItem } from "../../types/transaction";
 import type { ItemCategoryDto } from "../../types/itemCategory";
-import { TransactionType } from "../../types/transaction";
+import { TransactionType, TransactionItemType } from "../../types/transaction";
 import BaseText from "../atoms/BaseText.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseInputNumber from "../atoms/BaseInputNumber.vue";
@@ -22,6 +22,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   "update:items": [value: CreateTransactionItem[]];
   add: [];
+  addDiscount: [];
   remove: [index: number];
 }>();
 
@@ -32,6 +33,9 @@ const itemCategoryOptions = computed(() =>
     label: cat.name,
   })),
 );
+
+const isDiscount = (item: CreateTransactionItem) =>
+  item.itemType === TransactionItemType.Discount;
 
 const updateItem = (
   index: number,
@@ -63,12 +67,22 @@ const updateItem = (
     const quantity = field === "quantity" ? value : newItems[index].quantity;
     const unitPrice = field === "unitPrice" ? value : newItems[index].unitPrice;
 
-    if (quantity && unitPrice) {
+    if (quantity != null && unitPrice != null) {
       newItems[index].amount = quantity * unitPrice;
     }
   }
 
   emit("update:items", newItems);
+};
+
+// 値引きの単価/金額は UI 上では絶対値で扱い、保存時にマイナス値へ変換する
+const updateDiscountAmountFromUi = (
+  index: number,
+  field: "unitPrice" | "amount",
+  uiValue: number | null,
+) => {
+  const signed = uiValue == null ? null : -Math.abs(uiValue);
+  updateItem(index, field, signed);
 };
 
 const itemTotal = computed(() => {
@@ -93,20 +107,37 @@ const itemTotal = computed(() => {
     </div>
 
     <div v-else class="space-y-2 md:space-y-3">
-      <BaseCard v-for="(item, index) in items" :key="index" padding="sm" class="p-2.5 md:p-3">
+      <BaseCard
+        v-for="(item, index) in items"
+        :key="index"
+        padding="sm"
+        class="p-2.5 md:p-3"
+        :class="
+          isDiscount(item)
+            ? 'border border-rose-300 bg-rose-50'
+            : ''
+        "
+      >
         <div class="space-y-2 md:space-y-3">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
-              <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
-                >商品名</BaseText
-              >
+              <div class="flex items-center gap-1.5 mb-1">
+                <span
+                  v-if="isDiscount(item)"
+                  class="inline-block px-1.5 py-0.5 rounded text-[10px] md:text-xs font-bold bg-rose-600 text-white"
+                  >値引</span
+                >
+                <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
+                  {{ isDiscount(item) ? "値引名" : "商品名" }}
+                </BaseText>
+              </div>
               <BaseInput
                 :model-value="item.name"
                 @update:model-value="
                   updateItem(index, 'name', $event as string)
                 "
                 type="text"
-                placeholder="商品名"
+                :placeholder="isDiscount(item) ? 'セット値引・クーポン等' : '商品名'"
                 size="sm"
               />
             </div>
@@ -138,10 +169,25 @@ const itemTotal = computed(() => {
               />
             </div>
             <div>
-              <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
-                >単価</BaseText
-              >
+              <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
+                {{ isDiscount(item) ? "値引単価" : "単価" }}
+              </BaseText>
               <BaseInputNumber
+                v-if="isDiscount(item)"
+                :model-value="
+                  item.unitPrice == null ? null : Math.abs(item.unitPrice)
+                "
+                @update:model-value="
+                  updateDiscountAmountFromUi(
+                    index,
+                    'unitPrice',
+                    $event as number | null,
+                  )
+                "
+                size="sm"
+              />
+              <BaseInputNumber
+                v-else
                 :model-value="item.unitPrice"
                 @update:model-value="
                   updateItem(index, 'unitPrice', $event as number | null)
@@ -150,10 +196,23 @@ const itemTotal = computed(() => {
               />
             </div>
             <div>
-              <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm"
-                >金額</BaseText
-              >
+              <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
+                {{ isDiscount(item) ? "値引金額" : "金額" }}
+              </BaseText>
               <BaseInputNumber
+                v-if="isDiscount(item)"
+                :model-value="Math.abs(item.amount)"
+                @update:model-value="
+                  updateDiscountAmountFromUi(
+                    index,
+                    'amount',
+                    ($event as number) || 0,
+                  )
+                "
+                size="sm"
+              />
+              <BaseInputNumber
+                v-else
                 :model-value="item.amount"
                 @update:model-value="
                   updateItem(index, 'amount', ($event as number) || 0)
@@ -197,7 +256,7 @@ const itemTotal = computed(() => {
       </div>
     </div>
 
-    <div class="pt-2 md:pt-3">
+    <div class="pt-2 md:pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
       <BaseButton
         variant="outline"
         size="sm"
@@ -207,6 +266,17 @@ const itemTotal = computed(() => {
         <span class="flex items-center justify-center gap-1.5">
           <BaseIcon name="plus" size="sm" />
           <span class="text-sm md:text-base">明細を追加</span>
+        </span>
+      </BaseButton>
+      <BaseButton
+        variant="outline"
+        size="sm"
+        @click="emit('addDiscount')"
+        class="w-full"
+      >
+        <span class="flex items-center justify-center gap-1.5 text-rose-600">
+          <BaseIcon name="minus" size="sm" />
+          <span class="text-sm md:text-base">値引きを追加</span>
         </span>
       </BaseButton>
     </div>
