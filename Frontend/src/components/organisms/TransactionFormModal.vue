@@ -51,6 +51,7 @@ const {
   submitTransaction,
   updateTransaction,
   addItem,
+  addDiscountItem,
   removeItem,
   addTax,
   removeTax,
@@ -279,6 +280,7 @@ const availableCategories = computed(() => {
             :transaction-type="type"
             @update:items="items = $event"
             @add="addItem"
+            @add-discount="addDiscountItem"
             @remove="removeItem"
           />
 

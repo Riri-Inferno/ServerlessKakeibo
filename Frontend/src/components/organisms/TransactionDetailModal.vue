@@ -333,10 +333,20 @@ const handleDelete = () => {
             :key="item.id"
             padding="sm"
             class="p-2.5 md:p-3"
+            :class="
+              item.itemType === 'Discount'
+                ? 'border border-rose-300 bg-rose-50'
+                : ''
+            "
           >
             <div class="flex justify-between items-start gap-2 md:gap-3">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                  <span
+                    v-if="item.itemType === 'Discount'"
+                    class="inline-block px-1.5 py-0.5 rounded text-[10px] md:text-xs font-bold bg-rose-600 text-white"
+                    >値引</span
+                  >
                   <BaseText variant="body" weight="medium" class="text-sm md:text-base">{{
                     item.name
                   }}</BaseText>
@@ -365,7 +375,12 @@ const handleDelete = () => {
                   </span>
                 </BaseText>
               </div>
-              <BaseText variant="body" weight="bold" class="text-sm md:text-base flex-shrink-0">
+              <BaseText
+                variant="body"
+                weight="bold"
+                class="text-sm md:text-base flex-shrink-0"
+                :class="item.itemType === 'Discount' ? 'text-rose-600' : ''"
+              >
                 {{ item.amount.toLocaleString() }}円
               </BaseText>
             </div>
