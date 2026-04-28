@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ServerlessKakeibo.Api.Domain.ValueObjects;
 
 namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
 {
@@ -8,6 +9,11 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
     /// </summary>
     public class TransactionItemEntity : BaseEntity
     {
+        /// <summary>
+        /// 項目種別（商品/値引き）。既定は Product。
+        /// </summary>
+        public TransactionItemType ItemType { get; set; } = TransactionItemType.Product;
+
         /// <summary>
         /// ユーザー商品カテゴリID（支出用、外部キー）
         /// </summary>
