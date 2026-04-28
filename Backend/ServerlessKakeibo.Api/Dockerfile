@@ -22,7 +22,7 @@ FROM build AS migrator
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 WORKDIR /src/ServerlessKakeibo.Api
-ENTRYPOINT ["dotnet", "ef", "database", "update", "--no-build", "-c", "Release"]
+ENTRYPOINT ["dotnet", "ef", "database", "update"]
 
 # ===================================
 # パブリッシュステージ
