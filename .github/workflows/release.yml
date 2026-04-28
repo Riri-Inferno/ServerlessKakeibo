@@ -45,6 +45,9 @@ jobs:
       - name: Configure Docker for GAR
         run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
 
+      - name: Set up QEMU (ARM64 cross-build)
+        uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Backend
@@ -52,6 +55,7 @@ jobs:
         with:
           context: ./Backend
           file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:${{ steps.version.outputs.tag }}
@@ -65,6 +69,7 @@ jobs:
           context: ./Backend
           file: ./Backend/ServerlessKakeibo.Api/Dockerfile
           target: migrator
+          platforms: linux/arm64
           push: true
           tags: |
             ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/migrator:${{ steps.version.outputs.tag }}
@@ -77,6 +82,7 @@ jobs:
         with:
           context: ./Frontend
           file: ./Frontend/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/frontend:${{ steps.version.outputs.tag }}
