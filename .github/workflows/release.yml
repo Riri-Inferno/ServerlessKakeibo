@@ -1,0 +1,171 @@
+name: Release & Deploy
+
+on:
+  release:
+    types: [published]
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_LOCATION: ${{ vars.GAR_LOCATION }}
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+
+jobs:
+  # =========================================
+  # 1. GAR にイメージを push
+  # =========================================
+  build-and-push:
+    name: Build & Push to GAR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      version: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from release tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "📦 Release version: ${TAG}"
+
+      - name: Create service_account.json
+        run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > Backend/service_account.json
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GAR
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:${{ steps.version.outputs.tag }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Migrator
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          target: migrator
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/migrator:${{ steps.version.outputs.tag }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/migrator:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Frontend
+          file: ./Frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/frontend:${{ steps.version.outputs.tag }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/frontend:latest
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GITHUB_CLIENT_ID=${{ vars.VITE_GITHUB_CLIENT_ID }}
+            VITE_ENVIRONMENT=production
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "✅ Images pushed to GAR"
+          echo "Version: ${{ steps.version.outputs.tag }}"
+          echo "Backend:  ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/backend:${{ steps.version.outputs.tag }}"
+          echo "Frontend: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/frontend:${{ steps.version.outputs.tag }}"
+
+  # =========================================
+  # 2. Cloudflare Tunnel 経由でラズパイにデプロイ
+  # =========================================
+  deploy:
+    name: Deploy to Raspberry Pi
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cloudflared
+        run: |
+          curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/
+
+      - name: Deploy via SSH through Cloudflare Tunnel
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.RASPI_SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ssh.riri-inferno.com
+          DEPLOY_USER: ${{ secrets.RASPI_SSH_USER }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.version }}
+          GAR_IMAGE_BASE: ${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
+        run: |
+          # SSH鍵のセットアップ
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          # cloudflared を SSH ProxyCommand として使う
+          cat >> ~/.ssh/config << EOF
+          Host raspi
+            HostName ${DEPLOY_HOST}
+            User ${DEPLOY_USER}
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+            ProxyCommand cloudflared access ssh --hostname %h
+          EOF
+
+          # ラズパイ上でデプロイ実行
+          ssh raspi << REMOTE
+            set -e
+            echo "🚀 Deploying version ${IMAGE_TAG}..."
+
+            cd ~/ServerlessKakeibo
+
+            # GAR からイメージを pull
+            docker compose -f docker-compose.prod.yml pull
+
+            # DB が起動していることを確認
+            docker compose -f docker-compose.prod.yml up -d db
+            echo "⏳ Waiting for DB to be healthy..."
+            sleep 5
+
+            # マイグレーション実行（migrator イメージを使用）
+            echo "🗄️ Running database migration..."
+            docker run --rm \
+              --network kakeibo-network \
+              -e ConnectionStrings__DefaultConnection="Host=kakeibo-db;Port=5432;Database=appdb;Username=postgres;Password=\$(grep POSTGRES_PASSWORD .env.prod | cut -d= -f2-)" \
+              \${GAR_IMAGE_BASE}/migrator:\${IMAGE_TAG}
+
+            # コンテナを更新（DB は維持、アプリだけ再作成）
+            docker compose -f docker-compose.prod.yml up -d --no-build
+
+            # ヘルスチェック
+            sleep 10
+            echo "--- Container Status ---"
+            docker compose -f docker-compose.prod.yml ps
+            echo ""
+            echo "✅ Deploy complete: ${IMAGE_TAG}"
+          REMOTE
+
+      - name: Summary
+        run: |
+          echo "✅ Deployed ${{ needs.build-and-push.outputs.version }} to Raspberry Pi"
