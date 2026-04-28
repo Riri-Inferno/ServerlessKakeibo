@@ -16,15 +16,6 @@ WORKDIR "/src/ServerlessKakeibo.Api"
 RUN dotnet build "ServerlessKakeibo.Api.csproj" -c Release -o /app/build
 
 # ===================================
-# マイグレーション用ステージ（SDK + ef ツール入り）
-# ===================================
-FROM build AS migrator
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-WORKDIR /src/ServerlessKakeibo.Api
-ENTRYPOINT ["dotnet", "ef", "database", "update"]
-
-# ===================================
 # パブリッシュステージ
 # ===================================
 FROM build AS publish
