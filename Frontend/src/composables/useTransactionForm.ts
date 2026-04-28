@@ -15,7 +15,7 @@ import type {
 } from "../types/receipt";
 import type { TransactionCategoryDto } from "../types/transactionCategory";
 import type { ItemCategoryDto } from "../types/itemCategory";
-import { TransactionType } from "../types/transaction";
+import { TransactionType, TransactionItemType } from "../types/transaction";
 
 export function useTransactionForm() {
   const isLoading = ref(false);
@@ -135,6 +135,7 @@ export function useTransactionForm() {
       }
 
       return {
+        itemType: item.itemType ?? TransactionItemType.Product,
         name: item.name || "",
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -196,6 +197,7 @@ export function useTransactionForm() {
     // 明細のカテゴリIDを復元
     items.value = transaction.items.map((item) => ({
       id: item.id,
+      itemType: item.itemType ?? TransactionItemType.Product,
       name: item.name,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -384,7 +386,20 @@ export function useTransactionForm() {
 
   const addItem = () => {
     items.value.push({
+      itemType: TransactionItemType.Product,
       name: "",
+      quantity: 1,
+      unitPrice: null,
+      amount: 0,
+      userItemCategoryId: null,
+      userIncomeItemCategoryId: null,
+    });
+  };
+
+  const addDiscountItem = () => {
+    items.value.push({
+      itemType: TransactionItemType.Discount,
+      name: "値引き",
       quantity: 1,
       unitPrice: null,
       amount: 0,
@@ -432,6 +447,7 @@ export function useTransactionForm() {
     validateForm,
     submitTransaction,
     addItem,
+    addDiscountItem,
     removeItem,
     addTax,
     removeTax,

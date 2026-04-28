@@ -76,6 +76,7 @@ public static class TransactionCreateMapper
             TenantId = tenantId,
             CreatedBy = userId,
             UpdatedBy = userId,
+            ItemType = request.ItemType,
             Name = request.Name,
             Quantity = request.Quantity,
             UnitPrice = request.UnitPrice,
@@ -167,6 +168,7 @@ public static class TransactionCreateMapper
             TaxInclusionType = entity.TaxInclusionType ?? Domain.ValueObjects.TaxInclusionType.Unknown,
             Items = entity.Items.Select(i => new Domain.Transaction.Models.TransactionItem
             {
+                ItemType = i.ItemType,
                 Name = i.Name,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,

@@ -64,6 +64,7 @@ public static class TransactionQueryMapper
         return new TransactionItemDto
         {
             Id = entity.Id,
+            ItemType = entity.ItemType,
             Name = entity.Name,
             Quantity = entity.Quantity,
             UnitPrice = entity.UnitPrice,
