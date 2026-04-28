@@ -306,6 +306,13 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = Dat
    .ExcludeFromDescription();
 #endregion
 
+// 起動時にDBマイグレーションを自動実行
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 app.Run();
 
 #region JSON Converters
