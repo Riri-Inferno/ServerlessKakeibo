@@ -9,7 +9,10 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    # ネイティブ arm64 ランナーで build（QEMU 不要）。
+    # raspi5 (arm64) でしか動かさないため arm64 only としている。
+    # amd64 image が必要になったら別ワークフローとして追加する
+    runs-on: ubuntu-22.04-arm
     permissions:
       contents: read
       packages: write
@@ -27,9 +30,6 @@ jobs:
         id: repo
         run: echo "name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
-      - name: Set up QEMU (ARM64 cross-build)
-        uses: docker/setup-qemu-action@v3
-
       - uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Backend
@@ -37,7 +37,7 @@ jobs:
         with:
           context: ./Backend
           file: ./Backend/ServerlessKakeibo.Api/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}/backend:dev
@@ -50,7 +50,7 @@ jobs:
         with:
           context: ./Frontend
           file: ./Frontend/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}/frontend:dev
