@@ -29,4 +29,11 @@ public class GcpStorageSettings
     /// 署名付きURLの有効期限（時間）
     /// </summary>
     public int SignedUrlExpirationHours { get; set; } = 1;
+
+    /// <summary>
+    /// 署名用 SA email。IAM <c>signBlob</c> API 経由で署名するため、
+    /// 認証主体（user / WIF）は本SAに対して
+    /// <c>roles/iam.serviceAccountTokenCreator</c> を保持する必要あり。
+    /// </summary>
+    public string SignerServiceAccount { get; set; } = string.Empty;
 }
