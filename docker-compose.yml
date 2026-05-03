@@ -54,19 +54,23 @@ services:
     restart: unless-stopped
     networks:
       - kakeibo-network
-  
-  # Cloudflare Tunnel
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflare-tunnel
-    restart: always
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    command: tunnel --no-autoupdate run
-    networks:
-      - kakeibo-network
-    depends_on:
-      - frontend
+
+  # Cloudflare Tunnel（外部公開用）
+  # ローカル動作確認では不要。外部公開（kakeibo.riri-inferno.com 経由のアクセス）を
+  # この compose 上で試したい場合のみアンコメントし、ルートの .env に
+  # CLOUDFLARE_TUNNEL_TOKEN を設定する。
+  # 本番（k3s）では cloudflared は home-raspi-iac 側で別途管理する想定。
+  # tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: cloudflare-tunnel
+  #   restart: always
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   command: tunnel --no-autoupdate run
+  #   networks:
+  #     - kakeibo-network
+  #   depends_on:
+  #     - frontend
 
 volumes:
   pgdata:
