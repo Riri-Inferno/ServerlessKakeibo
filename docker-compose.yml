@@ -29,6 +29,9 @@ services:
       - ./Backend/.env
     ports:
       - "8080:8080"
+    volumes:
+      # gcloud ADC を read-only でマウント（GOOGLE_APPLICATION_CREDENTIALS が参照）
+      - ${HOME}/.config/gcloud:/gcp/adc:ro
     depends_on:
       db:
         condition: service_healthy
