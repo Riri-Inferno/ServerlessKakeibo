@@ -173,6 +173,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(opts =>
     opts.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Readiness 用に DB 接続チェックを登録
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database");
+
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped(typeof(IGenericReadRepository<>), typeof(GenericReadRepository<>));
 builder.Services.AddScoped(typeof(IGenericWriteRepository<>), typeof(GenericWriteRepository<>));
@@ -300,10 +304,13 @@ app.MapControllers();
 #endregion
 
 #region Health check
-// HealthCheck
+// Liveness: プロセス生存確認のみ。DB 等の依存はチェックしない
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
    .WithTags("System")
    .ExcludeFromDescription();
+
+// Readiness: DB 接続を含む依存先チェック。失敗時は 503 を返す
+app.MapHealthChecks("/ready");
 #endregion
 
 // 起動時にDBマイグレーションを自動実行
