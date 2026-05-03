@@ -2,10 +2,17 @@ name: Release & Push to GHCR
 
 # GitHub Release を publish したときに発火し、GHCR にマルチアーキ image を push する。
 # raspi5 (arm64) 上の k3s が pull する想定。
+# 手動実行（workflow_dispatch）にも対応。version 入力でタグを指定可能。
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '手動実行時の image タグ（例: v1.2.3 / hotfix-20260601）。未指定なら github.sha を使用。'
+        required: false
+        default: ''
 
 env:
   REGISTRY: ghcr.io
@@ -31,9 +38,18 @@ jobs:
         id: repo
         run: echo "name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
-      - name: Extract version from release tag
+      - name: Determine version tag
         id: version
-        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            TAG="${{ inputs.version }}"
+          else
+            TAG="${GITHUB_SHA::7}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Tag: ${TAG}"
 
       - name: Set up QEMU (ARM64 cross-build)
         uses: docker/setup-qemu-action@v3
