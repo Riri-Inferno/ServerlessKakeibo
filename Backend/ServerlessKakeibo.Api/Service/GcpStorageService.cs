@@ -1,4 +1,6 @@
+using Google.Cloud.Iam.Credentials.V1;
 using Google.Cloud.Storage.V1;
+using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using ServerlessKakeibo.Api.Common.Settings;
 using ServerlessKakeibo.Api.Service.Interface;
@@ -19,6 +21,7 @@ public class GcpStorageService : IGcpStorageService
     private const string StorageScope = "https://www.googleapis.com/auth/devstorage.read_write";
 
     private StorageClient? _storageClient;
+    private UrlSigner? _urlSigner;
 
     public GcpStorageService(
         IOptions<GcpStorageSettings> settings,
@@ -408,8 +411,7 @@ public class GcpStorageService : IGcpStorageService
                 "署名付きURLを生成します。Path: {Path}, Expiration: {Expiration}",
                 objectPath, expiration);
 
-            var credential = await _authService.GetCredentialAsync(StorageScope);
-            var urlSigner = UrlSigner.FromCredential(credential);
+            var urlSigner = await GetUrlSignerAsync(cancellationToken);
 
             var signedUrl = await urlSigner.SignAsync(
                 _settings.BucketName,
@@ -432,6 +434,71 @@ public class GcpStorageService : IGcpStorageService
                     HttpStatusCode.InternalServerError,
                     "一時URLの生成に失敗しました"),
                 ex);
+        }
+    }
+
+    /// <summary>
+    /// IAM signBlob 経由の UrlSigner を取得（遅延初期化）。
+    /// 認証主体（user credential / WIF / Impersonated）は秘密鍵を持たないため、
+    /// ローカル鍵による署名ではなく iamcredentials.signBlob API を使用する。
+    /// </summary>
+    private async Task<UrlSigner> GetUrlSignerAsync(CancellationToken cancellationToken)
+    {
+        if (_urlSigner != null)
+            return _urlSigner;
+
+        if (string.IsNullOrWhiteSpace(_settings.SignerServiceAccount))
+        {
+            throw new InvalidOperationException(
+                "GcpStorageSettings.SignerServiceAccount が未設定です。" +
+                "署名付きURL生成には IAM signBlob 用のSA email が必要です。");
+        }
+
+        var iamClient = await new IAMCredentialsClientBuilder().BuildAsync(cancellationToken);
+        var blobSigner = new IamSignBlobSigner(iamClient, _settings.SignerServiceAccount);
+        _urlSigner = UrlSigner.FromBlobSigner(blobSigner);
+        return _urlSigner;
+    }
+
+    /// <summary>
+    /// IAM signBlob を呼び出して署名する <see cref="UrlSigner.IBlobSigner"/> 実装。
+    /// V4 署名は hex エンコードされた文字列を返す必要がある。
+    /// </summary>
+    private sealed class IamSignBlobSigner : UrlSigner.IBlobSigner
+    {
+        private readonly IAMCredentialsClient _client;
+        private readonly string _saEmail;
+        private readonly string _resourceName;
+
+        public IamSignBlobSigner(IAMCredentialsClient client, string saEmail)
+        {
+            _client = client;
+            _saEmail = saEmail;
+            _resourceName = $"projects/-/serviceAccounts/{saEmail}";
+        }
+
+        public string Id => _saEmail;
+
+        public string Algorithm => "GOOG4-RSA-SHA256";
+
+        public string CreateSignature(byte[] data, UrlSigner.BlobSignerParameters parameters)
+        {
+            var resp = _client.SignBlob(new SignBlobRequest
+            {
+                Name = _resourceName,
+                Payload = ByteString.CopyFrom(data)
+            });
+            return Convert.ToHexString(resp.SignedBlob.ToByteArray()).ToLowerInvariant();
+        }
+
+        public async Task<string> CreateSignatureAsync(byte[] data, UrlSigner.BlobSignerParameters parameters, CancellationToken cancellationToken)
+        {
+            var resp = await _client.SignBlobAsync(new SignBlobRequest
+            {
+                Name = _resourceName,
+                Payload = ByteString.CopyFrom(data)
+            }, cancellationToken).ConfigureAwait(false);
+            return Convert.ToHexString(resp.SignedBlob.ToByteArray()).ToLowerInvariant();
         }
     }
 }
