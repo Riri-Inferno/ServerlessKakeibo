@@ -15,7 +15,8 @@ env:
 jobs:
   build-and-push:
     name: Build & Push to GAR
-    runs-on: ubuntu-latest
+    # ネイティブ arm64 ランナーで build
+    runs-on: ubuntu-22.04-arm
     permissions:
       contents: read
       id-token: write
@@ -32,9 +33,6 @@ jobs:
 
       - name: Configure Docker for GAR
         run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
-
-      - name: Set up QEMU (ARM64 cross-build)
-        uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
 
