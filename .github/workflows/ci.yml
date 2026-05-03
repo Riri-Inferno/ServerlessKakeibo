@@ -16,12 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create dummy service_account.json
-        run: |
-          cat > Backend/service_account.json << 'DUMMY'
-          {"type":"service_account","project_id":"dummy","private_key_id":"dummy","private_key":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\n","client_email":"dummy@dummy.iam.gserviceaccount.com","client_id":"0","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token"}
-          DUMMY
-
       - uses: docker/setup-buildx-action@v3
 
       - name: Build Backend
