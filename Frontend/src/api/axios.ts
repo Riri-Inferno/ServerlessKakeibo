@@ -1,14 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "../stores/authStore";
-
-// window.ENVを優先、フォールバックでimport.meta.env
-const API_BASE_URL = 
-  (window as any).ENV?.API_BASE_URL ||        // Docker環境
-  import.meta.env.VITE_API_BASE_URL ||         // ローカル開発
-  'http://localhost:8080';                     // デフォルト
+import { getApiBaseUrl } from "../utils/env";
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },

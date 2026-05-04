@@ -9,6 +9,7 @@
  */
 import { mockDemoUser } from "../mocks/data/demoUser";
 import apiClient from "../api/axios";
+import { getApiBaseUrl } from "../utils/env";
 import type {
   ApiResponse,
   LoginResult,
@@ -18,7 +19,7 @@ import type {
   RefreshTokenRequest,
 } from "../types/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * fetch を使った共通POSTリクエスト（ログイン系API用）
