@@ -3,15 +3,10 @@ import { useRouter } from "vue-router";
 import { authRepository } from "../repositories/authRepository";
 import { settingsRepository } from "../repositories/settingsRepository";
 import { useAuthStore } from "../stores/authStore";
+import { getGitHubClientId } from "../utils/env";
 import type { CurrentUser } from "../types/auth";
 
-/**
- * Google認証用のクライアントIDを取得
- */
-const githubClientId = 
-  (window as any).ENV?.GITHUB_CLIENT_ID || 
-  import.meta.env.VITE_GITHUB_CLIENT_ID || 
-  '';
+const githubClientId = getGitHubClientId();
 
 /**
  * useAuth - 認証処理の Composable
