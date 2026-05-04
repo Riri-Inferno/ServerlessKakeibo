@@ -196,6 +196,12 @@ docker compose down -v
 - [API仕様](./Document/API/)
 - [DB初期データ・SQLファイル](./db/README.md)
 
+k3s デプロイ・CI 関連:
+
+- [CI/CD 運用ガイド](./Document/Development/ci-cd.md)
+- [GCP 認証 + GCS Signed URL の IAM 権限セットアップ](./Document/Development/iam-signer-setup.md)
+- [k3s 環境変数仕分け（ConfigMap / SealedSecret）](./Document/Development/k3s-env-vars.md)
+
 ---
 
 ## ライセンス
