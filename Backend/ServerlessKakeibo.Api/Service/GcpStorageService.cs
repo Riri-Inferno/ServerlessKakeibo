@@ -488,7 +488,7 @@ public class GcpStorageService : IGcpStorageService
                 Name = _resourceName,
                 Payload = ByteString.CopyFrom(data)
             });
-            return Convert.ToHexString(resp.SignedBlob.ToByteArray()).ToLowerInvariant();
+            return Convert.ToBase64String(resp.SignedBlob.ToByteArray());
         }
 
         public async Task<string> CreateSignatureAsync(byte[] data, UrlSigner.BlobSignerParameters parameters, CancellationToken cancellationToken)
@@ -498,7 +498,7 @@ public class GcpStorageService : IGcpStorageService
                 Name = _resourceName,
                 Payload = ByteString.CopyFrom(data)
             }, cancellationToken).ConfigureAwait(false);
-            return Convert.ToHexString(resp.SignedBlob.ToByteArray()).ToLowerInvariant();
+            return Convert.ToBase64String(resp.SignedBlob.ToByteArray());
         }
     }
 }
