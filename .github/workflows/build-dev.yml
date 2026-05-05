@@ -30,6 +30,12 @@ jobs:
         id: repo
         run: echo "name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
+      - name: Determine frontend metadata
+        id: metadata
+        run: |
+          echo "version=dev-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          echo "build_date=$(TZ=Asia/Tokyo date '+%Y.%m.%d')" >> $GITHUB_OUTPUT
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Backend
@@ -60,6 +66,8 @@ jobs:
             VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
             VITE_GITHUB_CLIENT_ID=${{ vars.VITE_GITHUB_CLIENT_ID }}
             VITE_ENVIRONMENT=development
+            VITE_APP_VERSION=${{ steps.metadata.outputs.version }}
+            VITE_BUILD_DATE=${{ steps.metadata.outputs.build_date }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -32,6 +32,11 @@ jobs:
         working-directory: Frontend
         run: npm ci
 
+      - name: Determine frontend metadata
+        run: |
+          echo "VITE_APP_VERSION=demo-${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "VITE_BUILD_DATE=$(TZ=Asia/Tokyo date '+%Y.%m.%d')" >> $GITHUB_ENV
+
       - name: Build for Demo
         working-directory: Frontend
         env:
@@ -41,6 +46,8 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.DEMO_GOOGLE_CLIENT_ID }}
           VITE_GITHUB_CLIENT_ID: ${{ vars.DEMO_GITHUB_CLIENT_ID }}
           VITE_ENVIRONMENT: demo
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+          VITE_BUILD_DATE: ${{ env.VITE_BUILD_DATE }}
         run: npm run build -- --base=/ServerlessKakeibo/ # 一旦直指定
 
       - name: Setup Pages
