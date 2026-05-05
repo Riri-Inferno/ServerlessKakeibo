@@ -5,6 +5,7 @@ import router from "./router/index.ts";
 import vue3GoogleLogin from "vue3-google-login";
 import { useAuthStore } from "./stores/authStore";
 import { createPinia } from "pinia";
+import { getGoogleClientId } from "./utils/env";
 
 // チャート自動登録
 import "chart.js/auto";
@@ -21,15 +22,9 @@ const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
 
-// window.ENVを優先（Docker環境）、フォールバックでimport.meta.env
-const googleClientId =
-  (window as any).ENV?.GOOGLE_CLIENT_ID ||
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  "";
-
 // Google Login 初期化
 app.use(vue3GoogleLogin, {
-  clientId: googleClientId,
+  clientId: getGoogleClientId(),
 });
 
 app.use(router);

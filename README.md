@@ -113,15 +113,18 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
    - Authorization callback URL: `http://localhost:3000/auth/callback`
 4. Client ID と Client Secret をコピー
 
-#### GCP サービスアカウント（レシート読み取り、ストレージアップ機能を使う場合）
+#### GCP 認証（レシート読み取り、ストレージアップ機能を使う場合）
 
-1. [GCP サービスアカウント](https://console.cloud.google.com/iam-admin/serviceaccounts)で作成
-2. 権限: `Storage Admin`, `Vertex AI User`
-3. JSON キーをダウンロード
-4. 以下に配置:
+ADC (Application Default Credentials) を使用します。サービスアカウント JSON キーは使いません。
+
+1. `gcloud` CLI を [インストール](https://cloud.google.com/sdk/docs/install) し、対象 GCP プロジェクトに紐付くアカウントでログイン
+2. ADC を有効化:
    ```bash
-   cp ~/Downloads/service-account-key.json Backend/ServerlessKakeibo.Api/service_account.json
+   gcloud auth application-default login
    ```
+3. ホストの自分のアカウントに `Storage Admin`, `Vertex AI User` ロール（または同等の権限を持つ SA への impersonate 権限）が付いていることを確認
+
+`docker compose up` 時に `~/.config/gcloud/` がバックエンドコンテナにマウントされ、`GOOGLE_APPLICATION_CREDENTIALS` 経由で ADC が解決されます。
 
 **注意**: AI機能（Vertex AI / Google AI Studio）が未設定の場合、レシート読み取り、格納機能は使用できません。手動入力は可能です。
 
@@ -192,6 +195,12 @@ docker compose down -v
 - [アーキテクチャ](./Document/Architecture/)
 - [API仕様](./Document/API/)
 - [DB初期データ・SQLファイル](./db/README.md)
+
+k3s デプロイ・CI 関連:
+
+- [CI/CD 運用ガイド](./Document/Development/ci-cd.md)
+- [GCP 認証 + GCS Signed URL の IAM 権限セットアップ](./Document/Development/iam-signer-setup.md)
+- [k3s 環境変数仕分け（ConfigMap / SealedSecret）](./Document/Development/k3s-env-vars.md)
 
 ---
 

@@ -9,15 +9,15 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    # ネイティブ arm64 ランナーで build（QEMU 不要）。
+    # raspi5 (arm64) でしか動かさないため arm64 only としている。
+    # amd64 image が必要になったら別ワークフローとして追加する
+    runs-on: ubuntu-22.04-arm
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Create service_account.json
-        run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > Backend/service_account.json
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -37,6 +37,7 @@ jobs:
         with:
           context: ./Backend
           file: ./Backend/ServerlessKakeibo.Api/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}/backend:dev
@@ -49,6 +50,7 @@ jobs:
         with:
           context: ./Frontend
           file: ./Frontend/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}/frontend:dev

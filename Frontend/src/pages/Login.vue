@@ -3,7 +3,7 @@ import { ref, onMounted } from "vue";
 import { googleSdkLoaded, type CallbackTypes } from "vue3-google-login";
 import { useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
-import { isDemoMode } from "../utils/env";
+import { isDemoMode, getGoogleClientId } from "../utils/env";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseIcon from "../components/atoms/BaseIcon.vue";
@@ -52,10 +52,7 @@ const handleDemoLogin = async () => {
   }
 };
 
-const googleClientId =
-  (window as any).ENV?.GOOGLE_CLIENT_ID ||
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  "";
+const googleClientId = getGoogleClientId();
 
 onMounted(() => {
   googleSdkLoaded((google) => {

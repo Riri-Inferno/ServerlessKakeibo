@@ -28,8 +28,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# service_account.json をコピー
-COPY service_account.json /app/service_account.json
-RUN chown app:app /app/service_account.json && chmod 600 /app/service_account.json
-
 ENTRYPOINT ["dotnet", "ServerlessKakeibo.Api.dll"]
