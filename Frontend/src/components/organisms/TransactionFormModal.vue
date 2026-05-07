@@ -15,11 +15,13 @@ import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
 import ReceiptUploadArea from "../molecules/ReceiptUploadArea.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
 import { useIncomeItemCategories } from "../../composables/useIncomeItemCategories";
+import type { TransactionDetail } from "../../types/transaction";
 
 interface Props {
   isOpen: boolean;
   mode: "manual" | "receipt";
   transactionId?: string;
+  duplicateFromTransaction?: TransactionDetail;
 }
 
 const props = defineProps<Props>();
@@ -116,16 +118,22 @@ onMounted(async () => {
   ]);
 });
 
-// 編集モード時に既存データを読み込む
+// 編集モード・複製モード時に既存データを読み込む
 watch(
-  () => props.isOpen,
-  async (newValue) => {
-    if (newValue && props.transactionId) {
-      await fetchDetail(props.transactionId);
-      if (existingTransaction.value) {
-        setFromExistingTransaction(existingTransaction.value);
+  [() => props.isOpen, () => props.duplicateFromTransaction],
+  async ([isOpen, duplicateFrom], [prevIsOpen]) => {
+    if (isOpen && props.transactionId) {
+      // 編集モード（モーダルが開いた瞬間のみ fetch）
+      if (!prevIsOpen) {
+        await fetchDetail(props.transactionId);
+        if (existingTransaction.value) {
+          setFromExistingTransaction(existingTransaction.value);
+        }
       }
-    } else if (!newValue) {
+    } else if (isOpen && duplicateFrom) {
+      // 複製モード（duplicateFromTransaction が変わった場合も追従）
+      setFromExistingTransaction(duplicateFrom, { asDuplicate: true });
+    } else if (!isOpen) {
       resetForm();
       resetOcr();
       isOcrCompleted.value = false;
