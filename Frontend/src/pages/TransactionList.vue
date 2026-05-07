@@ -29,14 +29,12 @@ const {
   setItemHeight,
 } = useTransactions();
 
-const { fetchDetail } = useTransactionDetail();
-
 const selectedTransactionId = ref<string | null>(null);
 const isDetailModalOpen = ref(false);
 const isCreateSelectModalOpen = ref(false);
 const isFormModalOpen = ref(false);
 const isEditModalOpen = ref(false);
-const duplicateTransaction = ref<TransactionDetail | null>(null);
+const duplicateTransaction = ref<TransactionDetail | undefined>();
 const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
 const isExportModalOpen = ref(false);
@@ -99,7 +97,7 @@ const openDetail = (id: string) => {
 const handleDuplicate = async (id: string) => {
   const duplicateDetail = useTransactionDetail();
   await duplicateDetail.fetchDetail(id);
-  duplicateTransaction.value = duplicateDetail.transaction.value;
+  duplicateTransaction.value = duplicateDetail.transaction.value ?? undefined;
   formMode.value = "manual";
   isFormModalOpen.value = true;
 };
@@ -145,7 +143,7 @@ const selectReceipt = () => {
 
 const closeFormModal = () => {
   isFormModalOpen.value = false;
-  duplicateTransaction.value = null;
+  duplicateTransaction.value = undefined;
 };
 
 const handleCreateSuccess = () => {
