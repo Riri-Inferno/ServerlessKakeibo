@@ -1,10 +1,37 @@
 # ServerlessKakeibo
 
-Docker環境で実行される家計簿管理アプリケーション
+> **SELENE（セレーネ）** — Docker 環境で動作する、レシート読み取り対応の家計簿アプリケーション
+
+## デモ
+
+GitHub Pages 上でデモ環境を公開しています（モックデータで UI 操作のみ確認可能、書き込み・外部API呼び出しは行われません）。
+
+🔗 **[https://riri-inferno.github.io/ServerlessKakeibo/#/](https://riri-inferno.github.io/ServerlessKakeibo/#/)**
+
+## スクリーンショット
+
+### ログイン
+![ログイン画面](./Document/screenshots/login.png)
+
+### ダッシュボード
+![ダッシュボード](./Document/screenshots/dashboard.png)
+
+### 取引一覧
+![取引一覧](./Document/screenshots/transaction-list.png)
+
+### 統計
+| カテゴリ別支出 | 月次推移・ハイライト |
+|---|---|
+| ![統計1](./Document/screenshots/statistics-1.png) | ![統計2](./Document/screenshots/statistics-2.png) |
+
+### 設定
+| プロフィール・締め日 | カテゴリ管理 | データ管理・アプリ情報 |
+|---|---|---|
+| ![設定1](./Document/screenshots/settings-1.png) | ![設定2](./Document/screenshots/settings-2.png) | ![設定3](./Document/screenshots/settings-3.png) |
 
 ## 概要
 
-ServerlessKakeiboは、レシート自動読み取り機能を備えた家計簿アプリです。
+SELENE は、レシート自動読み取り機能を備えた家計簿アプリです。
 
 ### 主な機能
 

@@ -7,7 +7,7 @@ import { isDemoMode, getGoogleClientId } from "../utils/env";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseIcon from "../components/atoms/BaseIcon.vue";
-import logo from "../assets/icons/logo.svg?url";
+import AppLogo from "../components/atoms/AppLogo.vue";
 
 type CredentialResponse = CallbackTypes.CredentialPopupResponse;
 
@@ -101,10 +101,13 @@ onMounted(() => {
 
     <BaseCard padding="lg" class="w-full max-w-md">
       <!-- ロゴ -->
-      <div class="text-center mb-8">
-        <img :src="logo" alt="家計簿アプリ" class="w-60 h-16 mx-auto mb-4" />
-        <BaseText variant="h1" class="mb-2">家計簿アプリ(仮)</BaseText>
-        <BaseText variant="body" color="gray">Serverless Kakeibo</BaseText>
+      <div class="flex flex-col items-center mb-8">
+        <h1 class="sr-only">SELENE</h1>
+        <AppLogo variant="mark" size="2xl" class="mb-4" />
+        <AppLogo variant="wordmark" size="lg" class="mb-2" />
+        <BaseText variant="caption" color="gray" class="tracking-widest">
+          セレーネ
+        </BaseText>
       </div>
 
       <!-- エラーメッセージ -->
