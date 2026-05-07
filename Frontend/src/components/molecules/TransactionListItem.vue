@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   click: [id: string];
+  duplicate: [id: string];
 }>();
 
 const displayName = computed(() => {
@@ -44,13 +45,21 @@ const formatAmount = (amount: number, type: string) => {
 const handleClick = () => {
   emit("click", props.transaction.id);
 };
+
+const handleDuplicate = () => {
+  emit("duplicate", props.transaction.id);
+};
 </script>
 
 <template>
-  <button
+  <div
     v-if="variant === 'compact'"
+    role="button"
+    tabindex="0"
     @click="handleClick"
-    class="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b border-gray-200 last:border-b-0"
+    @keydown.enter="handleClick"
+    @keydown.space.prevent="handleClick"
+    class="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b border-gray-200 last:border-b-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
   >
     <div
       class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
@@ -87,8 +96,21 @@ const handleClick = () => {
           {{ transaction.userTransactionCategory.name }}
         </span>
       </div>
-      <div class="text-xs text-gray-500">
-        {{ formatDate(transaction.transactionDate) }}
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs text-gray-500">
+          {{ formatDate(transaction.transactionDate) }}
+        </span>
+        <button
+          type="button"
+          aria-label="この取引を複製して新規登録"
+          title="複製"
+          class="inline-flex items-center justify-center p-1 -m-1 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          @click.stop="handleDuplicate"
+          @keydown.enter.stop
+          @keydown.space.stop
+        >
+          <BaseIcon name="copy" size="sm" />
+        </button>
       </div>
     </div>
 
@@ -104,7 +126,7 @@ const handleClick = () => {
         {{ formatAmount(transaction.amountTotal, transaction.type) }}
       </div>
     </div>
-  </button>
+  </div>
 
   <BaseCard
     v-else
@@ -139,9 +161,20 @@ const handleClick = () => {
         <BaseText variant="body" weight="bold" class="mb-1">
           {{ displayName }}
         </BaseText>
-        <BaseText variant="caption" color="gray">
-          {{ formatDate(transaction.transactionDate) }}
-        </BaseText>
+        <div class="flex items-center gap-2">
+          <BaseText variant="caption" color="gray">
+            {{ formatDate(transaction.transactionDate) }}
+          </BaseText>
+          <button
+            type="button"
+            aria-label="この取引を複製して新規登録"
+            title="複製して作成"
+            class="inline-flex items-center justify-center p-1.5 -m-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            @click.stop="handleDuplicate"
+          >
+            <BaseIcon name="copy" size="sm" />
+          </button>
+        </div>
       </div>
 
       <div class="text-right flex-shrink-0">

@@ -6,6 +6,7 @@ import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseText from "../atoms/BaseText.vue";
 import BaseCard from "../atoms/BaseCard.vue";
+import AppLogo from "../atoms/AppLogo.vue";
 
 const emit = defineEmits<{
   toggleSidebar: [];
@@ -28,8 +29,12 @@ const isDemoMode = computed(() => checkDemoMode());
           <BaseIcon name="bars-3" size="md" />
         </button>
 
-        <BaseText variant="h2" class="hidden md:block"> 家計簿アプリ </BaseText>
-        <BaseText variant="h3" class="md:hidden"> 家計簿 </BaseText>
+        <div class="hidden md:flex md:items-center">
+          <AppLogo variant="horizontal" size="md" />
+        </div>
+        <div class="flex items-center md:hidden">
+          <AppLogo variant="mark" size="md" />
+        </div>
 
         <!-- デモモードバッジ -->
         <BaseCard
