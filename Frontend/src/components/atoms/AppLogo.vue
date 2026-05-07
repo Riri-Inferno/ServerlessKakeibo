@@ -64,19 +64,17 @@ const gapClass = computed(() => {
     v-else-if="variant === 'wordmark'"
     :class="[wordmarkClass, 'font-bold tracking-[0.2em] text-indigo-950 leading-none inline-block']"
     :aria-label="alt"
-  >
-    SELENE
-  </span>
+  >SELENE</span>
 
   <span
     v-else
-    :class="['inline-flex items-center', gapClass]"
+    :class="['inline-flex items-center whitespace-nowrap leading-none', gapClass]"
     :aria-label="alt"
     role="img"
   >
     <img :src="markUrl" alt="" :class="markSizeClass" draggable="false" />
-    <span :class="[wordmarkClass, 'font-bold tracking-[0.2em] text-indigo-950 leading-none']">
-      SELENE
-    </span>
+    <span
+      :class="[wordmarkClass, 'font-bold tracking-[0.2em] text-indigo-950 leading-none']"
+    >SELENE</span>
   </span>
 </template>
