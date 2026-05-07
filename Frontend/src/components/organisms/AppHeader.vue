@@ -29,8 +29,12 @@ const isDemoMode = computed(() => checkDemoMode());
           <BaseIcon name="bars-3" size="md" />
         </button>
 
-        <AppLogo variant="horizontal" size="md" class="hidden md:block" />
-        <AppLogo variant="mark" size="md" class="md:hidden" />
+        <div class="hidden md:flex md:items-center">
+          <AppLogo variant="horizontal" size="md" />
+        </div>
+        <div class="flex items-center md:hidden">
+          <AppLogo variant="mark" size="md" />
+        </div>
 
         <!-- デモモードバッジ -->
         <BaseCard
