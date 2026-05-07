@@ -4,6 +4,7 @@ import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import {
   TransactionType,
   TaxInclusionTypeLabels,
+  type Transaction,
 } from "../../types/transaction";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -25,6 +26,7 @@ const emit = defineEmits<{
   close: [];
   edit: [];
   delete: [];
+  duplicate: [transaction: Transaction];
 }>();
 
 const {
@@ -129,6 +131,12 @@ const formatDateTime = (dateString: string) => {
 };
 const handleEdit = () => {
   emit("edit");
+};
+
+const handleDuplicate = () => {
+  if (transaction.value) {
+    emit("duplicate", transaction.value);
+  }
 };
 
 const handleDelete = () => {
@@ -439,6 +447,9 @@ const handleDelete = () => {
       <div class="flex gap-2 md:gap-3">
         <BaseButton variant="outline" @click="handleDelete" class="flex-1 text-sm md:text-base">
           削除
+        </BaseButton>
+        <BaseButton variant="secondary" @click="handleDuplicate" class="flex-1 text-sm md:text-base">
+          複製して作成
         </BaseButton>
         <BaseButton variant="primary" @click="handleEdit" class="flex-1 text-sm md:text-base">
           編集

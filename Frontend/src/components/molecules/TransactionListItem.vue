@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   click: [id: string];
+  duplicate: [id: string];
 }>();
 
 const displayName = computed(() => {
@@ -43,6 +44,10 @@ const formatAmount = (amount: number, type: string) => {
 
 const handleClick = () => {
   emit("click", props.transaction.id);
+};
+
+const handleDuplicate = () => {
+  emit("duplicate", props.transaction.id);
 };
 </script>
 
@@ -92,7 +97,13 @@ const handleClick = () => {
       </div>
     </div>
 
-    <div class="text-right flex-shrink-0">
+    <div class="text-right flex-shrink-0 flex items-center gap-2">
+      <BaseIcon
+        name="copy"
+        size="sm"
+        class="text-gray-400 hover:text-gray-600 cursor-pointer"
+        @click.stop="handleDuplicate"
+      />
       <div
         class="text-sm font-bold whitespace-nowrap"
         :class="
@@ -144,7 +155,13 @@ const handleClick = () => {
         </BaseText>
       </div>
 
-      <div class="text-right flex-shrink-0">
+      <div class="text-right flex-shrink-0 flex items-center gap-2">
+        <BaseIcon
+          name="copy"
+          size="sm"
+          class="text-gray-400 hover:text-gray-600 cursor-pointer"
+          @click.stop="handleDuplicate"
+        />
         <BaseText
           variant="h3"
           :color="transaction.type === TransactionType.Income ? 'success' : 'danger'"

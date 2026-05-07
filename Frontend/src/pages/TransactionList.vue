@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
 import { useTransactions } from "../composables/useTransactions";
-import type { GetTransactionsRequest } from "../types/transaction";
+import { useTransactionDetail } from "../composables/useTransactionDetail";
+import type { GetTransactionsRequest, TransactionDetail } from "../types/transaction";
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseButton from "../components/atoms/BaseButton.vue";
@@ -28,11 +29,14 @@ const {
   setItemHeight,
 } = useTransactions();
 
+const { fetchDetail } = useTransactionDetail();
+
 const selectedTransactionId = ref<string | null>(null);
 const isDetailModalOpen = ref(false);
 const isCreateSelectModalOpen = ref(false);
 const isFormModalOpen = ref(false);
 const isEditModalOpen = ref(false);
+const duplicateTransaction = ref<TransactionDetail | null>(null);
 const formMode = ref<"manual" | "receipt">("manual");
 const currentFilters = ref<GetTransactionsRequest>({});
 const isExportModalOpen = ref(false);
@@ -92,6 +96,20 @@ const openDetail = (id: string) => {
   isDetailModalOpen.value = true;
 };
 
+const handleDuplicate = async (id: string) => {
+  const duplicateDetail = useTransactionDetail();
+  await duplicateDetail.fetchDetail(id);
+  duplicateTransaction.value = duplicateDetail.transaction.value;
+  formMode.value = "manual";
+  isFormModalOpen.value = true;
+};
+
+const handleDuplicateFromDetail = (transaction: TransactionDetail) => {
+  duplicateTransaction.value = transaction;
+  formMode.value = "manual";
+  isFormModalOpen.value = true;
+};
+
 const closeDetailModal = () => {
   isDetailModalOpen.value = false;
   selectedTransactionId.value = null;
@@ -127,6 +145,7 @@ const selectReceipt = () => {
 
 const closeFormModal = () => {
   isFormModalOpen.value = false;
+  duplicateTransaction.value = null;
 };
 
 const handleCreateSuccess = () => {
@@ -253,6 +272,7 @@ onUnmounted(() => {
                 variant="compact"
                 data-transaction-item
                 @click="openDetail"
+                @duplicate="handleDuplicate"
               />
             </div>
 
@@ -264,6 +284,7 @@ onUnmounted(() => {
                 variant="card"
                 data-transaction-item
                 @click="openDetail"
+                @duplicate="handleDuplicate"
               />
             </div>
           </div>
@@ -305,7 +326,7 @@ onUnmounted(() => {
       @select-receipt="selectReceipt"
     />
 
-    <TransactionFormModal :is-open="isFormModalOpen" :mode="formMode" @close="closeFormModal" @success="handleCreateSuccess" />
+    <TransactionFormModal :is-open="isFormModalOpen" :mode="formMode" :duplicate-from-transaction="duplicateTransaction" @close="closeFormModal" @success="handleCreateSuccess" />
 
     <TransactionDetailModal
       v-if="selectedTransactionId"
@@ -314,6 +335,7 @@ onUnmounted(() => {
       @close="closeDetailModal"
       @edit="handleEdit"
       @delete="handleDelete"
+      @duplicate="handleDuplicateFromDetail"
     />
 
     <TransactionFormModal

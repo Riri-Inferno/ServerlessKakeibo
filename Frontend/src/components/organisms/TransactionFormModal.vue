@@ -15,11 +15,13 @@ import TransactionTaxesList from "../molecules/TransactionTaxesList.vue";
 import ReceiptUploadArea from "../molecules/ReceiptUploadArea.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
 import { useIncomeItemCategories } from "../../composables/useIncomeItemCategories";
+import type { TransactionDetail } from "../../types/transaction";
 
 interface Props {
   isOpen: boolean;
   mode: "manual" | "receipt";
   transactionId?: string;
+  duplicateFromTransaction?: TransactionDetail;
 }
 
 const props = defineProps<Props>();
@@ -47,6 +49,7 @@ const {
   isAutoCalculate,
   setFromOcrResult,
   setFromExistingTransaction,
+  setFromExistingTransactionAsDuplicate,
   resetForm,
   submitTransaction,
   updateTransaction,
@@ -125,6 +128,9 @@ watch(
       if (existingTransaction.value) {
         setFromExistingTransaction(existingTransaction.value);
       }
+    } else if (newValue && props.duplicateFromTransaction) {
+      // 複製モード
+      setFromExistingTransactionAsDuplicate(props.duplicateFromTransaction);
     } else if (!newValue) {
       resetForm();
       resetOcr();
