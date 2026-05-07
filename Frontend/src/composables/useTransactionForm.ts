@@ -175,75 +175,36 @@ export function useTransactionForm() {
   };
 
   /**
-   * 既存の取引データから複製用にフォームに値を設定
-   * 日付は当日（今日）に上書き、レシート画像は破棄
-   */
-  const setFromExistingTransactionAsDuplicate = (
-    transaction: TransactionDetail,
-  ) => {
-    type.value = transaction.type;
-
-    // 日付は当日（今日）に上書き
-    const today = new Date();
-    transactionDate.value = today.toISOString().split("T")[0] ?? "";
-
-    amountTotal.value = transaction.amountTotal;
-    payer.value = transaction.payer || "";
-    payee.value = transaction.payee || "";
-
-    // カスタムカテゴリIDを取得
-    category.value = transaction.userTransactionCategory?.id || null;
-
-    paymentMethod.value = transaction.paymentMethod || "";
-    notes.value = transaction.notes || "";
-    taxInclusionType.value = transaction.taxInclusionType;
-
-    // 明細のカテゴリIDを復元（新規作成なので id は未指定）
-    items.value = transaction.items.map((item) => ({
-      itemType: item.itemType ?? TransactionItemType.Product,
-      name: item.name,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      amount: item.amount,
-      userItemCategoryId: item.userItemCategoryId || null,
-      userIncomeItemCategoryId: item.userIncomeItemCategoryId || null,
-    }));
-
-    // 税情報を復元（新規作成なので id は未指定）
-    taxes.value = transaction.taxes.map((tax) => ({
-      taxRate: tax.taxRate,
-      taxAmount: tax.taxAmount,
-      taxableAmount: tax.taxableAmount,
-      taxType: tax.taxType,
-    }));
-
-    // 店舗詳細を復元
-    shopDetails.value = transaction.shopDetails;
-  };
-
-  /**
    * 既存の取引データからフォームに値を設定
+   * @param transaction 既存の取引データ
+   * @param options.asDuplicate 複製モード（true の場合: 日付を当日に上書き、items/taxes の id を捨てる）
    */
-  const setFromExistingTransaction = (transaction: TransactionDetail) => {
+  const setFromExistingTransaction = (
+    transaction: TransactionDetail,
+    options: { asDuplicate?: boolean } = {},
+  ) => {
+    const { asDuplicate = false } = options;
+
     type.value = transaction.type;
 
-    const date = new Date(transaction.transactionDate);
-    transactionDate.value = date.toISOString().split("T")[0] ?? "";
+    if (asDuplicate) {
+      const today = new Date();
+      transactionDate.value = today.toISOString().split("T")[0] ?? "";
+    } else {
+      const date = new Date(transaction.transactionDate);
+      transactionDate.value = date.toISOString().split("T")[0] ?? "";
+    }
 
     amountTotal.value = transaction.amountTotal;
     payer.value = transaction.payer || "";
     payee.value = transaction.payee || "";
-
-    // カスタムカテゴリIDを取得
     category.value = transaction.userTransactionCategory?.id || null;
-
     paymentMethod.value = transaction.paymentMethod || "";
     notes.value = transaction.notes || "";
     taxInclusionType.value = transaction.taxInclusionType;
 
-    // 明細のカテゴリIDを復元
     items.value = transaction.items.map((item) => ({
-      id: item.id,
+      ...(asDuplicate ? {} : { id: item.id }),
       itemType: item.itemType ?? TransactionItemType.Product,
       name: item.name,
       quantity: item.quantity,
@@ -252,16 +213,15 @@ export function useTransactionForm() {
       userItemCategoryId: item.userItemCategoryId || null,
       userIncomeItemCategoryId: item.userIncomeItemCategoryId || null,
     }));
-    // 税情報を復元（idを保持）
+
     taxes.value = transaction.taxes.map((tax) => ({
-      id: tax.id,
+      ...(asDuplicate ? {} : { id: tax.id }),
       taxRate: tax.taxRate,
       taxAmount: tax.taxAmount,
       taxableAmount: tax.taxableAmount,
       taxType: tax.taxType,
     }));
 
-    // 店舗詳細を復元
     shopDetails.value = transaction.shopDetails;
   };
 
@@ -499,7 +459,6 @@ export function useTransactionForm() {
     addTax,
     removeTax,
     setFromExistingTransaction,
-    setFromExistingTransactionAsDuplicate,
     updateTransaction,
   };
 }

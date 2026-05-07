@@ -94,15 +94,32 @@ const openDetail = (id: string) => {
   isDetailModalOpen.value = true;
 };
 
+const isDuplicating = ref(false);
+
 const handleDuplicate = async (id: string) => {
-  const duplicateDetail = useTransactionDetail();
-  await duplicateDetail.fetchDetail(id);
-  duplicateTransaction.value = duplicateDetail.transaction.value ?? undefined;
-  formMode.value = "manual";
-  isFormModalOpen.value = true;
+  if (isDuplicating.value) return;
+
+  isDuplicating.value = true;
+  try {
+    const duplicateDetail = useTransactionDetail();
+    await duplicateDetail.fetchDetail(id);
+
+    if (!duplicateDetail.transaction.value) {
+      // fetch 失敗時はモーダルを開かない
+      return;
+    }
+
+    duplicateTransaction.value = duplicateDetail.transaction.value;
+    formMode.value = "manual";
+    isFormModalOpen.value = true;
+  } finally {
+    isDuplicating.value = false;
+  }
 };
 
 const handleDuplicateFromDetail = (transaction: TransactionDetail) => {
+  isDetailModalOpen.value = false;
+  selectedTransactionId.value = null;
   duplicateTransaction.value = transaction;
   formMode.value = "manual";
   isFormModalOpen.value = true;

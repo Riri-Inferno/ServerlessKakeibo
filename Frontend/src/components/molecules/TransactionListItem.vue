@@ -52,10 +52,14 @@ const handleDuplicate = () => {
 </script>
 
 <template>
-  <button
+  <div
     v-if="variant === 'compact'"
+    role="button"
+    tabindex="0"
     @click="handleClick"
-    class="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b border-gray-200 last:border-b-0"
+    @keydown.enter="handleClick"
+    @keydown.space.prevent="handleClick"
+    class="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b border-gray-200 last:border-b-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
   >
     <div
       class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
@@ -98,12 +102,17 @@ const handleDuplicate = () => {
     </div>
 
     <div class="text-right flex-shrink-0 flex items-center gap-2">
-      <BaseIcon
-        name="copy"
-        size="sm"
-        class="text-gray-400 hover:text-gray-600 cursor-pointer"
+      <button
+        type="button"
+        aria-label="この取引を複製して新規登録"
+        title="複製"
+        class="p-2 -my-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         @click.stop="handleDuplicate"
-      />
+        @keydown.enter.stop
+        @keydown.space.stop
+      >
+        <BaseIcon name="copy" size="sm" />
+      </button>
       <div
         class="text-sm font-bold whitespace-nowrap"
         :class="
@@ -115,7 +124,7 @@ const handleDuplicate = () => {
         {{ formatAmount(transaction.amountTotal, transaction.type) }}
       </div>
     </div>
-  </button>
+  </div>
 
   <BaseCard
     v-else
@@ -155,13 +164,17 @@ const handleDuplicate = () => {
         </BaseText>
       </div>
 
-      <div class="text-right flex-shrink-0 flex items-center gap-2">
-        <BaseIcon
-          name="copy"
-          size="sm"
-          class="text-gray-400 hover:text-gray-600 cursor-pointer"
+      <div class="text-right flex-shrink-0 flex items-center gap-3">
+        <button
+          type="button"
+          aria-label="この取引を複製して新規登録"
+          title="複製して作成"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           @click.stop="handleDuplicate"
-        />
+        >
+          <BaseIcon name="copy" size="sm" />
+          <span class="text-xs font-medium">複製</span>
+        </button>
         <BaseText
           variant="h3"
           :color="transaction.type === TransactionType.Income ? 'success' : 'danger'"
