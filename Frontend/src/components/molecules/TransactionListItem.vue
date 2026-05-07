@@ -96,23 +96,25 @@ const handleDuplicate = () => {
           {{ transaction.userTransactionCategory.name }}
         </span>
       </div>
-      <div class="text-xs text-gray-500">
-        {{ formatDate(transaction.transactionDate) }}
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs text-gray-500">
+          {{ formatDate(transaction.transactionDate) }}
+        </span>
+        <button
+          type="button"
+          aria-label="この取引を複製して新規登録"
+          title="複製"
+          class="inline-flex items-center justify-center p-1 -m-1 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          @click.stop="handleDuplicate"
+          @keydown.enter.stop
+          @keydown.space.stop
+        >
+          <BaseIcon name="copy" size="sm" />
+        </button>
       </div>
     </div>
 
-    <div class="text-right flex-shrink-0 flex items-center gap-2">
-      <button
-        type="button"
-        aria-label="この取引を複製して新規登録"
-        title="複製"
-        class="p-2 -my-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        @click.stop="handleDuplicate"
-        @keydown.enter.stop
-        @keydown.space.stop
-      >
-        <BaseIcon name="copy" size="sm" />
-      </button>
+    <div class="text-right flex-shrink-0">
       <div
         class="text-sm font-bold whitespace-nowrap"
         :class="
@@ -159,22 +161,23 @@ const handleDuplicate = () => {
         <BaseText variant="body" weight="bold" class="mb-1">
           {{ displayName }}
         </BaseText>
-        <BaseText variant="caption" color="gray">
-          {{ formatDate(transaction.transactionDate) }}
-        </BaseText>
+        <div class="flex items-center gap-2">
+          <BaseText variant="caption" color="gray">
+            {{ formatDate(transaction.transactionDate) }}
+          </BaseText>
+          <button
+            type="button"
+            aria-label="この取引を複製して新規登録"
+            title="複製して作成"
+            class="inline-flex items-center justify-center p-1.5 -m-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            @click.stop="handleDuplicate"
+          >
+            <BaseIcon name="copy" size="sm" />
+          </button>
+        </div>
       </div>
 
-      <div class="text-right flex-shrink-0 flex items-center gap-3">
-        <button
-          type="button"
-          aria-label="この取引を複製して新規登録"
-          title="複製して作成"
-          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          @click.stop="handleDuplicate"
-        >
-          <BaseIcon name="copy" size="sm" />
-          <span class="text-xs font-medium">複製</span>
-        </button>
+      <div class="text-right flex-shrink-0">
         <BaseText
           variant="h3"
           :color="transaction.type === TransactionType.Income ? 'success' : 'danger'"
