@@ -39,6 +39,7 @@ import {
   StarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/vue/24/outline";
 
 // ===== Solid (24x24) =====
@@ -109,7 +110,8 @@ type IconName =
   | "chevron-right"
   | "star"
   | "trending-up"
-  | "trending-down";
+  | "trending-down"
+  | "copy";
 
 type Size = "sm" | "md" | "lg" | "xl";
 type Variant = "outline" | "solid" | "mini";
@@ -171,6 +173,7 @@ const iconMapOutline: Record<IconName, Component> = {
   star: StarIcon,
   "trending-up": ArrowTrendingUpIcon,
   "trending-down": ArrowTrendingDownIcon,
+  copy: DocumentDuplicateIcon,
 };
 
 // Solid (24x24) - 必要に応じて追加
@@ -216,6 +219,7 @@ const iconMapSolid: Record<IconName, Component> = {
   star: StarIcon,
   "trending-up": ArrowTrendingUpIcon,
   "trending-down": ArrowTrendingDownIcon,
+  copy: DocumentDuplicateIcon,
 };
 
 // Mini (20x20) - よく使うものだけ
@@ -261,6 +265,7 @@ const iconMapMini: Record<IconName, Component> = {
   star: StarIcon,
   "trending-up": ArrowTrendingUpIcon,
   "trending-down": ArrowTrendingDownIcon,
+  copy: DocumentDuplicateIcon,
 };
 
 const iconComponent = computed(() => {

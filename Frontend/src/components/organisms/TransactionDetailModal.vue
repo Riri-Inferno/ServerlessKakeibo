@@ -4,7 +4,7 @@ import { useTransactionDetail } from "../../composables/useTransactionDetail";
 import {
   TransactionType,
   TaxInclusionTypeLabels,
-  type Transaction,
+  type TransactionDetail,
 } from "../../types/transaction";
 import BaseModal from "../atoms/BaseModal.vue";
 import BaseText from "../atoms/BaseText.vue";
@@ -26,7 +26,7 @@ const emit = defineEmits<{
   close: [];
   edit: [];
   delete: [];
-  duplicate: [transaction: Transaction];
+  duplicate: [transaction: TransactionDetail];
 }>();
 
 const {
