@@ -42,6 +42,9 @@ using ServerlessKakeibo.Api.Application.ItemCategory;
 using ServerlessKakeibo.Api.Application.ItemCategory.Usecases;
 using ServerlessKakeibo.Api.Application.IncomeItemCategory.Usecases;
 using ServerlessKakeibo.Api.Application.IncomeItemCategory;
+using ServerlessKakeibo.Api.Common.Authorization;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,9 +107,22 @@ builder.Services
             ),
             ClockSkew = TimeSpan.Zero
         };
-    });
+    })
+    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationDefaults.AuthenticationScheme,
+        _ => { });
 
-builder.Services.AddAuthorization();
+// API キー用の認可ポリシー
+// 認証スキームが ApiKey のときだけ scope を要求し、JWT は素通りさせる
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("ApiKey.Read",
+        p => p.AddRequirements(new ApiKeyScopeRequirement("read")));
+    opts.AddPolicy("ApiKey.Write",
+        p => p.AddRequirements(new ApiKeyScopeRequirement("write")));
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, ApiKeyScopeHandler>();
 #endregion
 
 // DI 登録
