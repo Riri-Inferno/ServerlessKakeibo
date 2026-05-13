@@ -5,6 +5,7 @@ using ServerlessKakeibo.Api.Application.TransactionCategory.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using ServerlessKakeibo.Api.Controllers.Extensions;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -28,6 +29,9 @@ public class TransactionCategoryController : ControllerBase
     /// 取引カテゴリ一覧を取得
     /// </summary>
     [HttpGet]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "取引カテゴリ一覧取得",
         Description = "ログインユーザーの取引カテゴリ一覧を取得します。\n\n" +

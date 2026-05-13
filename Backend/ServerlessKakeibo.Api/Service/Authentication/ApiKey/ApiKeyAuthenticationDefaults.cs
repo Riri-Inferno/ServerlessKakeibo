@@ -20,4 +20,19 @@ public static class ApiKeyAuthenticationDefaults
     /// 候補検索に使用するプレフィックス長（"slk_" + 8文字 = 12文字）
     /// </summary>
     public const int LookupPrefixLength = 12;
+
+    /// <summary>
+    /// JWT と APIキーの両方を受け付けるエンドポイントで使う AuthenticationSchemes
+    /// </summary>
+    public const string JwtOrApiKeySchemes = "Bearer," + AuthenticationScheme;
+
+    /// <summary>
+    /// 読み取りスコープを要求する認可ポリシー名
+    /// </summary>
+    public const string ReadPolicy = "ApiKey.Read";
+
+    /// <summary>
+    /// 書き込みスコープを要求する認可ポリシー名
+    /// </summary>
+    public const string WritePolicy = "ApiKey.Write";
 }

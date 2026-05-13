@@ -9,6 +9,7 @@ using ServerlessKakeibo.Api.Application.Transaction.Dto;
 using ServerlessKakeibo.Api.Application.Transaction.Usecases;
 using ServerlessKakeibo.Api.Controllers.Extensions;
 using Microsoft.AspNetCore.Authorization;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using ServerlessKakeibo.Api.Service.Interface;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -97,6 +98,9 @@ public class TransactionController : ControllerBase
     /// 取引一覧を取得
     /// </summary>
     [HttpGet]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "取引一覧を取得",
         Description = "取引の一覧をページングして取得する。\n\n日付範囲、カテゴリ、支払者(Payer)、受取者(Payee)、金額などでフィルタ可能。")]

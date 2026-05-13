@@ -118,9 +118,9 @@ builder.Services
 // 認証スキームが ApiKey のときだけ scope を要求し、JWT は素通りさせる
 builder.Services.AddAuthorization(opts =>
 {
-    opts.AddPolicy("ApiKey.Read",
+    opts.AddPolicy(ApiKeyAuthenticationDefaults.ReadPolicy,
         p => p.AddRequirements(new ApiKeyScopeRequirement("read")));
-    opts.AddPolicy("ApiKey.Write",
+    opts.AddPolicy(ApiKeyAuthenticationDefaults.WritePolicy,
         p => p.AddRequirements(new ApiKeyScopeRequirement("write")));
 });
 
