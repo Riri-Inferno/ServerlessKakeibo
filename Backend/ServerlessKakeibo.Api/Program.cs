@@ -42,6 +42,8 @@ using ServerlessKakeibo.Api.Application.ItemCategory;
 using ServerlessKakeibo.Api.Application.ItemCategory.Usecases;
 using ServerlessKakeibo.Api.Application.IncomeItemCategory.Usecases;
 using ServerlessKakeibo.Api.Application.IncomeItemCategory;
+using ServerlessKakeibo.Api.Application.ApiKey;
+using ServerlessKakeibo.Api.Application.ApiKey.Usecases;
 using ServerlessKakeibo.Api.Common.Authorization;
 using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using Microsoft.AspNetCore.Authorization;
@@ -176,6 +178,9 @@ builder.Services.AddScoped<IDeleteIncomeItemCategoryUseCase, DeleteIncomeItemCat
 builder.Services.AddScoped<IRestoreIncomeItemCategoryUseCase, RestoreIncomeItemCategoryInteractor>();
 builder.Services.AddScoped<IResetIncomeItemCategoriesToMasterUseCase, ResetIncomeItemCategoriesToMasterInteractor>();
 builder.Services.AddScoped<IUpdateIncomeItemCategoryOrderUseCase, UpdateIncomeItemCategoryOrderInteractor>();
+builder.Services.AddScoped<ICreateApiKeyUseCase, CreateApiKeyInteractor>();
+builder.Services.AddScoped<IListApiKeysUseCase, ListApiKeysInteractor>();
+builder.Services.AddScoped<IRevokeApiKeyUseCase, RevokeApiKeyInteractor>();
 #endregion
 
 #region DomainServices
