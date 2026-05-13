@@ -7,6 +7,7 @@ import BaseCard from "../atoms/BaseCard.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseInput from "../atoms/BaseInput.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
+import LabeledCheckbox from "../molecules/LabeledCheckbox.vue";
 import { apiKeyRepository } from "../../repositories/apiKeyRepository";
 import type { CreateApiKeyResult } from "../../types/apiKey";
 
@@ -155,17 +156,15 @@ const handleClose = () => {
           :disabled="noExpiry || isSubmitting"
           :error="!noExpiry && expiresAtDate.length > 0 && !isExpiryValid"
         />
-        <label class="flex items-center gap-2 mt-2 cursor-pointer">
-          <input
+        <div class="mt-2">
+          <LabeledCheckbox
             v-model="noExpiry"
-            type="checkbox"
+            label="無期限にする"
+            description="自己責任。漏洩時の被害も無期限になります"
+            size="sm"
             :disabled="isSubmitting"
-            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          <BaseText variant="caption" class="text-sm">
-            無期限にする（自己責任）
-          </BaseText>
-        </label>
+        </div>
       </div>
 
       <div
