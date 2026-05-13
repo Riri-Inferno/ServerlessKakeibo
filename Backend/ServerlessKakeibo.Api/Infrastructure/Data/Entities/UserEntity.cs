@@ -40,6 +40,12 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
             = new List<RefreshTokenEntity>();
 
         /// <summary>
+        /// このユーザーが発行している APIキー
+        /// </summary>
+        public ICollection<ApiKeyEntity> ApiKeys { get; set; }
+            = new List<ApiKeyEntity>();
+
+        /// <summary>
         /// このユーザーの取引一覧
         /// </summary>
         public ICollection<TransactionEntity> Transactions { get; set; }
