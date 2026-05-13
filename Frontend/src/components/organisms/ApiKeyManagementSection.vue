@@ -5,6 +5,7 @@ import BaseText from "../atoms/BaseText.vue";
 import BaseButton from "../atoms/BaseButton.vue";
 import BaseIcon from "../atoms/BaseIcon.vue";
 import BaseSpinner from "../atoms/BaseSpinner.vue";
+import BaseBadge from "../atoms/BaseBadge.vue";
 import CreateApiKeyModal from "./CreateApiKeyModal.vue";
 import ApiKeyDisplayModal from "./ApiKeyDisplayModal.vue";
 import { apiKeyRepository } from "../../repositories/apiKeyRepository";
@@ -111,14 +112,18 @@ const expiryLabel = (key: ApiKeyDto) => {
   return `${d}まで${isExpired ? "(期限切れ)" : ""}`;
 };
 
-const statusLabel = (key: ApiKeyDto): {
+type BadgeColor = "success" | "warning" | "gray";
+
+const statusLabel = (
+  key: ApiKeyDto,
+): {
   text: string;
-  color: string;
+  color: BadgeColor;
 } => {
-  if (key.revokedAt) return { text: "失効済み", color: "text-gray-500" };
+  if (key.revokedAt) return { text: "失効済み", color: "gray" };
   if (key.expiresAt && new Date(key.expiresAt).getTime() < Date.now())
-    return { text: "期限切れ", color: "text-amber-600" };
-  return { text: "有効", color: "text-green-600" };
+    return { text: "期限切れ", color: "warning" };
+  return { text: "有効", color: "success" };
 };
 </script>
 
@@ -138,7 +143,11 @@ const statusLabel = (key: ApiKeyDto): {
         </BaseButton>
       </div>
 
-      <BaseText variant="caption" color="gray" class="text-xs md:text-sm">
+      <BaseText
+        variant="caption"
+        color="gray"
+        class="text-xs md:text-sm text-center"
+      >
         MCPサーバや外部ツールから SELENE の API を叩くためのキー。
         漏洩した場合は速やかに失効してください。
       </BaseText>
@@ -200,12 +209,9 @@ const statusLabel = (key: ApiKeyDto): {
                 >
                   {{ key.name }}
                 </BaseText>
-                <span
-                  class="text-xs px-2 py-0.5 rounded-full border"
-                  :class="statusLabel(key).color"
-                >
+                <BaseBadge :color="statusLabel(key).color" size="sm">
                   {{ statusLabel(key).text }}
-                </span>
+                </BaseBadge>
               </div>
               <div
                 class="font-mono text-xs text-gray-600 mb-1 md:mb-2"
@@ -231,8 +237,10 @@ const statusLabel = (key: ApiKeyDto): {
                   </span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-gray-400">scope:</span>
-                  <span>{{ key.scopes.join(", ") || "(なし)" }}</span>
+                  <BaseIcon name="tag" size="sm" class="text-gray-400" />
+                  <span>
+                    scope: {{ key.scopes.join(", ") || "(なし)" }}
+                  </span>
                 </div>
               </div>
             </div>
