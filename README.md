@@ -231,6 +231,12 @@ k3s デプロイ・CI 関連:
 
 ---
 
+## 関連プロジェクト
+
+- [selene-mcp-server](https://github.com/Riri-Inferno/selene-mcp-server) — SELENE の GET 系 API を MCP (Model Context Protocol) 経由で LLM から扱えるようにするサーバ
+
+---
+
 ## ライセンス
 
 Copyright (c) 2026 u.takayo
