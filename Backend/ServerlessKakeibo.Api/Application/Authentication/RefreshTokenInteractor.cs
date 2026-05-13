@@ -12,24 +12,27 @@ namespace ServerlessKakeibo.Api.Application.Authentication;
 /// </summary>
 public class RefreshTokenInteractor : IRefreshTokenUseCase
 {
-    private readonly ITransactionHelper _transactionHelper; 
+    private readonly ITransactionHelper _transactionHelper;
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
-    private readonly IGenericWriteRepository<UserEntity> _userWriteRepository;
+    private readonly IGenericReadRepository<RefreshTokenEntity> _refreshTokenReadRepository;
+    private readonly IGenericWriteRepository<RefreshTokenEntity> _refreshTokenWriteRepository;
     private readonly IJwtTokenService _jwtService;
     private readonly IPasswordHashService _passwordHashService;
     private readonly ILogger<RefreshTokenInteractor> _logger;
 
     public RefreshTokenInteractor(
-        ITransactionHelper transactionHelper, 
+        ITransactionHelper transactionHelper,
         IGenericReadRepository<UserEntity> userReadRepository,
-        IGenericWriteRepository<UserEntity> userWriteRepository,
+        IGenericReadRepository<RefreshTokenEntity> refreshTokenReadRepository,
+        IGenericWriteRepository<RefreshTokenEntity> refreshTokenWriteRepository,
         IJwtTokenService jwtService,
         IPasswordHashService passwordHashService,
         ILogger<RefreshTokenInteractor> logger)
     {
-        _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper)); 
+        _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
-        _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
+        _refreshTokenReadRepository = refreshTokenReadRepository ?? throw new ArgumentNullException(nameof(refreshTokenReadRepository));
+        _refreshTokenWriteRepository = refreshTokenWriteRepository ?? throw new ArgumentNullException(nameof(refreshTokenWriteRepository));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
         _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -52,57 +55,59 @@ public class RefreshTokenInteractor : IRefreshTokenUseCase
             // トランザクション内で実行
             return await _transactionHelper.ExecuteInTransactionAsync(async () =>
             {
-                // 1. リフレッシュトークンからユーザーを検索（トランザクション内でロック）
-                // ハッシュが存在し、有効期限内のユーザーを取得
-                var users = await _userReadRepository.FindAsync(
-                    u => u.RefreshTokenHash != null 
-                         && u.RefreshTokenExpiry != null 
-                         && u.RefreshTokenExpiry > DateTimeOffset.UtcNow
-                         && !u.IsDeleted,
+                // 1. 有効期限内のリフレッシュトークンを検索
+                //    ハッシュ照合は受信値とDB側ハッシュを1件ずつ比較する必要があるため、候補を取得してループ
+                var candidates = await _refreshTokenReadRepository.FindAsync(
+                    rt => rt.ExpiresAt > DateTimeOffset.UtcNow,
                     cancellationToken);
 
-                // 受け取ったトークンとハッシュを比較してユーザーを特定
-                UserEntity? user = null;
-                foreach (var candidateUser in users)
+                RefreshTokenEntity? matched = null;
+                foreach (var candidate in candidates)
                 {
-                    if (_passwordHashService.VerifyPassword(
-                        refreshToken, 
-                        candidateUser.RefreshTokenHash!))
+                    if (_passwordHashService.VerifyPassword(refreshToken, candidate.TokenHash))
                     {
-                        user = candidateUser;
+                        matched = candidate;
                         break;
                     }
                 }
 
-                if (user == null)
+                if (matched == null)
                 {
                     _logger.LogWarning("無効なリフレッシュトークンです");
                     throw new UnauthorizedAccessException("リフレッシュトークンが無効です");
                 }
 
-                // 2. リフレッシュトークンの有効期限をチェック
-                if (user.RefreshTokenExpiry == null || user.RefreshTokenExpiry < DateTimeOffset.UtcNow)
+                // 2. ユーザーを取得（新しいアクセストークンの発行に必要）
+                var user = await _userReadRepository.GetByIdAsync(matched.UserId, cancellationToken);
+                if (user == null)
                 {
-                    _logger.LogWarning(
-                        "リフレッシュトークンの有効期限が切れています。UserId: {UserId}",
-                        user.Id);
-                    throw new UnauthorizedAccessException("リフレッシュトークンの有効期限が切れています");
+                    _logger.LogWarning("リフレッシュトークンに対応するユーザーが見つかりません。UserId: {UserId}", matched.UserId);
+                    throw new UnauthorizedAccessException("リフレッシュトークンが無効です");
                 }
 
                 // 3. 新しいアクセストークンとリフレッシュトークンを生成
                 var newAccessToken = _jwtService.GenerateToken(user);
                 var newRefreshToken = _jwtService.GenerateRefreshToken();
 
-                // 4. 新しいリフレッシュトークンをハッシュ化してDBに保存（古いトークンを無効化）
-                user.RefreshTokenHash = _passwordHashService.HashPassword(newRefreshToken);
-                user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays);
-                user.UpdatedAt = DateTimeOffset.UtcNow;
-                user.UpdatedBy = user.Id;
-                await _userWriteRepository.UpdateAsync(user, cancellationToken);
+                // 4. 旧レコードを論理削除し、新レコードを挿入（ローテーション）
+                //    端末ごとにレコードが独立しているため、他端末のトークンは影響を受けない
+                await _refreshTokenWriteRepository.SoftDeleteAsync(matched.Id, user.Id, cancellationToken);
+
+                var newRefreshTokenEntity = new RefreshTokenEntity
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    TokenHash = _passwordHashService.HashPassword(newRefreshToken),
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays),
+                    TenantId = user.TenantId,
+                    CreatedBy = user.Id,
+                    UpdatedBy = user.Id,
+                };
+                await _refreshTokenWriteRepository.AddAsync(newRefreshTokenEntity, cancellationToken);
 
                 _logger.LogInformation(
                     "トークンを更新しました。UserId: {UserId}, NewRefreshTokenExpiry: {Expiry}",
-                    user.Id, user.RefreshTokenExpiry);
+                    user.Id, newRefreshTokenEntity.ExpiresAt);
 
                 return new LoginResult(
                     newAccessToken,

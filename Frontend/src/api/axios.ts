@@ -24,6 +24,10 @@ apiClient.interceptors.request.use(
   }
 );
 
+// 同時に複数のリクエストが 401 を返したとき、refresh を重複呼び出ししないための共有 Promise
+// 先頭のリクエストが refresh を開始し、後続は同じ Promise を待つ
+let refreshPromise: Promise<void> | null = null;
+
 apiClient.interceptors.response.use(
   (response) => {
     return response;
@@ -37,8 +41,14 @@ apiClient.interceptors.response.use(
       try {
         const authStore = useAuthStore();
 
-        console.log("トークンをリフレッシュ中...");
-        await authStore.refreshAccessToken();
+        if (!refreshPromise) {
+          console.log("トークンをリフレッシュ中...");
+          refreshPromise = authStore.refreshAccessToken().then(() => undefined);
+          refreshPromise.finally(() => {
+            refreshPromise = null;
+          });
+        }
+        await refreshPromise;
 
         originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
         return apiClient(originalRequest);

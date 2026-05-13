@@ -18,6 +18,7 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
     private readonly ITransactionHelper _transactionHelper;
     private readonly IGenericReadRepository<UserEntity> _userReadRepository;
     private readonly IGenericWriteRepository<UserEntity> _userWriteRepository;
+    private readonly IGenericWriteRepository<RefreshTokenEntity> _refreshTokenWriteRepository;
     private readonly IUserExternalLoginRepository _externalLoginRepository;
     private readonly IGitHubAuthService _gitHubAuthService;
     private readonly IJwtTokenService _jwtService;
@@ -31,6 +32,7 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
         ITransactionHelper transactionHelper,
         IGenericReadRepository<UserEntity> userReadRepository,
         IGenericWriteRepository<UserEntity> userWriteRepository,
+        IGenericWriteRepository<RefreshTokenEntity> refreshTokenWriteRepository,
         IUserExternalLoginRepository externalLoginRepository,
         IGitHubAuthService gitHubAuthService,
         IJwtTokenService jwtService,
@@ -43,6 +45,7 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
         _transactionHelper = transactionHelper ?? throw new ArgumentNullException(nameof(transactionHelper));
         _userReadRepository = userReadRepository ?? throw new ArgumentNullException(nameof(userReadRepository));
         _userWriteRepository = userWriteRepository ?? throw new ArgumentNullException(nameof(userWriteRepository));
+        _refreshTokenWriteRepository = refreshTokenWriteRepository ?? throw new ArgumentNullException(nameof(refreshTokenWriteRepository));
         _externalLoginRepository = externalLoginRepository ?? throw new ArgumentNullException(nameof(externalLoginRepository));
         _gitHubAuthService = gitHubAuthService ?? throw new ArgumentNullException(nameof(gitHubAuthService));
         _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
@@ -122,16 +125,23 @@ public class GitHubLoginInteractor : IGitHubLoginUseCase
                 var accessToken = _jwtService.GenerateToken(user);
                 var refreshToken = _jwtService.GenerateRefreshToken();
 
-                // 6. RefreshToken をハッシュ化して DB に保存
-                user.RefreshTokenHash = _passwordHashService.HashPassword(refreshToken);
-                user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays);
-                user.UpdatedAt = DateTimeOffset.UtcNow;
-                user.UpdatedBy = user.Id;
-                await _userWriteRepository.UpdateAsync(user, cancellationToken);
+                // 6. RefreshToken をハッシュ化して別レコードとして DB に保存
+                //    端末ごとに別レコードを持つことで、多端末ログインを並列に維持できる
+                var refreshTokenEntity = new RefreshTokenEntity
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    TokenHash = _passwordHashService.HashPassword(refreshToken),
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(_jwtService.RefreshTokenExpirationDays),
+                    TenantId = user.TenantId,
+                    CreatedBy = user.Id,
+                    UpdatedBy = user.Id,
+                };
+                await _refreshTokenWriteRepository.AddAsync(refreshTokenEntity, cancellationToken);
 
                 _logger.LogInformation(
                     "JWTトークンを発行しました。UserId: {UserId}, RefreshTokenExpiry: {Expiry}",
-                    user.Id, user.RefreshTokenExpiry);
+                    user.Id, refreshTokenEntity.ExpiresAt);
 
                 // 7. クライアントには平文のトークンを返す
                 return new LoginResult(
