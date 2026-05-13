@@ -5,6 +5,7 @@ using ServerlessKakeibo.Api.Application.TransactionSummary.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using ServerlessKakeibo.Api.Controllers.Extensions;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -25,6 +26,9 @@ public class TransactionSummaryController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>月次サマリー結果</returns>
     [HttpGet("monthly")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "月次サマリーを取得",
         Description = "指定された年月の収支サマリーを取得する。\n\n" +

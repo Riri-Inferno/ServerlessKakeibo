@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServerlessKakeibo.Api.Infrastructure.Data;
@@ -11,9 +12,11 @@ using ServerlessKakeibo.Api.Infrastructure.Data;
 namespace ServerlessKakeibo.Api.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513141303_AddRefreshTokenTable")]
+    partial class AddRefreshTokenTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,77 +24,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ServerlessKakeibo.Api.Infrastructure.Data.Entities.ApiKeyEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("KeyHash")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("KeyPrefix")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<DateTimeOffset?>("LastUsedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<uint>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.Property<string>("Scopes")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("KeyPrefix");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ApiKeys");
-                });
 
             modelBuilder.Entity("ServerlessKakeibo.Api.Infrastructure.Data.Entities.IncomeItemCategoryMasterEntity", b =>
                 {
@@ -1034,17 +966,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Migrations
                     b.ToTable("UserTransactionCategories");
                 });
 
-            modelBuilder.Entity("ServerlessKakeibo.Api.Infrastructure.Data.Entities.ApiKeyEntity", b =>
-                {
-                    b.HasOne("ServerlessKakeibo.Api.Infrastructure.Data.Entities.UserEntity", "User")
-                        .WithMany("ApiKeys")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ServerlessKakeibo.Api.Infrastructure.Data.Entities.RefreshTokenEntity", b =>
                 {
                     b.HasOne("ServerlessKakeibo.Api.Infrastructure.Data.Entities.UserEntity", "User")
@@ -1223,8 +1144,6 @@ namespace ServerlessKakeibo.Api.Infrastructure.Migrations
 
             modelBuilder.Entity("ServerlessKakeibo.Api.Infrastructure.Data.Entities.UserEntity", b =>
                 {
-                    b.Navigation("ApiKeys");
-
                     b.Navigation("ExternalLogins");
 
                     b.Navigation("RefreshTokens");

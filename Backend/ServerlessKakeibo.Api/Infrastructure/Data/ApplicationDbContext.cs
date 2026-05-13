@@ -21,6 +21,12 @@ public class ApplicationDbContext : DbContext
     // ユーザー外部認証用
     public DbSet<UserExternalLoginEntity> UserExternalLogins { get; set; } = default!;
 
+    // リフレッシュトークン
+    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; } = default!;
+
+    // APIキー
+    public DbSet<ApiKeyEntity> ApiKeys { get; set; } = default!;
+
     // 取引
     public DbSet<TransactionEntity> Transactions { get; set; } = default!;
 
@@ -124,6 +130,20 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<UserExternalLoginEntity>()
             .HasIndex(ue => new { ue.ProviderName, ue.ProviderKey })
             .IsUnique();
+
+        // RefreshTokenEntity
+        modelBuilder.Entity<RefreshTokenEntity>()
+            .HasIndex(rt => rt.UserId);
+
+        modelBuilder.Entity<RefreshTokenEntity>()
+            .HasIndex(rt => rt.ExpiresAt);
+
+        // ApiKeyEntity
+        modelBuilder.Entity<ApiKeyEntity>()
+            .HasIndex(ak => ak.UserId);
+
+        modelBuilder.Entity<ApiKeyEntity>()
+            .HasIndex(ak => ak.KeyPrefix);
 
         // UserSettingsEntity 
         modelBuilder.Entity<UserSettingsEntity>()
@@ -244,6 +264,20 @@ public class ApplicationDbContext : DbContext
             .HasOne(ue => ue.User)
             .WithMany(u => u.ExternalLogins)
             .HasForeignKey(ue => ue.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // User - RefreshToken のリレーション (1対多)
+        modelBuilder.Entity<RefreshTokenEntity>()
+            .HasOne(rt => rt.User)
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // User - ApiKey のリレーション (1対多)
+        modelBuilder.Entity<ApiKeyEntity>()
+            .HasOne(ak => ak.User)
+            .WithMany(u => u.ApiKeys)
+            .HasForeignKey(ak => ak.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // User - UserSettings のリレーション (1対1)

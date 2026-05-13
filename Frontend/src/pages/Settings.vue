@@ -14,6 +14,7 @@ import BaseSpinner from "../components/atoms/BaseSpinner.vue";
 import TransactionExportModal from "../components/organisms/TransactionExportModal.vue";
 import TransactionDeleteConfirmModal from "../components/organisms/TransactionDeleteConfirmModal.vue";
 import CategoryManagementSection from "../components/organisms/CategoryManagementSection.vue";
+import ApiKeyManagementSection from "../components/organisms/ApiKeyManagementSection.vue";
 
 // 環境変数からバージョン情報を取得
 const appVersion = import.meta.env.VITE_APP_VERSION || "不明";
@@ -398,6 +399,8 @@ const closeDeleteModal = () => {
             </div>
           </div>
         </BaseCard>
+
+        <ApiKeyManagementSection />
 
         <BaseCard class="p-4 md:p-6">
           <div class="space-y-3 md:space-y-4">

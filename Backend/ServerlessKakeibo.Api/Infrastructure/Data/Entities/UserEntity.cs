@@ -28,22 +28,22 @@ namespace ServerlessKakeibo.Api.Infrastructure.Data.Entities
         public string? PictureUrl { get; set; }
 
         /// <summary>
-        /// リフレッシュトークンのハッシュ値(PBKDF2でハッシュ化されたトークン)
-        /// Base64エンコードされたsalt+hash (最大約64文字)
-        /// </summary>
-        [MaxLength(100)]
-        public string? RefreshTokenHash { get; set; }
-
-        /// <summary>
-        /// リフレッシュトークンの有効期限
-        /// </summary>
-        public DateTimeOffset? RefreshTokenExpiry { get; set; }
-
-        /// <summary>
         /// 紐づいている外部認証情報の一覧
         /// </summary>
         public ICollection<UserExternalLoginEntity> ExternalLogins { get; set; }
             = new List<UserExternalLoginEntity>();
+
+        /// <summary>
+        /// このユーザーが保持しているリフレッシュトークン（端末ごとに別レコード）
+        /// </summary>
+        public ICollection<RefreshTokenEntity> RefreshTokens { get; set; }
+            = new List<RefreshTokenEntity>();
+
+        /// <summary>
+        /// このユーザーが発行している APIキー
+        /// </summary>
+        public ICollection<ApiKeyEntity> ApiKeys { get; set; }
+            = new List<ApiKeyEntity>();
 
         /// <summary>
         /// このユーザーの取引一覧

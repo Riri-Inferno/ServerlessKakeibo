@@ -5,6 +5,7 @@ using ServerlessKakeibo.Api.Application.Statistics.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using ServerlessKakeibo.Api.Controllers.Extensions;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -25,6 +26,9 @@ public class StatisticsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>前月比込みサマリー</returns>
     [HttpGet("monthly-comparison")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "前月比込み月次サマリーを取得",
         Description = "指定月と前月の収支を比較し、前月比（%）を含めて返す。\n\n" +
