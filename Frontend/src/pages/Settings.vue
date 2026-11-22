@@ -15,10 +15,13 @@ import TransactionExportModal from "../components/organisms/TransactionExportMod
 import TransactionDeleteConfirmModal from "../components/organisms/TransactionDeleteConfirmModal.vue";
 import CategoryManagementSection from "../components/organisms/CategoryManagementSection.vue";
 import ApiKeyManagementSection from "../components/organisms/ApiKeyManagementSection.vue";
+import BaseBadge from "../components/atoms/BaseBadge.vue";
+import { getEnvironmentLabel } from "../utils/env";
 
 // 環境変数からバージョン情報を取得
 const appVersion = import.meta.env.VITE_APP_VERSION || "不明";
 const buildDate = import.meta.env.VITE_BUILD_DATE || "不明";
+const environment = getEnvironmentLabel();
 
 const router = useRouter();
 const { logout } = useAuth();
@@ -410,6 +413,13 @@ const closeDeleteModal = () => {
             </div>
 
             <div class="space-y-2 md:space-y-3">
+              <div>
+                <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
+                  環境
+                </BaseText>
+                <BaseBadge :color="environment.color" size="sm">{{ environment.label }}</BaseBadge>
+              </div>
+
               <div>
                 <BaseText variant="caption" color="gray" class="mb-1 text-xs md:text-sm">
                   バージョン
