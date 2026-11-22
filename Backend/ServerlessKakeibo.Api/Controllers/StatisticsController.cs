@@ -96,6 +96,9 @@ public class StatisticsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>全カテゴリの支出内訳</returns>
     [HttpGet("category-breakdown")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "カテゴリ別支出内訳を取得",
         Description = "指定月の全カテゴリの支出を取得し、金額と割合を返す。\n\n" +
@@ -163,6 +166,9 @@ public class StatisticsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>直近N ヶ月の収入・支出推移</returns>
     [HttpGet("trend")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "月次推移を取得",
         Description = "指定された基準月から過去N ヶ月の収入・支出・収支を取得し、グラフ表示用データを返す。\n\n" +
@@ -232,6 +238,9 @@ public class StatisticsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>最高額取引、最多カテゴリなど</returns>
     [HttpGet("highlights")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "月次ハイライトを取得",
         Description = "指定月の統計ハイライトを取得。\n\n" +
@@ -301,6 +310,9 @@ public class StatisticsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>最古・最新の取引年月</returns>
     [HttpGet("date-range")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "取引データの日付範囲を取得",
         Description = "ユーザーの最古・最新の取引年月を取得します。\n\n" +
