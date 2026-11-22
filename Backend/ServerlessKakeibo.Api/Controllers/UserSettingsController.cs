@@ -5,6 +5,7 @@ using ServerlessKakeibo.Api.Application.UserSettings.Usecases;
 using ServerlessKakeibo.Api.Contracts;
 using ServerlessKakeibo.Api.Contracts.Enums;
 using ServerlessKakeibo.Api.Controllers.Extensions;
+using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ServerlessKakeibo.Api.Controllers;
@@ -24,6 +25,9 @@ public class UserSettingsController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>ユーザー設定</returns>
     [HttpGet]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "ユーザー設定を取得",
         Description = "現在のユーザーの設定情報を取得する。\n\n" +

@@ -28,6 +28,28 @@ export const getEnvironment = (): string =>
   import.meta.env.VITE_ENVIRONMENT ||
   "";
 
+export type EnvironmentBadgeColor = "warning" | "info" | "success" | "gray";
+
+/**
+ * 画面表示用の環境ラベル。
+ * 運用中の環境は意図的に「本番」「Production」という語を使わず「リリース」と表示する。
+ */
+export const getEnvironmentLabel = (): { label: string; color: EnvironmentBadgeColor } => {
+  const env = getEnvironment().toLowerCase();
+  switch (env) {
+    case "development":
+      return { label: "開発", color: "warning" };
+    case "demo":
+      return { label: "デモ", color: "info" };
+    case "production":
+      return { label: "リリース", color: "success" };
+    case "":
+      return { label: "不明", color: "gray" };
+    default:
+      return { label: env, color: "gray" };
+  }
+};
+
 /**
  * デモモード判定（環境変数ベース）
  */
