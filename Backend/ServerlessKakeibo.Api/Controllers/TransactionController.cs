@@ -27,6 +27,9 @@ public class TransactionController : ControllerBase
     /// <param name="environment">ホスト環境</param>
     /// <returns>取引詳細</returns>
     [HttpGet("{id:guid}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.ReadPolicy)]
     [SwaggerOperation(
         Summary = "取引詳細を取得",
         Description = "指定されたIDの取引詳細を取得する。\n\n取引項目、税情報、店舗詳細を含む完全なデータを返す。")]
