@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using ServerlessKakeibo.Api.Contracts;
@@ -15,7 +16,11 @@ public static class ApiKeyErrorResponder
 {
     private const string WrittenFlag = "ApiKeyErrorResponder.Written";
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    // MVC の出力と揃える（camelCase、日本語をエスケープしない）
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     /// <summary>
     /// Authorization ヘッダが APIキー（slk_ で始まる Bearer トークン）か
