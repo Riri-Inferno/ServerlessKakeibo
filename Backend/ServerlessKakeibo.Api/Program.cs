@@ -4,8 +4,9 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
 using ServerlessKakeibo.Api.Application.Authentication;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
@@ -202,9 +203,16 @@ builder.Services.AddScoped<ReceiptEvaluatorService>();
 #endregion
 
 #region Repositories
+// Npgsql 10 から GSS 暗号化を既定で試みるため、Kerberos のライブラリがないイメージでは起動時にエラーが出る。
+// Kerberos は使わないので無効にする（https://www.npgsql.org/doc/release-notes/10.0.html）
+var connectionString = new NpgsqlConnectionStringBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection"))
+{
+    GssEncryptionMode = GssEncryptionMode.Disable
+}.ConnectionString;
+
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
-    opts.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    opts.UseNpgsql(connectionString));
 
 // Readiness 用に DB 接続チェックを登録
 builder.Services.AddHealthChecks()
@@ -294,19 +302,10 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Swashbuckle 10（Microsoft.OpenApi 2.x）から、スキームはドキュメントを通した参照で指定する
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 #endregion

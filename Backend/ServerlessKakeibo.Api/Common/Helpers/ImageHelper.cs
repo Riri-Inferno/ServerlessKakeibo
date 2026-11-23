@@ -96,7 +96,8 @@ public static class ImageHelper
 
         using var stream = file.OpenReadStream();
         var bytesToRead = Math.Min(headerBytesToRead, (int)file.Length);
-        await stream.ReadAsync(headerBytes, 0, bytesToRead);
+        // ReadAsync は要求より少ないバイト数で返ることがあるので、必要な分を読み切る
+        await stream.ReadAtLeastAsync(headerBytes.AsMemory(0, bytesToRead), bytesToRead, throwOnEndOfStream: false);
 
         // JPEG
         if (headerBytes[0] == 0xFF && headerBytes[1] == 0xD8)
