@@ -60,4 +60,12 @@ public static class ClaimsPrincipalExtensions
 
         return emailClaim?.Value;
     }
+
+    /// <summary>
+    /// APIキーで認証されたリクエストか
+    /// </summary>
+    public static bool IsApiKeyAuthenticated(this ClaimsPrincipal principal)
+    {
+        return principal.HasClaim(c => c.Type == "api_key_id");
+    }
 }

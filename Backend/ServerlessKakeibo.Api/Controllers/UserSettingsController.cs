@@ -31,7 +31,8 @@ public class UserSettingsController : ControllerBase
     [SwaggerOperation(
         Summary = "ユーザー設定を取得",
         Description = "現在のユーザーの設定情報を取得する。\n\n" +
-                      "表示名、締め日、タイムゾーン、通貨などの個人設定を含む。")]
+                      "表示名、締め日、タイムゾーン、通貨などの個人設定を含む。\n\n" +
+                      "APIキーで認証した場合、メールアドレスとプロフィール画像URLは返さない（null）。")]
     [ProducesResponseType(typeof(ApiResponse<UserSettingsDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<UserSettingsDto>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<UserSettingsDto>), StatusCodes.Status500InternalServerError)]
@@ -44,6 +45,12 @@ public class UserSettingsController : ControllerBase
             var userId = User.GetUserId();
 
             var result = await useCase.ExecuteAsync(userId);
+
+            // APIキー（MCP など外部の LLM に渡る経路）には個人を特定できる情報を返さない
+            if (User.IsApiKeyAuthenticated())
+            {
+                result = result with { Email = null, PictureUrl = null };
+            }
 
             return Ok(ApiResponse<UserSettingsDto>.Success(result));
         }

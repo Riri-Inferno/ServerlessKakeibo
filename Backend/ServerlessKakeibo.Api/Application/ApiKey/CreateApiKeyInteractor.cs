@@ -16,11 +16,12 @@ namespace ServerlessKakeibo.Api.Application.ApiKey;
 public class CreateApiKeyInteractor : ICreateApiKeyUseCase
 {
     /// <summary>
-    /// 現フェーズで発行を許可するスコープ
+    /// 発行を許可するスコープ
     /// </summary>
     private static readonly HashSet<string> AllowedScopes = new(StringComparer.Ordinal)
     {
         "read",
+        "write",
     };
 
     private readonly ITransactionHelper _transactionHelper;
@@ -69,6 +70,10 @@ public class CreateApiKeyInteractor : ICreateApiKeyUseCase
             throw new ArgumentException(
                 $"発行できないスコープが含まれています: {string.Join(", ", invalid)}",
                 nameof(request));
+
+        // 書き込みの前後には状態の読み取りが必要なので、write は read と一緒にしか発行しない
+        if (scopes.Contains("write") && !scopes.Contains("read"))
+            throw new ArgumentException("write スコープは read スコープと一緒に指定してください", nameof(request));
 
         if (request.ExpiresAt.HasValue && request.ExpiresAt.Value <= DateTimeOffset.UtcNow)
             throw new ArgumentException("ExpiresAt は未来の日時を指定してください", nameof(request));

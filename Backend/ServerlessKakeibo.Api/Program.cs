@@ -109,6 +109,18 @@ builder.Services
             ),
             ClockSkew = TimeSpan.Zero
         };
+
+        // JWT 専用のエンドポイントに API キーが来た場合も、401 の理由を本文で返す
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                if (await ApiKeyErrorResponder.TryWriteUnauthorizedAsync(context.HttpContext))
+                {
+                    context.HandleResponse();
+                }
+            }
+        };
     })
     .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
         ApiKeyAuthenticationDefaults.AuthenticationScheme,
