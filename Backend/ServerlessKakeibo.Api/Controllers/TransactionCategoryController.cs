@@ -62,6 +62,9 @@ public class TransactionCategoryController : ControllerBase
     /// カスタム取引カテゴリを作成
     /// </summary>
     [HttpPost]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "カスタムカテゴリ作成",
         Description = "ユーザー独自の取引カテゴリを作成します。")]
@@ -89,6 +92,9 @@ public class TransactionCategoryController : ControllerBase
     /// 取引カテゴリを更新
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "カテゴリ更新",
         Description = "カテゴリの名前・色・表示順序を更新します。")]
@@ -125,6 +131,9 @@ public class TransactionCategoryController : ControllerBase
     /// 取引カテゴリを削除（非表示化）
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "カテゴリ削除（非表示化）",
         Description = "カテゴリを非表示にします。復元可能です。")]
@@ -160,6 +169,9 @@ public class TransactionCategoryController : ControllerBase
     /// 取引カテゴリを復元
     /// </summary>
     [HttpPost("{id}/restore")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "カテゴリ復元",
         Description = "非表示にしたカテゴリを再表示します。")]
