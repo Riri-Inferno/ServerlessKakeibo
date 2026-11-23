@@ -59,6 +59,9 @@ public class ItemCategoryController : ControllerBase
     /// カスタム商品カテゴリを作成
     /// </summary>
     [HttpPost]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カスタムカテゴリ作成")]
     [ProducesResponseType(typeof(ApiResponse<ItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ItemCategoryResult>>> CreateCategoryAsync(
@@ -84,6 +87,9 @@ public class ItemCategoryController : ControllerBase
     /// 商品カテゴリを更新
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ更新")]
     [ProducesResponseType(typeof(ApiResponse<ItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ItemCategoryResult>>> UpdateCategoryAsync(
@@ -118,6 +124,9 @@ public class ItemCategoryController : ControllerBase
     /// 商品カテゴリを削除（非表示化）
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ削除（非表示化）")]
     [ProducesResponseType(typeof(ApiResponse<ItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ItemCategoryResult>>> DeleteCategoryAsync(
@@ -151,6 +160,9 @@ public class ItemCategoryController : ControllerBase
     /// 商品カテゴリを復元
     /// </summary>
     [HttpPost("{id}/restore")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ復元")]
     [ProducesResponseType(typeof(ApiResponse<ItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<ItemCategoryResult>>> RestoreCategoryAsync(

@@ -25,6 +25,7 @@ const emit = defineEmits<{
 const name = ref("");
 const expiresAtDate = ref("");
 const noExpiry = ref(false);
+const allowWrite = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref<string | null>(null);
 
@@ -58,6 +59,7 @@ const resetForm = () => {
   name.value = "";
   expiresAtDate.value = defaultExpiresAtDate();
   noExpiry.value = false;
+  allowWrite.value = false;
   isSubmitting.value = false;
   errorMessage.value = null;
 };
@@ -83,7 +85,8 @@ const handleSubmit = async () => {
   try {
     const result = await apiKeyRepository.create({
       name: name.value.trim(),
-      scopes: ["read"],
+      // write は read と一緒にしか発行できない（書き込みの前後に状態を読むため）
+      scopes: allowWrite.value ? ["read", "write"] : ["read"],
       expiresAt: expiresAtIso,
     });
     emit("created", result);
@@ -140,11 +143,35 @@ const handleClose = () => {
           class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg"
         >
           <BaseIcon name="tag" size="sm" class="text-gray-500" />
-          <BaseText variant="body" class="text-sm">read（読み取り）</BaseText>
+          <BaseText variant="body" class="text-sm">
+            {{ allowWrite ? "read（読み取り）+ write（書き込み）" : "read（読み取り）" }}
+          </BaseText>
         </div>
-        <BaseText variant="caption" color="gray" class="mt-1 text-xs">
-          現在は read のみ発行可能
-        </BaseText>
+        <div class="mt-2">
+          <LabeledCheckbox
+            v-model="allowWrite"
+            label="書き込みも許可する"
+            description="取引・カテゴリの登録、更新、削除ができるようになります"
+            size="sm"
+            :disabled="isSubmitting"
+          />
+        </div>
+        <div
+          v-if="allowWrite"
+          class="mt-2 p-3 bg-yellow-50 border border-yellow-300 rounded-lg"
+        >
+          <div class="flex items-start gap-2">
+            <BaseIcon
+              name="warning"
+              size="sm"
+              class="text-yellow-700 flex-shrink-0 mt-0.5"
+              variant="solid"
+            />
+            <BaseText variant="caption" class="text-yellow-800">
+              このキーを渡した AI やツールが、家計簿のデータを変更・削除できるようになります。有効期限を短めにすることをおすすめします。
+            </BaseText>
+          </div>
+        </div>
       </div>
 
       <div>

@@ -59,6 +59,9 @@ public class IncomeItemCategoryController : ControllerBase
     /// カスタム給与項目カテゴリを作成
     /// </summary>
     [HttpPost]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カスタムカテゴリ作成")]
     [ProducesResponseType(typeof(ApiResponse<IncomeItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IncomeItemCategoryResult>>> CreateCategoryAsync(
@@ -84,6 +87,9 @@ public class IncomeItemCategoryController : ControllerBase
     /// 給与項目カテゴリを更新
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ更新")]
     [ProducesResponseType(typeof(ApiResponse<IncomeItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IncomeItemCategoryResult>>> UpdateCategoryAsync(
@@ -118,6 +124,9 @@ public class IncomeItemCategoryController : ControllerBase
     /// 給与項目カテゴリを削除（非表示化）
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ削除（非表示化）")]
     [ProducesResponseType(typeof(ApiResponse<IncomeItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IncomeItemCategoryResult>>> DeleteCategoryAsync(
@@ -151,6 +160,9 @@ public class IncomeItemCategoryController : ControllerBase
     /// 給与項目カテゴリを復元
     /// </summary>
     [HttpPost("{id}/restore")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(Summary = "カテゴリ復元")]
     [ProducesResponseType(typeof(ApiResponse<IncomeItemCategoryResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IncomeItemCategoryResult>>> RestoreCategoryAsync(

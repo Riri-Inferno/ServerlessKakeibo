@@ -163,6 +163,9 @@ public class TransactionController : ControllerBase
     /// 取引を新規作成
     /// </summary>
     [HttpPost]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "取引を新規作成",
         Description = "新しい取引を作成する。\n\n" +
@@ -243,6 +246,9 @@ public class TransactionController : ControllerBase
     /// 取引を更新
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "取引を更新",
         Description = "既存の取引を更新する。\n\n" +
@@ -328,6 +334,9 @@ public class TransactionController : ControllerBase
     /// <param name="environment"></param>
     /// <returns></returns>
     [HttpDelete("{id:guid}")]
+    [Authorize(
+        AuthenticationSchemes = ApiKeyAuthenticationDefaults.JwtOrApiKeySchemes,
+        Policy = ApiKeyAuthenticationDefaults.WritePolicy)]
     [SwaggerOperation(
         Summary = "取引を削除",
         Description = "既存の取引を論理削除する。")]
