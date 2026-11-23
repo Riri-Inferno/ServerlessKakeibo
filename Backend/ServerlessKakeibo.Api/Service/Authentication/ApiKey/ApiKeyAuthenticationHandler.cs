@@ -32,6 +32,10 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         _passwordHashService = passwordHashService ?? throw new ArgumentNullException(nameof(passwordHashService));
     }
 
+    /// <summary>
+    /// APIキーを検証し、成功したらユーザーIDとスコープを持つ認証チケットを返す
+    /// </summary>
+    /// <returns>認証結果（slk_ で始まらないトークンは NoResult で JWT に譲る）</returns>
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // Authorization ヘッダが無ければ自分の出番ではない
@@ -118,5 +122,27 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return AuthenticateResult.Success(ticket);
+    }
+
+    /// <summary>
+    /// 認証失敗時の 401 を返す。APIキーのリクエストなら理由を本文に入れる
+    /// </summary>
+    /// <param name="properties">認証プロパティ</param>
+    /// <returns>非同期タスク</returns>
+    protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        if (await ApiKeyErrorResponder.TryWriteUnauthorizedAsync(Context)) return;
+        await base.HandleChallengeAsync(properties);
+    }
+
+    /// <summary>
+    /// スコープ不足時の 403 を返す。APIキーのリクエストなら理由を本文に入れる
+    /// </summary>
+    /// <param name="properties">認証プロパティ</param>
+    /// <returns>非同期タスク</returns>
+    protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
+    {
+        if (await ApiKeyErrorResponder.TryWriteForbiddenAsync(Context)) return;
+        await base.HandleForbiddenAsync(properties);
     }
 }
