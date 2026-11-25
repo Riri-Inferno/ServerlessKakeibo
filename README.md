@@ -45,7 +45,7 @@ SELENE は、レシート自動読み取り機能を備えた家計簿アプリ�
 ## 技術スタック
 
 - **Frontend**: Vue 3 + TypeScript + Tailwind CSS
-- **Backend**: ASP.NET Core 8.0 + Entity Framework Core
+- **Backend**: ASP.NET Core 10 + Entity Framework Core 10
 - **Database**: PostgreSQL 16
 - **Infrastructure**: Docker + Docker Compose
 - **Cloud**: Google Cloud Platform (Storage, Vertex AI)

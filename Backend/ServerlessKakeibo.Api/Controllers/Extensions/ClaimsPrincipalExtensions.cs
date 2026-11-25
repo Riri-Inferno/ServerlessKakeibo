@@ -68,4 +68,13 @@ public static class ClaimsPrincipalExtensions
     {
         return principal.HasClaim(c => c.Type == "api_key_id");
     }
+
+    /// <summary>
+    /// 本人のログイン（JWT）ではなく、API キーか OAuth の連携経由のリクエストか。
+    /// AI などのクライアントには、メールアドレスなどを返さないために使う
+    /// </summary>
+    public static bool IsDelegatedAccess(this ClaimsPrincipal principal)
+    {
+        return principal.IsApiKeyAuthenticated() || principal.HasClaim(c => c.Type == "oauth_authorization_id");
+    }
 }

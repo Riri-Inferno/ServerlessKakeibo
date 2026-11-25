@@ -4,8 +4,10 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
+using ServerlessKakeibo.Api.Service.Authentication.OAuth;
 using ServerlessKakeibo.Api.Application.Authentication;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
@@ -124,7 +126,61 @@ builder.Services
     })
     .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
         ApiKeyAuthenticationDefaults.AuthenticationScheme,
-        _ => { });
+        _ => { })
+    // OAuth の連携経由のトークン（MCP サーバーがトークン交換で受け取る、backend 宛ての短命な JWT）。
+    // 署名はログイン用の JWT と同じ鍵で、宛先（aud）を分けて、ログイン用の JWT としては通らないようにする
+    .AddJwtBearer(OAuthDelegatedDefaults.AuthenticationScheme, options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("Authentication:Jwt");
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = OAuthDelegatedDefaults.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!)
+            ),
+            ClockSkew = TimeSpan.Zero,
+            // ApiKeyScopeHandler が、この認証方式のときだけスコープを判定する
+            AuthenticationType = OAuthDelegatedDefaults.AuthenticationScheme,
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            // 同じエンドポイントで API キーが失敗した場合は、ApiKeyErrorResponder が 401 の本文を書く。
+            // その後にこの認証方式が 401 を書こうとすると応答が壊れるので、書かれていれば何もしない
+            OnChallenge = async context =>
+            {
+                if (await ApiKeyErrorResponder.TryWriteUnauthorizedAsync(context.HttpContext) ||
+                    context.Response.HasStarted)
+                {
+                    context.HandleResponse();
+                }
+            },
+            // スコープ不足の理由を本文で返す（MCP サーバー経由で AI に伝える）
+            OnForbidden = async context =>
+            {
+                // 同じエンドポイントの API キー（ApiKeyErrorResponder）と重ならないよう、この認証方式で通ったときだけ書く
+                var isOAuth = context.HttpContext.User.Identities.Any(i =>
+                    i.IsAuthenticated && i.AuthenticationType == OAuthDelegatedDefaults.AuthenticationScheme);
+                if (!isOAuth || context.Response.HasStarted) return;
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json; charset=utf-8";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(
+                    ServerlessKakeibo.Api.Contracts.ApiResponse<object>.Fail(
+                        ServerlessKakeibo.Api.Contracts.Enums.ApiStatus.Forbidden,
+                        "連携で許可されたスコープが不足しています（書き込みには、連携をやり直して書き込みも許可してください）"),
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                    {
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    }));
+            }
+        };
+    });
 
 // API キー用の認可ポリシー
 // 認証スキームが ApiKey のときだけ scope を要求し、JWT は素通りさせる
@@ -137,6 +193,9 @@ builder.Services.AddAuthorization(opts =>
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, ApiKeyScopeHandler>();
+
+// Claude などの MCP クライアント向けの OAuth 認可サーバー（OAuth セクションが未設定なら無効）
+builder.Services.AddSeleneOAuthServer(builder.Configuration, builder.Environment);
 #endregion
 
 // DI 登録
@@ -202,9 +261,20 @@ builder.Services.AddScoped<ReceiptEvaluatorService>();
 #endregion
 
 #region Repositories
+// Npgsql 10 から GSS 暗号化を既定で試みるため、Kerberos のライブラリがないイメージでは起動時にエラーが出る。
+// Kerberos は使わないので無効にする（https://www.npgsql.org/doc/release-notes/10.0.html）
+var connectionString = new NpgsqlConnectionStringBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection"))
+{
+    GssEncryptionMode = GssEncryptionMode.Disable
+}.ConnectionString;
+
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
-    opts.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    opts.UseNpgsql(connectionString);
+    // OAuth 認可サーバー（OpenIddict）のテーブルを同じ DB に置く
+    opts.UseOpenIddict();
+});
 
 // Readiness 用に DB 接続チェックを登録
 builder.Services.AddHealthChecks()
@@ -294,19 +364,10 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Swashbuckle 10（Microsoft.OpenApi 2.x）から、スキームはドキュメントを通した参照で指定する
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 #endregion

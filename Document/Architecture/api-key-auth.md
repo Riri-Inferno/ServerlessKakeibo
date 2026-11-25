@@ -114,6 +114,8 @@ flowchart TD
 
 認証パイプラインで生成された `ClaimsPrincipal` の中身は、JWT 経由でも API キー経由でも実質的に同じ（`sub` = UserId, `tenant_id` = TenantId）。違いはスキーム名と `scope` クレームの有無のみ。これにより、コントローラー側のビジネスロジックは認証手段の差異を意識しなくて良い。
 
+> OAuth の連携経由（MCP サーバーがトークン交換で受け取るトークン）も、同じ扱いのスキーム `OAuth` として加えた（#108）。`JwtOrApiKeySchemes` に含まれるので使えるエンドポイントは API キーと同じで、スコープも `ApiKeyScopeHandler` が同じく `scope` クレームで判定する。詳細は [oauth-authorization-server.md](oauth-authorization-server.md) の「連携経由の API 呼び出し」。
+
 ## データモデル
 
 新規エンティティ `ApiKeyEntity`（`BaseEntity` を継承し、xmin・IsDeleted・TenantId は既存ルールに準拠）。

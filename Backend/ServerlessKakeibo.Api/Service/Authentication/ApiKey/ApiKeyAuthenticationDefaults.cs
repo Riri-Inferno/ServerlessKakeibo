@@ -24,7 +24,8 @@ public static class ApiKeyAuthenticationDefaults
     /// <summary>
     /// JWT と APIキーの両方を受け付けるエンドポイントで使う AuthenticationSchemes
     /// </summary>
-    public const string JwtOrApiKeySchemes = "Bearer," + AuthenticationScheme;
+    // OAuth の連携経由のトークン（OAuthDelegatedDefaults.AuthenticationScheme）も、API キーと同じエンドポイントで受け付ける
+    public const string JwtOrApiKeySchemes = "Bearer," + AuthenticationScheme + ",OAuth";
 
     /// <summary>
     /// 読み取りスコープを要求する認可ポリシー名
