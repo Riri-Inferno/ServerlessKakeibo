@@ -42,6 +42,7 @@ public static class OAuthServerServiceCollectionExtensions
             .ConfigurePrimaryHttpMessageHandler(ClientIdMetadataDocumentClient.CreateHandler);
         services.AddSingleton<ClientIdMetadataDocumentClient>();
         services.AddSingleton<ConsentTicketService>();
+        services.AddSingleton<DelegatedTokenService>();
 
         if (!settings.IsEnabled)
         {
@@ -90,6 +91,17 @@ public static class OAuthServerServiceCollectionExtensions
                     })
                     // OpenIddict の組み込みのハンドラ（int.MaxValue - 100_000 から順に並ぶ）より後に動かす
                     .SetOrder(int.MaxValue));
+            })
+            // トークン交換で、MCP サーバーから受け取ったアクセストークンを検証する（OAuthTokenExchangeController）。
+            // ASP.NET Core の認証スキームとしては登録しない（既存の API は OpenIddict のトークンを受け付けない）
+            .AddValidation(options =>
+            {
+                options.UseLocalServer();
+                // 宛先（aud）が MCP サーバーのトークンだけを受け付ける
+                options.AddAudiences(settings.McpResource!);
+                // 連携やトークンが失効していれば拒否する（連携の解除をすぐに反映する）
+                options.EnableAuthorizationEntryValidation();
+                options.EnableTokenEntryValidation();
             });
 
         return services;

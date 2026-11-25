@@ -46,8 +46,8 @@ public class UserSettingsController : ControllerBase
 
             var result = await useCase.ExecuteAsync(userId);
 
-            // APIキー（MCP など外部の LLM に渡る経路）には個人を特定できる情報を返さない
-            if (User.IsApiKeyAuthenticated())
+            // API キーや OAuth の連携（MCP など外部の LLM に渡る経路）には個人を特定できる情報を返さない
+            if (User.IsDelegatedAccess())
             {
                 result = result with { Email = null, PictureUrl = null };
             }

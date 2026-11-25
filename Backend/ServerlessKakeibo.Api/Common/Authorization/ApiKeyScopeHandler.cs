@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using ServerlessKakeibo.Api.Service.Authentication.ApiKey;
+using ServerlessKakeibo.Api.Service.Authentication.OAuth;
 
 namespace ServerlessKakeibo.Api.Common.Authorization;
 
@@ -24,17 +25,15 @@ public class ApiKeyScopeHandler : AuthorizationHandler<ApiKeyScopeRequirement>
             return Task.CompletedTask;
         }
 
-        // ApiKey スキーム以外（JWT 等）は素通り
-        if (!string.Equals(
-                identity.AuthenticationType,
-                ApiKeyAuthenticationDefaults.AuthenticationScheme,
-                StringComparison.Ordinal))
+        // ApiKey と OAuth（連携経由）以外（ログインした本人の JWT）は素通り
+        if (!string.Equals(identity.AuthenticationType, ApiKeyAuthenticationDefaults.AuthenticationScheme, StringComparison.Ordinal) &&
+            !string.Equals(identity.AuthenticationType, OAuthDelegatedDefaults.AuthenticationScheme, StringComparison.Ordinal))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
         }
 
-        // ApiKey スキームの場合は scope クレームで判定
+        // ApiKey と OAuth の場合は scope クレームで判定
         var hasScope = identity.Claims.Any(c =>
             c.Type == "scope" &&
             string.Equals(c.Value, requirement.RequiredScope, StringComparison.Ordinal));
