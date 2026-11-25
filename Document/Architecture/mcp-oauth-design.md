@@ -233,20 +233,21 @@ backend（ASP.NET Core）の認可サーバーには [OpenIddict](https://github
 
 - **個人のアカウントで作れるか**：作れる。カスタムコネクタは Free 以上のプランで使え [[C3]](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp)、OAuth（DCR と CIMD）は「デフォルトでサポート」されている [[C2]](https://claude.com/docs/connectors/building/authentication)
 - **業務システムで、組織で 1 つのキーを使う場合**：`static_headers` を使い、組織の Owner がコネクタを追加するときにキーを入力する。ベータ版で、限られた組織しか使えない [[C2]](https://claude.com/docs/connectors/building/authentication)。Team / Enterprise では、Owner がコネクタを組織に追加し、メンバーはそれぞれ接続する [[C3]](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp)
-- **同じ Claude アカウントで、端末ごとに接続が必要か**：接続は端末からではなく Anthropic のクラウドから行われる [[C3]](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp) ので、アカウント単位で 1 回になると考えられる。ただし「Web で追加したコネクタがスマホにも出る」ことは明記されていない（**未確認**。#110 で確かめる）。Claude Code は別で、端末ごとに設定する
+- **同じ Claude アカウントで、端末ごとに接続が必要か**：接続は端末からではなく Anthropic のクラウドから行われる [[C3]](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp) ので、アカウント単位で 1 回になると考えられる。「Web で追加したコネクタがスマホにも出る」ことは一次ソースには明記されていないが、実際に Web で追加したコネクタがスマホでそのまま使えた（2026-11-25）。Claude Code は別で、端末ごとに設定する
 - **別々の Claude アカウントが、同時に同じ MCP サーバーを使えるか**：使える。MCP サーバーはリクエストごとにトークンを受け取って処理し、セッションを持たない
   - OAuth の場合：Claude アカウントごとに SELENE にログインして承認し、別々のトークンを受け取る。2 人が同じ SELENE アカウントで承認すれば、トークンは別々でも同じ家計簿を共有する。片方の連携だけを失効させられる
   - API キーの場合：同じキーを両方に設定しても使える。ただし、どちらからの呼び出しかは区別できず、失効させると両方が止まる
 
 ## 未決事項
 
-- Cloudflare の Bot Fight Mode が Claude からの接続を止める場合は、`160.79.104.0/21` を WAF で除外する。最新の IP 範囲は [[C4]](https://platform.claude.com/docs/en/api/ip-addresses) で確認する → #110
-- Web で追加したコネクタが、スマホのアプリにも出るか（**未確認**）→ #110
+なし（2026-11-25 にリリース環境で確認して、すべて解決した）
 
 解決済み:
 
 - アクセストークンの形式：OpenIddict の既定（暗号化された JWT）。MCP サーバーは中身を読まず、交換のときに backend が検証する
 - クライアント登録の方式：CIMD のみ。Claude Code も CIMD に対応している
+- Cloudflare の Bot Fight Mode：claude.ai からの接続は止められなかった（WAF の除外は不要だった）
+- Web で追加したコネクタがスマホのアプリにも出るか：出る。Web（claude.ai）で追加したコネクタが、スマホの Claude アプリでそのまま使えた。スマホで撮ったレシートの写真から、取引を登録できた
 - トークン交換のエンドポイントの守り方：`/internal/` 以下を Cloudflare Tunnel で外に出さない。MCP サーバーに秘密情報は持たせない（交換できるのは有効なアクセストークンを持つ場合だけで、権限は広がらない）
 - 承認画面：読み取りは必須、書き込みは選べる（クライアントが求めている場合だけ、既定でオン）。連携の一覧と解除は、設定画面に API キーとは別のセクションとして置いた
 
