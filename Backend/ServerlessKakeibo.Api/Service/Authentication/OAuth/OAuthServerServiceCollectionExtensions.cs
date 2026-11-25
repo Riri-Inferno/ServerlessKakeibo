@@ -107,6 +107,37 @@ public static class OAuthServerServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// 公開しているホスト名（Issuer のホスト）で届いたリクエストを、https として扱う。
+    ///
+    /// TLS は Cloudflare で終端し、backend には http で届く。OpenIddict はメタデータのエンドポイントの URL
+    /// （authorization_endpoint など）をリクエストのスキームから作るため、そのままだと http の URL を返してしまう。
+    /// MCP の仕様では認可サーバーのエンドポイントは HTTPS が必須（MUST）。
+    /// Issuer のホスト名で届くのは、外部から Cloudflare Tunnel を通ったリクエスト（＝ https）だけなので、スキームを https にする。
+    /// クラスタ内から Service の名前で呼ぶリクエスト（MCP サーバーのトークン交換など）は対象外。
+    /// UseAuthentication より前に置く（OpenIddict は認証のミドルウェアの中で動く）。
+    /// </summary>
+    public static IApplicationBuilder UseSeleneOAuthPublicScheme(this IApplicationBuilder app)
+    {
+        var settings = app.ApplicationServices
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<OAuthServerSettings>>().Value;
+        if (!settings.IsEnabled ||
+            !Uri.TryCreate(settings.Issuer, UriKind.Absolute, out var issuer) ||
+            issuer.Scheme != Uri.UriSchemeHttps)
+        {
+            return app;
+        }
+
+        return app.Use((context, next) =>
+        {
+            if (string.Equals(context.Request.Host.Host, issuer.Host, StringComparison.OrdinalIgnoreCase))
+            {
+                context.Request.Scheme = Uri.UriSchemeHttps;
+            }
+            return next(context);
+        });
+    }
+
     private static void AddKeys(OpenIddictServerBuilder options, OAuthServerSettings settings, IHostEnvironment environment)
     {
         if (!string.IsNullOrWhiteSpace(settings.SigningKey) && !string.IsNullOrWhiteSpace(settings.EncryptionKey))

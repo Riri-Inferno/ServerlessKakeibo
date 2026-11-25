@@ -388,6 +388,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
+// OAuth のメタデータが https のエンドポイントを返すように、公開ホスト名のリクエストを https として扱う
+app.UseSeleneOAuthPublicScheme();
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
