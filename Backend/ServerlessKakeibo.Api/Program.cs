@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+using ServerlessKakeibo.Api.Service.Authentication.OAuth;
 using ServerlessKakeibo.Api.Application.Authentication;
 using ServerlessKakeibo.Api.Application.Authentication.Usecases;
 using ServerlessKakeibo.Api.Application.ReceiptParsing;
@@ -138,6 +139,9 @@ builder.Services.AddAuthorization(opts =>
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, ApiKeyScopeHandler>();
+
+// Claude などの MCP クライアント向けの OAuth 認可サーバー（OAuth セクションが未設定なら無効）
+builder.Services.AddSeleneOAuthServer(builder.Configuration, builder.Environment);
 #endregion
 
 // DI 登録
@@ -212,7 +216,11 @@ var connectionString = new NpgsqlConnectionStringBuilder(
 }.ConnectionString;
 
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
-    opts.UseNpgsql(connectionString));
+{
+    opts.UseNpgsql(connectionString);
+    // OAuth 認可サーバー（OpenIddict）のテーブルを同じ DB に置く
+    opts.UseOpenIddict();
+});
 
 // Readiness 用に DB 接続チェックを登録
 builder.Services.AddHealthChecks()
