@@ -117,7 +117,8 @@ Client ID Metadata Document に対応する。DCR（RFC 7591）には対応し�
 - `McpResource` は、クライアントが送る `resource` パラメータと**文字列として完全に一致**しないと拒否される。OpenIddict は URL を正規化するため、パスのない URL（`https://mcp-kakeibo.riri-inferno.com`）は末尾に `/` が付いて一致しなくなる。MCP の仕様の例どおり、エンドポイントの URL（`/mcp` 付き）にする。MCP サーバーの Protected Resource Metadata の `resource` も同じ値にする（#109）
 - 鍵は、Development では未設定でもよい（起動ごとに一時的な鍵を作るので、再起動すると発行済みのトークンは使えなくなる）。それ以外の環境では、未設定だと起動に失敗する
 - リリース環境に出すときは、鍵を Secret（home-raspi-iac の SealedSecret）に追加する必要がある（#110）
-- TLS は Cloudflare で終端し、クラスタ内は HTTP で届くため、OpenIddict の HTTPS 必須のチェックは外している。公開される URL は `Issuer` から作るので https になる
+- TLS は Cloudflare で終端し、クラスタ内は HTTP で届くため、OpenIddict の HTTPS 必須のチェックは外している
+- OpenIddict はメタデータのエンドポイントの URL（`authorization_endpoint`、`token_endpoint` など）を**リクエストのスキームから作る**（`issuer` だけは設定の値）。そのままでは http の URL を返してしまうため、`Issuer` と同じホスト名で届いたリクエストは https として扱う（`UseSeleneOAuthPublicScheme`）。そのホスト名で届くのは Cloudflare Tunnel を通った外部からのリクエストだけで、クラスタ内から Service の名前で呼ぶリクエストは対象外。v1.5.0 ではこれがなく、リリース環境のメタデータが http のエンドポイントを返していた（v1.5.1 で修正）
 
 ## 動作確認（ローカル）
 
