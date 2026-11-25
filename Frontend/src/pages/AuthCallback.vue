@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
+import { consumePostLoginRedirect } from "../utils/postLoginRedirect";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
 import BaseSpinner from "../components/atoms/BaseSpinner.vue";
@@ -35,7 +36,8 @@ onMounted(async () => {
     await loginWithGitHub(code, state);
 
     // ダッシュボードにリダイレクト
-    router.push({ name: "dashboard" });
+    // 承認画面などから来た場合は、ログイン後に元の画面へ戻す
+    router.push(consumePostLoginRedirect() ?? { name: "dashboard" });
   } catch (error) {
     console.error("GitHub 認証エラー:", error);
 
