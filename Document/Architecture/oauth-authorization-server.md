@@ -10,7 +10,8 @@ Claude アプリ（Web・スマホ・デスクトップ）のカスタムコネ�
 ない。
 
 - 認証の既定のスキーム（JwtBearer）は変えない。OpenIddict は自分のエンドポイント（`/oauth/*`、`/.well-known/*`）だけを処理する
-- OpenIddict.Validation（OpenIddict が発行したトークンで API を認証する機能）は登録しない。今の API は、これまでどおり JWT と API キーだけで認証する
+- OpenIddict が発行したアクセストークンでは、既存の API は使えない。OpenIddict.Validation はトークン交換のときの検証にだけ使い、ASP.NET Core の認証スキームとしては登録しない
+- 連携経由で API を呼ぶ認証方式（`OAuth`）を 1 つ足した。API キーと同じエンドポイントだけで使え、ログインした本人の JWT とは区別される（下記「連携経由の API 呼び出し」）
 - DB は OpenIddict のテーブルを 4 つ追加するだけ（`OpenIddictApplications`、`OpenIddictAuthorizations`、`OpenIddictScopes`、`OpenIddictTokens`）
   - テーブルの定義（エンティティの型と列の設定）は OpenIddict の NuGet パッケージ（`OpenIddict.EntityFrameworkCore.Models`）にあり、`Infrastructure/Data/Entities` には置いていない。`Program.cs` の `opts.UseOpenIddict()` で `ApplicationDbContext` のモデルに加わり、マイグレーション（`AddOpenIddict`）は EF で生成した
   - 主キーは OpenIddict の既定の `string` で、SELENE のエンティティ（`Guid`、`BaseEntity`）とは揃えていない。このテーブルは OpenIddict の Manager からしか読み書きしないため
@@ -26,7 +27,10 @@ Claude アプリ（Web・スマホ・デスクトップ）のカスタムコネ�
 | `GET/POST /oauth/authorize` | 認可エンドポイント。OpenIddict が検証したあと、`OAuthAuthorizationController` で承認画面との受け渡しをする |
 | `POST /oauth/token` | トークンエンドポイント。認可コードとリフレッシュトークンを OpenIddict が処理する |
 | `GET /api/oauth/authorize-info` | 承認画面に表示するクライアントの情報（JWT のみ） |
-| `POST /api/oauth/consent` | 連携を許可し、承認チケットを返す（JWT のみ。API キーでは不可） |
+| `POST /api/oauth/consent` | 連携を許可し、承認チケットを返す（JWT のみ。API キーや連携経由では不可） |
+| `GET /api/oauth/connections` | 連携中のアプリの一覧（JWT のみ） |
+| `DELETE /api/oauth/connections/{id}` | 連携を解除し、その連携のトークンもすべて失効させる（JWT のみ） |
+| `POST /internal/oauth/token-exchange` | MCP サーバー向けのトークン交換（RFC 8693 の形式）。Cloudflare Tunnel で外部からは届かない |
 
 メタデータの主な内容:
 
@@ -125,9 +129,43 @@ Claude Code の公開 CIMD を client_id に使い、次の 26 項目を確か�
 - 既存の認証：JWT と API キーは変わらず使える。OAuth のアクセストークンでは既存の API は使えない（交換は #108）
 - `OAuth` の設定がない場合：`/oauth/*`・メタデータ・承認 API は 404、既存の認証は変わらない
 
+## 連携経由の API 呼び出し（トークン交換）
+
+MCP サーバーは、Claude などから受け取ったアクセストークン（宛先 = MCP サーバー）をそのまま backend に渡してはならない（MCP の仕様で MUST NOT）。そこで、Tool を呼ぶたびに backend で交換してから API を呼ぶ（#108）。
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant M as kakeibo-mcp
+  participant X as backend<br/>/internal/oauth/token-exchange
+  participant API as backend<br/>既存の API
+
+  M->>X: subject_token = アクセストークン（宛先 = MCP サーバー）
+  X->>X: 署名、期限、宛先、トークンと連携が失効していないか、ユーザーがいるか
+  X-->>M: 交換したトークン（宛先 = selene-api-oauth、5 分）
+  M->>API: Authorization: Bearer <交換したトークン>
+  API->>API: OAuth の認証方式で検証し、read / write のスコープを判定
+  API-->>M: 結果
+```
+
+- **交換したトークン**：ログイン用の JWT と同じ鍵で署名した JWT。宛先（`aud`）を `selene-api-oauth` にして、ログイン用の JWT（`Authentication:Jwt:Audience`）とは区別する。クレームはユーザー、テナント、連携の ID、client_id、スコープ（`scope`）
+- **認証方式 `OAuth`**：交換したトークンを受け付ける JwtBearer のスキーム。`JwtOrApiKeySchemes`（API キーで使えるエンドポイント）に加えたので、**使えるエンドポイントは API キーと同じ**。画面専用の API（`[Authorize(AuthenticationSchemes = "Bearer")]`：API キーの発行、連携の承認・一覧・解除など）は使えない
+- **スコープ**：`ApiKeyScopeHandler` が、API キーと同じく `scope` クレームで read / write を判定する。不足していれば 403 と理由（「連携で許可されたスコープが不足しています」）を返す
+- **個人情報**：API キーと同じく、ユーザー設定からメールアドレスと画像の URL を返さない（`IsDelegatedAccess`）
+- **連携の解除はすぐに反映される**：交換のたびに、OpenIddict の検証で連携とトークンの状態を確かめるため。交換したトークン（最長 5 分）は解除後も期限までは使えるが、MCP サーバーはリクエストごとに交換するので、実際には次の Tool の呼び出しから使えなくなる
+- **`/internal/` を外に出さない**：Cloudflare Tunnel（home-raspi-iac の cloudflared の ingress）で、`api-kakeibo` の `/internal/` 以下を 404 にしている。MCP サーバーはクラスタ内の URL で呼ぶ。仮に外から届いても、交換できるのは有効なアクセストークンを持っている場合だけで、得られる権限はそのトークンと同じなので、権限が広がることはない。MCP サーバーに秘密情報を持たせないために、クライアント認証はしていない
+
+## 承認画面と連携の一覧（フロントエンド）
+
+- `/oauth/consent`（`pages/OAuthConsent.vue`）：backend から転送されてくる承認画面
+  - 未ログインなら、ログイン画面に移り、ログイン後に元の画面（パラメータ付き）へ戻る（`utils/postLoginRedirect.ts`。GitHub ログインでいったん外に出るので sessionStorage に保存する）
+  - クライアント名と、認可コードを返す先のホスト名をはっきり表示する（なりすまし対策。MCP の仕様で MUST）
+  - 読み取りは必須。書き込みはクライアントが求めているときだけ選べ、既定でオン（外せば読み取りだけの連携になる）
+  - 許可したら承認チケットを受け取り、元のパラメータとチケットを付けて `/oauth/authorize` に戻る。許可しなければ `consent_denied=1` を付けて戻る
+- 設定画面の「連携中のアプリ」（`components/organisms/OAuthConnectionSection.vue`）：API キーとは別のセクション。アプリ名、許可した日時、最後に使った日時、スコープ、解除ボタン
+  - 最後に使った日時は、その連携で最後にトークンを発行した日時（アクセストークンは 60 分ごとに更新されるので、使っていればその頃の日時になる）
+  - 同じアプリでも、接続し直すたびに別の連携として記録される
+
 ## まだやっていないこと
 
-- 承認画面と、連携の一覧・失効の画面（#107）
-- MCP サーバーが受け取ったトークンを、backend の API を呼ぶためのトークンに交換する（#108）
-- MCP サーバーの Protected Resource Metadata と 401 の応答（#109）
-- Claude で実際に接続して確かめる（#110）
+- Claude で実際に接続して確かめ、リリース環境に設定（鍵、MCP サーバーの環境変数）を入れる（#110）

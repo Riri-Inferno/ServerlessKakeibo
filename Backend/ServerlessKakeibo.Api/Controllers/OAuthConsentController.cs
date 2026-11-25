@@ -93,10 +93,10 @@ public class OAuthConsentController : ControllerBase
             return NotFound(ApiResponse<OAuthConsentResult>.Fail(ApiStatus.NotFound, "OAuth は無効です"));
         }
 
-        if (User.IsApiKeyAuthenticated())
+        if (User.IsDelegatedAccess())
         {
             return StatusCode(StatusCodes.Status403Forbidden,
-                ApiResponse<OAuthConsentResult>.Fail(ApiStatus.Forbidden, "API キーでは連携を許可できません"));
+                ApiResponse<OAuthConsentResult>.Fail(ApiStatus.Forbidden, "API キーや連携中のアプリからは、連携を許可できません"));
         }
 
         var scopes = request.Scopes.Distinct().ToList();

@@ -15,6 +15,7 @@ import TransactionExportModal from "../components/organisms/TransactionExportMod
 import TransactionDeleteConfirmModal from "../components/organisms/TransactionDeleteConfirmModal.vue";
 import CategoryManagementSection from "../components/organisms/CategoryManagementSection.vue";
 import ApiKeyManagementSection from "../components/organisms/ApiKeyManagementSection.vue";
+import OAuthConnectionSection from "../components/organisms/OAuthConnectionSection.vue";
 import BaseBadge from "../components/atoms/BaseBadge.vue";
 import { getEnvironmentLabel } from "../utils/env";
 
@@ -404,6 +405,8 @@ const closeDeleteModal = () => {
         </BaseCard>
 
         <ApiKeyManagementSection />
+
+        <OAuthConnectionSection />
 
         <BaseCard class="p-4 md:p-6">
           <div class="space-y-3 md:space-y-4">

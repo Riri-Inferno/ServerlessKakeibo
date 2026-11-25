@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { googleSdkLoaded, type CallbackTypes } from "vue3-google-login";
 import { useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
+import { consumePostLoginRedirect } from "../utils/postLoginRedirect";
 import { isDemoMode, getGoogleClientId } from "../utils/env";
 import BaseCard from "../components/atoms/BaseCard.vue";
 import BaseText from "../components/atoms/BaseText.vue";
@@ -28,7 +29,8 @@ const handleCredentialResponse = async (response: CredentialResponse) => {
     if (!idToken) throw new Error("Google ID Token を取得できませんでした");
 
     await loginWithGoogle(idToken);
-    router.push({ name: "dashboard" });
+    // 承認画面などから来た場合は、ログイン後に元の画面へ戻す
+    router.push(consumePostLoginRedirect() ?? { name: "dashboard" });
   } catch (error) {
     console.error("Google ログインエラー:", error);
   }
@@ -46,7 +48,8 @@ const handleGitHubLogin = () => {
 const handleDemoLogin = async () => {
   try {
     await loginWithDemo();
-    router.push({ name: "dashboard" });
+    // 承認画面などから来た場合は、ログイン後に元の画面へ戻す
+    router.push(consumePostLoginRedirect() ?? { name: "dashboard" });
   } catch (error) {
     console.error("デモログインエラー:", error);
   }
